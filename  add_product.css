@@ -1,0 +1,80 @@
+/* products.css */
+
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f8f8; /* Light background color for the page */
+    color: #333; /* Dark text color */
+    margin: 0;
+    padding: 0;
+}
+
+header, footer {
+    background-color: #ffc0cb; /* Light pink background for header and footer */
+    color: #fff; /* White text color */
+    text-align: center;
+    padding: 1rem;
+}
+
+h1, h2 {
+    margin: 0;
+}
+
+h2 {
+    color: #d85a9d; /* Darker pink for section headers */
+}
+
+/* Product Sections */
+.product-category {
+    margin: 2rem auto;
+    max-width: 1200px;
+    padding: 1rem;
+    background-color: #fff; /* White background for product sections */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+.product-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.product {
+    background-color: #f9f9f9; /* Slightly off-white for product items */
+    border: 1px solid #ddd; /* Light border around product items */
+    border-radius: 8px;
+    overflow: hidden;
+    text-align: center;
+    width: calc(33.333% - 1rem); /* Three products per row */
+    box-sizing: border-box;
+    padding: 1rem;
+}
+
+.product img {
+    max-width: 100%;
+    height: auto;
+    border-bottom: 1px solid #ddd;
+}
+
+.product p {
+    margin: 0.5rem 0;
+}
+
+.product-price {
+    font-weight: bold;
+    color: #d85a9d; /* Dark pink for prices */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .product {
+        width: calc(50% - 1rem); /* Two products per row on medium screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .product {
+        width: 100%; /* One product per row on small screens */
+    }
+}
