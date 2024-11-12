@@ -1,0 +1,17 @@
+{
+  "name": "the-pink-closet",
+  "version": "1.0.0",
+  "description": "Node.js server for The Pink Closet app",
+  "main": "index.js",  // Use the name of your server file if different
+  "scripts": {
+    "start": "node index.js"  // Replace 'index.js' with the actual entry point of your server
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^5.10.9"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": "14.x"
+  }
+}
