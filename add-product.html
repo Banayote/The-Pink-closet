@@ -35,54 +35,54 @@
         document.getElementById('add-product-form').addEventListener('submit', async (event) => {
             event.preventDefault();
 
-            // Get product details
             const productName = document.getElementById('product-name').value;
             const productDescription = document.getElementById('product-description').value;
             const productPrice = document.getElementById('product-price').value;
             const productCategory = document.getElementById('product-category').value;
             const productImage = document.getElementById('product-image').files[0];
 
-            // Check if an image is selected
             if (!productImage) {
                 alert('Please select an image.');
                 return;
             }
 
-            // Upload image to Cloudinary
-            const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload'; // Your Cloudinary cloud name
+            const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload'; // Your Cloudinary URL
             const formData = new FormData();
             formData.append('file', productImage);
             formData.append('upload_preset', 'BANYOTE'); // Your upload preset
 
             try {
-                const response = await fetch(cloudinaryUrl, {
+                const imageResponse = await fetch(cloudinaryUrl, {
                     method: 'POST',
                     body: formData
                 });
-                const data = await response.json();
+                const imageData = await imageResponse.json();
 
-                // Prepare product object
                 const product = {
                     name: productName,
                     description: productDescription,
                     price: productPrice,
                     category: productCategory,
-                    image: data.secure_url // Get the secure URL of the uploaded image
+                    image: imageData.secure_url
                 };
 
-                // Save product to local storage
-                let products = JSON.parse(localStorage.getItem('products')) || [];
-                products.push(product);
-                localStorage.setItem('products', JSON.stringify(products));
+                const response = await fetch('http://localhost:3000/api/products', { // Update URL if needed
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(product)
+                });
 
-                // Clear form
+                if (!response.ok) throw new Error('Failed to add product');
+                
                 event.target.reset();
                 alert('Product added successfully!');
-
             } catch (error) {
-                console.error('Error uploading image:', error);
-                alert('Failed to upload image. Please try again.');
+                console.error('Error adding product:', error);
+                alert('Failed to add product. Please try again.');
             }
         });
-    </script>                                                           </body>
+    </script>
+</body>
 </html>
