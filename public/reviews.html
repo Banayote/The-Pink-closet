@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Section</title>
+    <style>
+    
+        body {
+            
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+
+        .review-section {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        .review-box {
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            background-color: #fff;
+            border: 1px solid #ff99cc;
+        }
+
+        .review-text {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .review-actions {
+            display: flex;
+            justify-content: flex-start;
+            gap: 15px;
+        }
+
+        .review-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #ff66a3;
+            padding: 0;
+            font-size: 14px;
+        }
+
+        .input-section {
+            position: relative;
+            margin-top: 100px;
+        }
+
+        .input-section input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+            background-color: #f9f9f9;
+            font-size: 16px;
+            color: #333;
+            margin-left: 10px;
+            box-sizing: border-box;
+        }
+
+        .input-section .icons {
+    position: absolute;
+    top: 40px;
+    right: 20px;
+    display: flex;
+    align-items: center; /* Ensure vertical alignment */
+    gap: 10px; /* Space between icons */
+}
+
+        .input-section .icons svg,
+        .input-section .icons .gif {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+
+        .input-section .icons .gif {
+            border: 1px solid #ff66a3;
+            border-radius: 5px;
+            background-color: white;
+            color: #ff66a3;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            padding: 5px;
+        }
+
+        .input-section .icons .camera 1{
+            border-radius: 50%;
+            padding: 5px;
+        }
+
+        .input-section .icons .camera circle {
+            cx: 13;
+            cy: 14;
+            r: 5;
+        }
+
+        .input-section .icons .emoji {
+            width: 28px;
+            height: 28px;
+        }
+
+        .input-section .icons .emoji path:nth-of-type(1) {
+            transform: translateX(-1px);
+        }
+
+        .input-section .icons .emoji path:nth-of-type(3) {
+            transform: translateX(-1px);
+        }
+
+        .input-section .icons .emoji path:nth-of-type(1) {
+            transform: translateY(1px);
+        }
+
+        .send-button {
+    background-color: lightpink;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute; /* Ensure it's positioned absolutely */
+    right: 340px; /* Keep it aligned to the right */
+    top: 140%; /* Adjust this value to lower it */
+    transform: translateY(-50%); /* Center it vertically */
+}
+
+
+
+        .send-button svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .recording-bar {
+            display: none;
+            position: absolute;
+            top: -0px;
+            right: 10px;
+            width: calc(104% - 40px);
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 50px;
+            padding: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: px px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ff66a3;
+        }
+
+        .recording-bar .pulse {
+            width: 100%;
+            height: 5px;
+            background: white;
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .recording-bar .pulse::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 100%;
+            background: rgba(255, 105, 180, 0.6);
+            animation: pulse 1.5s;
+            transform: translateX(-50%);
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .recording-bar button {
+            background: white;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 18px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .recording-bar button::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            background: white;
+            display: block;
+        }
+
+        .recording-bar button::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            background: pink;
+            display: block;
+            position: absolute;
+            top: 50%;
+            left: 94.6%;
+            transform: translate(-50%, -50%);
+        }
+
+        .gifs-container {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            max-height: 70%;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px 10px 0 0;
+            box-shadow: 0px -4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            overflow: auto;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .gifs-container.show {
+            transform: translateY(0);
+        }
+
+        .gifs-container .header {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+        }
+
+        .gifs-container .header input {
+            width: calc(100% - 40px);
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .gifs-container .header button {
+            background: none;
+            border: none;
+            color: #ff66a3;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .gifs-container .gifs {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 10px;
+        }
+
+        .gifs-container .gifs img {
+            width: 100px;
+            height: 100px;
+            cursor: pointer;
+            border-radius: 1px;
+            margin: 5px;
+        }
+   .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal img,
+        .modal video {
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+
+<div class="review-section">
+    <div id="review-list">
+        <div class="review-box">
+            <p class="review-text">This is an example review text.</p>
+            <div class="review-actions">
+                <button>Like</button>
+                <button>Reply</button>
+            </div>
+        </div>
+
+        <div class="review-box">
+            <p class="review-text">Another example review text. This one is a bit longer to see how it looks when it's more than just a short line of text.</p>
+            <div class="review-actions">
+                <button>Like</button>
+                <button>Reply</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-section">
+      <button class="send-button">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(180deg);">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+    </svg>
+</button>
+
+
+
+
+        <input type="text" id="review-input" placeholder="Write a review...">
+        <div class="icons">
+            <svg id="mic-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff66a3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 1a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4 4 4 0 0 1-4-4V5a4 4 0 0 1 4-4zM12 23v-4m0 0H8m4 0h4M4 10v6a8 8 0 0 0 16 0v-6" />
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="emoji" viewBox="0 0 24 24" fill="none" stroke="#ff66a3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M8 15c1.333 1.333 3 2 4 2s2.667-.667 4-2" />
+              <path d="M9 10a1 1 0 1 0 2 0 1 1 0 0 0-2 0zm4 0a1 1 0 1 0 2 0 1 1 0 0 0-2 0" />
+            </svg>
+            <button class="gif">GIF</button>
+            <svg xmlns="http://www.w3.org/2000/svg" class="camera" viewBox="0 0 24 24" fill="none" stroke="#ff66a3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="13" r="5" />
+              <path d="M5 7h4l1-2h6l1 2h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z" />
+            </svg>
+        </div>
+        <div id="recording-bar" class="recording-bar">
+            <div class="pulse"></div>
+            <button id="stop-recording">Stop</button>
+        </div>
+        <div id="gifs-container" class="gifs-container">
+            <div class="header">
+                <input type="text" id="gif-search" placeholder="Search GIFs...">
+                <button id="close-gifs">✕</button>
+            </div>
+            <div class="gifs">
+                <img src="https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif" alt="GIF 1">
+                <img src="https://media.giphy.com/media/3o6ozG9cuc7iHsCcso/giphy.gif" alt="GIF 2">
+                <img src="https://media.giphy.com/media/3o6gE8zG9vZfJ3lbPQ/giphy.gif" alt="GIF 3">
+            </div>
+        </div>
+    </div>
+    <div id="modal" class="modal">
+        <span id="close-modal" style="color: white; position: absolute; top: 20px; right: 20px; cursor: pointer;">✕</span>
+        <img id="modal-img" src="" alt="">
+        <video id="modal-video" controls style="display: none;"></video>
+    </div>
+</div>
+    
+<script src="https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@4.6.2/dist/emoji-button.min.js"></script>
+
+<script>
+    const micIcon = document.getElementById('mic-icon');
+const recordingBar = document.getElementById('recording-bar');
+const stopButton = document.getElementById('stop-recording');
+const reviewInput = document.getElementById('review-input');
+const sendButton = document.querySelector('.send-button');
+const reviewList = document.getElementById('review-list');
+const icons = document.querySelectorAll("img");
+const gifButton = document.querySelector('.gif');
+const gifsContainer = document.getElementById('gifs-container');
+const gifSearch = document.getElementById('gif-search');
+const gifImages = gifsContainer.querySelectorAll('img');
+const closeGifsButton = document.getElementById('close-gifs');
+const cameraIcon = document.querySelector('.camera');
+const modal = document.getElementById('modal');
+const modalImg = document.getElementById('modal-img');
+const modalVideo = document.getElementById('modal-video');
+const closeModal = document.getElementById('close-modal');
+
+// Function to add a review, including media
+function addReview(content, media = null) {
+    const reviewBox = document.createElement('div');
+    reviewBox.className = 'review-box';
+    reviewBox.innerHTML = `
+        <p class="review-text">${content}</p>
+        ${media ? media : ''}
+        <div class="review-actions">
+            <button>Like</button>
+            <button>Reply</button>
+        </div>
+    `;
+    reviewList.prepend(reviewBox);
+}
+    function addGifToReview(src) {
+        const reviewContent = reviewInput.value.trim();
+        reviewInput.value = `${reviewContent} <img src="${src}" style="max-width: 100px; max-height: 100px;">`;
+    }
+
+// Initially hide the recording bar
+recordingBar.style.display = 'none';
+
+micIcon.addEventListener('click', () => {
+    recordingBar.style.display = 'flex'; // Show recording bar
+    micIcon.style.display = 'none'; // Hide mic icon
+    icons.forEach(icon => icon.style.display = 'none'); // Hide other icons
+    reviewInput.style.display = 'none'; // Hide input field
+});
+
+// Stop button event listener
+stopButton.addEventListener('click', () => {
+    recordingBar.style.display = 'none'; // Hide recording bar
+    micIcon.style.display = 'block'; // Show mic icon
+    icons.forEach(icon => icon.style.display = 'block'); // Show other icons
+    reviewInput.style.display = 'block'; // Show input field
+
+    // Here we simulate adding a recorded audio (you should replace this with actual recording logic)
+    addReview('[Recorded Audio]', `<audio controls><source src="path/to/recorded/audio/file.mp3" type="audio/mpeg">Your browser does not support the audio tag.</audio>`);
+    micIcon.addEventListener('click', async () => {
+        if (!mediaRecorder) {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const audioFile = new File([audioBlob], 'audio.wav', { type: 'audio/wav' });
+                addReview('Audio Review', { file: audioFile, type: 'audio' });
+                audioChunks = [];
+            };
+            mediaRecorder.start();
+            micIcon.style.fill = "#ff99cc";
+            micIcon.setAttribute('title', 'Recording...');
+
+            // Stop recording after 5 seconds
+            setTimeout(() => {
+                mediaRecorder.stop();
+                micIcon.style.fill = "#ff66a3";
+                micIcon.setAttribute('title', 'Start Recording');
+                mediaRecorder = null;
+            }, 5000);
+        }
+    });
+});
+
+// ... (Rest of your code remains unchanged)
+
+    function addReview(content, media = null) {
+    const reviewBox = document.createElement('div');
+    reviewBox.className = 'review-box';
+    reviewBox.innerHTML = `
+        <p class="review-text">${content}</p>
+        ${media ? media : ''}
+        <div class="review-actions">
+            <button>Like</button>
+            <button>Reply</button>
+        </div>
+    `;
+    reviewList.prepend(reviewBox);
+}
+  
+
+function addGifToReview(src) {
+    const reviewContent = reviewInput.value.trim();
+    reviewInput.value = `${reviewContent} <img src="${src}" style="max-width: 100px; max-height: 100px;">`;
+}
+// Initially hide the recording bar
+recordingBar.style.display = 'none';
+
+micIcon.addEventListener('click', () => {
+    recordingBar.style.display = 'flex'; // Show recording bar
+    micIcon.style.display = 'none'; // Hide mic icon
+    icons.forEach(icon => icon.style.display = 'none'); // Hide other icons
+    reviewInput.style.display = 'none'; // Hide input field
+});
+
+// Stop button event listener
+stopButton.addEventListener('click', () => {
+    recordingBar.style.display = 'none'; // Hide recording bar
+    micIcon.style.display = 'block'; // Show mic icon
+    icons.forEach(icon => icon.style.display = 'block'); // Show other icons
+    reviewInput.style.display = 'block'; // Show input field
+    addReview('[Recorded Audio]');
+});
+
+
+// Function to handle adding media to the review
+function addMediaToReview(src, type) {
+    let mediaHtml = '';
+    if (type === 'image') {
+        mediaHtml = `<img src="${src}" style="max-width: 100px; max-height: 100px;" class="clickable">`;
+    } else if (type === 'video') {
+        mediaHtml = `
+            <video controls style="max-width: 100px; max-height: 100px;" class="clickable">
+                <source src="${src}" type="video/mp4">Your browser does not support the video tag.
+            </video>`;
+    }
+    addReview(reviewInput.value.trim(), mediaHtml);
+    reviewInput.value = ''; // Clear input
+
+    // Add event listener for full-screen functionality
+    const reviewList = document.getElementById('review-list');
+    reviewList.addEventListener('click', (event) => {
+        if (event.target.tagName === 'VIDEO') {
+            if (event.target.requestFullscreen) {
+                event.target.requestFullscreen();
+            } else if (event.target.mozRequestFullScreen) { // Firefox
+                event.target.mozRequestFullScreen();
+            } else if (event.target.webkitRequestFullscreen) { // Chrome, Safari, and Opera
+                event.target.webkitRequestFullscreen();
+            } else if (event.target.msRequestFullscreen) { // IE/Edge
+                event.target.msRequestFullscreen();
+            }
+        }
+    });
+}
+
+
+
+
+// Close modal functionality
+closeModal.addEventListener('click', () => {
+    modal.classList.remove('show');
+    modalImg.src = '';
+    modalVideo.src = '';
+    modalVideo.style.display = 'none';
+});
+
+    closeModal.addEventListener('click', () => {
+        modal.classList.remove('show'); // Remove the show class
+        modal.style.display = 'none'; // Hide the modal to prevent black screen
+        modalImg.src = '';
+        modalVideo.src = '';
+        modalVideo.style.display = 'none';
+    });
+    // New code to manage icon visibility
+    const iconsContainer = document.querySelector('.icons');
+    iconsContainer.style.display = 'none'; // Initially hide icons
+    sendButton.style.display = 'none'; // Initially hide send button
+
+    // Show icons when the input is focused
+    reviewInput.addEventListener('focus', () => {
+        iconsContainer.style.display = 'flex';
+        sendButton.style.display = 'flex'; // Show send button
+    });
+    // Hide send button when input is empty
+    reviewInput.addEventListener('input', () => {
+        sendButton.style.display = reviewInput.value.trim() !== '' ? 'flex' : 'none';
+    });
+    
+    
+
+    stopButton.addEventListener('click', () => {
+        recordingBar.style.display = 'none'; // Hide recording bar
+        micIcon.style.display = 'block'; // Show mic icon
+        icons.forEach(icon => icon.style.display = 'block'); // Show other icons
+        reviewInput.style.display = 'block'; // Show input field
+        addReview('[Recorded Audio]');
+    });
+
+    sendButton.addEventListener('click', () => {
+        const content = reviewInput.value.trim();
+        if (content !== '') {
+            addReview(content);
+            reviewInput.value = '';
+            sendButton.style.display = 'none'; // Hide send button after sending
+        }     
+    });
+
+    gifButton.addEventListener('click', () => {
+        gifsContainer.classList.toggle('show');
+    });
+
+    gifSearch.addEventListener('input', () => {
+        const query = gifSearch.value.toLowerCase();
+        gifImages.forEach(img => {
+            img.style.display = img.alt.toLowerCase().includes(query) ? 'block' : 'none';
+        });
+    });
+
+    gifImages.forEach(img => {
+        img.addEventListener('click', () => {
+            addGifToReview(img.src);
+            gifsContainer.classList.remove('show');
+        });
+    });
+
+    closeGifsButton.addEventListener('click', () => {
+        gifsContainer.classList.remove('show');
+    });
+cameraIcon.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*,video/*'; // Allow images and videos
+        input.onchange = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const src = e.target.result;
+                    const type = file.type.split('/')[0];
+                    if (type === 'image') {
+                        addReview(`<img src="${src}" style="max-width: 100px; max-height: 100px;" class="clickable">`);
+                    } else if (type === 'video') {
+                        addReview(`<video controls style="max-width: 100px; max-height: 100px;"><source src="${src}" type="${file.type}">Your browser does not support the video tag.</video>`);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+            
+        };
+        input.click(); // Open file dialog
+    });
+    reviewList.addEventListener('click', (event) => {
+        if (event.target.classList.contains('clickable')) {
+            modalImg.src = event.target.src;
+            modalVideo.style.display = 'none';
+            modal.style.display = 'flex';
+            modal.classList.add('show');
+        }
+    });
+
+    closeModal.addEventListener('click', () => {
+    modal.classList.remove('show'); // Remove the show class
+    modal.style.display = 'none'; // Hide the modal to prevent black screen
+    modalImg.src = '';
+    modalVideo.src = '';
+    modalVideo.style.display = 'none';
+});
+
+
+</script>
+</body>
+</html>
+
+

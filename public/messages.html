@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Application</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+/* The header remains fixed at the top */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px; /* Adjust height as needed */
+    background-color: #fff; /* Background color for header */
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: white;    
+        }
+        #profile-list, #chat-container {
+    max-width: 500px;
+    height: 100vh;  /* Full height of the viewport */
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.0);
+}
+        .profile {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #e1e1e1;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .profile:hover {
+            background-color: #f8bbd0;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid #f48fb1;
+        }
+        #chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: pink;
+            color: white;
+            border-radius: 0px 0px 0 0;
+        }
+        #chat-header img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+       #chat-header span {
+            font-size: 18px;
+            font-weight: bold;
+            margin-left: 180px;
+        }
+        #call-icons {
+            display: flex;
+            align-items: center;
+        }
+        #call-icons .icon {
+            margin-right: -15px;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            margin-left: 30px;
+        }
+        #call-icons .icon:hover {
+            color: #f8bbd0;
+            
+        }
+     #message-list {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    background-color: white;
+    height: calc(100vh - 160px); /* Adjust this based on your header/footer */
+}
+#message-list {
+    overflow-y: auto;
+    scroll-behavior: smooth; /* Smooth scrolling */
+    padding: 10px;
+    height: calc(100vh - 200px); /* Ensure message list has enough space */
+}
+
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 15px;
+            max-width: 70%;
+            display: inline-block;
+            font-size: 16px;
+            position: relative;
+            transition: transform 0.3s ease-in-out;
+            margin: 5px 0;
+    word-wrap: break-word; /* This ensures that words break properly */
+    white-space: pre-wrap; /* Preserves white space and ensures long text wraps */
+    overflow-wrap: break-word; /* Break long words to the next line if necessary */
+
+        }
+        .message.user {
+            background-color: pink;
+            align-self: flex-end;
+            text-align: right;
+            float: left;
+            clear: both;
+        }
+        .message.other {
+            background-color: whitesmoke;
+            align-self: flex-start;
+            text-align: left;
+            float: right;
+            clear: both;
+        }
+        .message img, .message video {
+            max-width: 150px;
+            border-radius: 10px;
+            cursor: pointer;
+            padding:0px;
+        }
+        #message-input-container {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    max-width: 500px;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.0);
+    z-index: 1000; /* Ensure it stays on top */
+    box-sizing: border-box;
+              /* This allows absolute positioning of child elements */
+}
+        }
+        /* Typing indicator */
+        .typing {
+            font-style: italic;
+            color: gray;
+        }
+        /* The message input field remains unchanged */
+#message-input {
+            flex: 1;
+            padding: 5px;
+            border-radius: 20px;
+            border: 0px solid #e1e1e1;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            margin-left: 50px;
+            height: 34px;
+            position: relative;
+            transition: height 0.0s;
+            width: 100%;
+    max-height: 120px; /* Limit the maximum height when typing */
+    overflow-y: auto; /* Allow vertical scrolling if content exceeds max-height */
+
+        }
+        #send-button {
+            background-color: pink;
+            color: white;
+            border: none;
+            padding: 17px;
+            border-radius: 500%;
+            cursor: pointer;
+            display: none;
+            position: absolute;
+            left: 10px;
+            margin-left: 0px;
+        }
+        #send-button.show {
+            display: flex;
+        }
+        #audio-button {
+            background-color: pink;
+            color: white;
+            border: none;
+            padding: 17px;
+            border-radius: 500%;
+            cursor: pointer;
+            display: flex;
+            position: absolute;
+            left: 10px;
+        }
+        #audio-button.hide {
+            display: none;
+        }
+    /* Wrapper for icons - this helps position them on top of the input */
+#icon-container {
+    position: absolute;
+    right: 10px;  /* Pushes icons towards the right */
+    display: flex;
+    align-items: center;
+}
+        /* Icon styles for clip and camera */
+#clip-icon, #camera-icon {
+    font-size: 20px;
+    color: pink;
+    margin-left: 10px;
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
+}
+    /* Adjust positions for clip and camera to sit over the input */
+#clip-icon {
+    position: absolute;
+    right: 250px;
+    top: 22px; /* Adjust the vertical positioning */
+    
+}
+
+#camera-icon {
+    position: absolute;
+    right: 280px;
+    top: 22px; /* Adjust the vertical positioning */
+}
+      #modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 8.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+#modal-img, #modal-video {
+    max-width: 90%;
+    max-height: 90%;
+}
+
+#modal-close {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 24px;
+    color: white;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+        #back-button {
+            font-size: 22px;
+            color: white;
+            cursor: pointer;
+            margin-left: 10px;
+            transform: rotate(180deg);
+        }
+        /* Quoted message preview style */
+        #quote-preview {
+            display: none;
+            width: 100%;
+            background-color: whitesmoke;
+            padding: 10px;
+            margin-bottom: 100px;
+            border-left: 4px solid pink;
+            border-radius: 22px;
+            position: relative;
+            box-sizing: border-box;
+        }
+        #quote-preview-content {
+            font-size: 14px;
+            color: #555;
+        }
+        #quote-cancel {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            cursor: pointer;
+            color: pink;
+        }
+        .message.quote {
+            border-left: 4px solid #d81b60;
+            padding-left: 10px;
+            margin-bottom: 5px;
+        }
+        .quoted-message {
+            font-size: 14px;
+            color: gray;
+            margin-bottom: 5px;
+            display: block;
+        }
+        /* Style for resent messages in a gray box */
+        .resend-message {
+            background-color: whitesmoke;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+            display: inline-block;
+            margin: 5px 0;
+            word-wrap: break-word;
+            transition: transform 0.3s ease-in-out;
+            position: relative;
+            
+        }
+        /* Make the image/video smaller in the resend box */
+        .resend-message img, .resend-message video {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 5px;
+            cursor: pointer;
+        }.
+        /* Typing indicator animation */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            margin: 10px;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background-color: #d81b60;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+            animation: typing 1s infinite ease-in-out;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        @keyframes typing {
+            0%, 100% {
+                transform: scale(0.8);
+                opacity: 0.8;
+            }
+            50% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    .menu-container {
+    position: relative;
+    display: inline-block;
+}
+
+#menu-icon {
+    font-size: 20px;
+    cursor: pointer;
+    margin-left: -330px;
+    color: white;
+}
+
+.menu-options {
+    position: absolute;
+    right: 0;
+    background-color: white;
+    min-width: 120px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 5px;
+}
+
+.menu-options button {
+    color: pink;
+    padding: 10px;
+    text-align: left;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    border: none;
+    background-color: white;
+    cursor: pointer;
+    margin-right: 26px;
+}
+
+.menu-options button:hover {
+    background-color: #f1f1f1;
+}
+    #camera-icon.hide-camera {
+    transform: translateX(-100px); /* Moves the camera icon to the left */
+    opacity: 0; /* Makes it fade out */
+    pointer-events: none; /* Disables click when it's hidden */
+}
+
+#camera-icon.show-camera {
+    transform: translateX(0); /* Brings it back to the original position */
+    opacity: 1; /* Fully visible */
+    pointer-events: auto; /* Enables clicking */
+}
+
+
+
+
+    </style>
+</head>
+<body>
+<!-- Your HTML content goes here -->
+</body>
+</html>
+
+</head>
+<body>
+<div id="profile-list">
+    <h2 style="color: #d81b60; text-align: center;">Chat Profiles</h2>
+    <span class="status-dot online"></span> <!-- Add status dot -->
+</div>
+
+<div id="chat-container" style="display: none;">
+    <div id="chat-header">
+        <div id="call-icons">
+            <i class="fas fa-phone icon" id="call-icon"></i>
+            <i class="fas fa-video icon" id="video-call-icon"></i>
+        </div>
+        <span id="chat-user-name"></span>
+        <img src="" id="chat-avatar" alt="Avatar">
+        <div class="menu-container">
+            <i class="fas fa-ellipsis-v icon" id="menu-icon"></i>
+            <div id="menu-options" class="menu-options" style="display:none;">
+                <button id="block-unblock-btn">Block</button>
+            </div>
+        </div>
+        <i class="fas fa-arrow-left" id="back-button"></i>
+    </div>
+    <div id="message-list">
+        <div id="typing-indicator" style="display: none;">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
+
+    <div id="quote-preview">
+        <span id="quote-preview-content"></span>
+        <span id="quote-cancel">&times;</span>
+    </div>
+
+    <div id="message-input-container">
+        <div style="display: flex; width: 100%;">
+            <i class="fas fa-camera" id="camera-icon"></i>
+            <i class="fas fa-paperclip" id="clip-icon"></i>
+            <textarea id="message-input" placeholder="Type a message..."></textarea>
+            <button id="send-button" class="fas fa-paper-plane"></button>
+            <button id="audio-button" class="fas fa-microphone"></button>
+        </div>
+    </div>
+</div>
+
+    <div class="message-list-wrapper">
+       
+<div id="modal">
+    <img id="modal-img" style="display: none;">
+    <video id="modal-video" controls style="display: none;"></video>
+    <button id="modal-close">&times;</button>
+</div>
+
+<script>
+    const base64HeartIcon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsSAAALEgHS3X78AAAF2klEQVR4nO2bW08TURDGz5iEFMk00BSXRIwfnAATGM0sCIMsP2CUIMNgMQkuClKTbMyIRUiEdIIiUgBBFzZC8FKITPTTt2VgizQBNaKjoiYXZEqCZmvfmdEZjOc2O2Nndmdm7m1uZG9nb0/2/d8+vdd+9bdWWgGMgxiPCZiFqCVoJz5krbph4MJD4yGAAYwHxyH+fFs+QXmA6soE9rGguDCgtKCgbECedIYZVZxbVcWA2NCU7AdSBk3IfuFwwKNjwAKcibC4vTnwzSIpqzSYfWGL6Rh0WhvEYtICtKIQNWOFhrtoLi0tINlXRS4OnXiwsVkmCwRfwZ5dAVpXYai5CBgMTNzBdf6ujjwnl5FX2wVKTU1ABZj63YGUHriAfW5oxLMtMnuwFSVgJpUQKAkaBUmbi8LUM1gDgtLSgaB2xgOFfOEZnAEDEUwEsakGJ+zUkGpqeXnZ3a2sFgJiLRS4ajUK4o4Hj7e/vFT2kTBzvDXpWCQiWohGhZyIklYnz1oMbABtYqmcgdfGQBEZj83V1UAVSld1cgfAAaAT6LurJTkThKpK2lEYWaBiVlbW4v7NfmhESdOWRxQBl4sXJmA2XyYWG9OphVQEcBqC1OpPpeUDVtpUdSCTH+V5CNtxodreopAFUTUTc+Ptg0IaGGGrAWmWvMiGhVgfUq1FN6lqJKkpDqfAfBtQJqbH6rLBeBcA0G8dBqxurtaPD+WmK1YJEFdUWg9tCugV4PUeDSAbAcy8HqnQUBTRRqNptZGtBkDKJZmEWgbWJ0Xlk8noQTHOSqYNtawHZ3gLVB0kNE15flpCgZEqpWThFbGoTpYzg5gACiEOrum0McaoEnJebFYswmpsCg8IBUh1zPMW9RJbH5+Znn7CQFQ0HNTDQuGAEKcHCIsDFaa7dHfD1RVAuqQHIZGwMgx7JkakME8GkL1dXlJUAUGj2gn9UbnN9be2ohQA4ZhoMz8BVebrqgUQBTTQaJtEgECewbNHBYp9vInTQ2R2WFgciGnYtCVQEwlEINiBtM6coWHh5e1HZffKAbDsTMZnXgPILxooO1eykhDgFIhaB8AQmhWoamss2bMhgo+L39z8eQwzBYJIDKvgA7Yv9csAAwA1GaBIYLyAZ1iRmSJoCpiO2Nt0azmksys2wDb8y5HsaQHFngKvTBDj3ngaiuSpMBLDYWOn4wvDQZrBqZt0KTJBy0peuXlpFmF1LT4vFfruwmGAjUzmZzHSyepczPbVyzCnhPZ8e6fv2VgAxlAxbQYALCoVA+wFUVwJKbUtbWlpF3BFGhABCAHBQDQRiOKxBuMblgDUMNRV6F8gtgVgWwZa2n6AipHB0bFQcF5c2NaQIqCzkg2frVJxBQkl5ebmhcNQtFmcEiAgAO0AwlFgEwFwKgIgTwxGAAMf4mbYFpEUcxkhODo7as8vIhRMTVnAbC2Nmpu1WmOzcMI8ZgBBjsBgRWoZzLyR/gfKPDvQUGCcqvTlAG4BvtaAvRWnQ4jX5XHvDPskzDxeuOsPrB7t8r63uEl2IgItVtBsBsD2G33UXa4oJMC/jcmh4Xhbo1MGyItFxBf5EAPkXtbRpox5TeQJZOUc08rTuUEKr+qZtOUyI8gOD+/m5kkHnNAd3dqP5ALDbE1MkryF76BtD+urKysixS9AAAAAElFTkSuQmCC';
+
+    const profiles = [
+        {
+            name: 'Alice',
+            avatar: base64HeartIcon,
+            lastMessage: 'Hey there!',
+            unread: 2,
+            id: 1 // Assign a unique ID
+        },
+        {
+            name: 'Bob',
+            avatar: base64HeartIcon,
+            lastMessage: 'What\'s up?',
+            unread: 1,
+            id: 2 // Assign a unique ID
+        },
+        // Add more profiles as needed
+    ];
+
+    let chatHistory = {}; // Store individual chat histories for each user
+    let activeProfile = null; // Track the current selected user
+    let chatActive = false; // To track if the user is actively chatting
+    let typingIndicator; // Typing notification timer
+    let newMessageSound = new Audio('your-notification-sound-url.mp3'); // Load a notification sound
+    let blockedProfiles = {}; // Track blocked profiles
+    const blockUnblockBtn = document.getElementById('block-unblock-btn');
+
+    const profileList = document.getElementById('profile-list');
+    const chatContainer = document.getElementById('chat-container');
+    const chatUserName = document.getElementById('chat-user-name');
+    const chatAvatar = document.getElementById('chat-avatar');
+    const messageList = document.getElementById('message-list');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const audioButton = document.getElementById('audio-button');
+    const modal = document.getElementById('modal');
+    const modalImg = document.getElementById('modal-img');
+    const modalVideo = document.getElementById('modal-video');
+    const modalClose = document.getElementById('modal-close');
+    const quotePreview = document.getElementById('quote-preview');
+    const quotePreviewContent = document.getElementById('quote-preview-content');
+    const quoteCancel = document.getElementById('quote-cancel');
+    const menuIcon = document.getElementById('menu-icon');
+    const menuOptions = document.getElementById('menu-options');
+function renderUsers() {
+    const profilesContainer = document.getElementById('profile-list');
+// Clear existing profiles
+    profilesContainer.innerHTML = '<h2 style="color: #d81b60; text-align: center;">Chat Profiles</h2>';
+
+    users.forEach(user => {
+        // Create a new profile div
+        const userElement = document.createElement('div');
+        userElement.className = 'chat-profile';
+        userElement.style.display = 'flex';
+        userElement.style.alignItems = 'center';
+        userElement.style.marginBottom = '10px';
+
+        // Create avatar container
+        const avatarContainer = document.createElement('div');
+        avatarContainer.className = 'avatar-container';
+
+        // Check if user has a profile
+        const avatarElement = document.createElement('span');
+        avatarElement.className = 'chat-avatar';
+        avatarElement.style.fontSize = '30px'; // Adjust as needed
+if (user.isProfile) {
+            avatarElement.innerHTML = `<img src="${user.profileImgSrc}" alt="Profile Picture" style="width: 40px; height: 40px; border-radius: 50%;">`;
+        } else {
+            // For buyers, generate a unique ID if they don't have a profile
+            const uniqueID = localStorage.getItem(`buyerID_${user.id}`) || generateUniqueID();
+            localStorage.setItem(`buyerID_${user.id}`, uniqueID); // Store the unique ID in localStorage
+
+            avatarElement.innerHTML = '♥'; // Heart icon for non-profile buyers
+            avatarElement.style.color = 'red'; // Color of the heart
+            avatarElement.style.fontSize = '40px'; // Larger size for visibility
+        }
+
+        const usernameElement = document.createElement('span');
+        usernameElement.className = 'chat-username';
+        usernameElement.textContent = user.isProfile ? user.username : `Anonymous Buyer (ID: ${localStorage.getItem(`buyerID_${user.id}`)})`;
+// Append avatar and username to user element
+        avatarContainer.appendChild(avatarElement);
+        userElement.appendChild(avatarContainer);
+        userElement.appendChild(usernameElement);
+
+        // Append user element to profiles container
+        profilesContainer.appendChild(userElement);
+    });
+}
+    // Dummy socket implementation
+    const socket = {
+        emit(event, data) {
+            console.log(`Emitting event: ${event}`, data);
+        },
+        on(event, callback) {
+            console.log(`Listening for event: ${event}`);
+            // Simulated callback for demonstration
+            if (event === 'typing') {
+                setTimeout(() => callback({ user: activeProfile.name }), 3000); // simulate typing after 3s
+            }
+        }
+    };
+
+    // Typing indicator logic
+    messageInput.addEventListener('input', () => {
+        if (messageInput.value.length > 0) {
+            socket.emit('typing', { user: activeProfile.name });
+        } else {
+            socket.emit('stop typing', { user: activeProfile.name });
+        }
+    });
+
+    // Listen for typing events
+    socket.on('typing', (data) => {
+        if (data.user === activeProfile.name) {
+            document.getElementById('typing-indicator').style.display = 'block';
+        }
+    });
+
+    // Listen for stop typing events
+    socket.on('stop typing', (data) => {
+        if (data.user === activeProfile.name) {
+            document.getElementById('typing-indicator').style.display = 'none';
+        }
+    });
+
+    // Block/Unblock user functionality
+    blockUnblockBtn.addEventListener('click', () => {
+        if (blockedProfiles[activeProfile.id]) {
+            delete blockedProfiles[activeProfile.id];
+            blockUnblockBtn.textContent = 'Block';
+            alert(`${activeProfile.name} has been unblocked.`);
+        } else {
+            blockedProfiles[activeProfile.id] = true;
+            blockUnblockBtn.textContent = 'Unblock';
+            alert(`${activeProfile.name} has been blocked.`);
+        }
+    });
+
+
+
+
+    let swipedMessage = null; // Store the swiped message for sending
+window.onload = function() {
+    loadProfileList(); // Load profiles when the window is loaded
+};
+function loadChat(profile) {
+    // Your existing code to load chat history...
+
+    // After loading messages, initialize image click events
+    setupImageClickEvents();
+}
+function loadProfileList() {
+    profileList.innerHTML = ''; // Clear existing list
+    profiles.forEach(profile => {
+        if (!profile.id) {
+            profile.id = generateUserId(); // Ensure each profile gets a unique ID
+        }
+
+        const profileDiv = document.createElement('div');
+            profileDiv.classList.add('profile');
+            profileDiv.innerHTML = `
+                <img src="${profile.avatar}" alt="${profile.name}'s Avatar" class="avatar">
+                <div class="profile-info">
+                    <span class="profile-name">${profile.name}</span>
+                    <span class="last-message">${profile.lastMessage}</span>
+                </div>
+                <span class="unread-count">${profile.unread}</span>
+            `;
+
+        if (profile.unread > 0) {
+            profileDiv.querySelector('.profile-name').classList.add('bold-name');
+        }
+
+        profileDiv.addEventListener('click', () => {
+            loadChat(profile);
+        });
+
+        profileList.appendChild(profileDiv);
+    });
+}
+
+  // JavaScript to handle scroll behavior when focusing the message input
+document.addEventListener('DOMContentLoaded', function () {
+    const messageInput = document.getElementById('message-input');
+    const header = document.querySelector('.header'); // Assuming your header has a class "header"
+    const messageList = document.getElementById('message-list');
+
+    // When the message input is focused
+    messageInput.addEventListener('focus', function () {
+        // Delay to allow the keyboard to open and the viewport to adjust
+        setTimeout(() => {
+            // Scroll the message list to the bottom without moving the header
+            if (messageList) {
+                messageList.scrollTop = messageList.scrollHeight;
+            }
+        }, 300); // Adjust the delay based on your needs
+    });
+});
+  
+
+    // Function to generate a unique user ID
+    function generateUserId() {
+        return 'user-' + Date.now(); // Generate a simple unique ID based on timestamp
+    }
+    // Generate the user ID when the page loads
+window.onload = function() {
+    const userId = generateUserId();
+    console.log('Generated User ID:', userId); // Logs the generated ID (you can send it to the server or use it as needed)
+    // You can also store it in localStorage or sessionStorage if needed
+    localStorage.setItem('userId', userId);
+};
+    // Automatically resize the message input as the user types
+messageInput.addEventListener('input', function() {
+    this.style.height = 'auto'; // Reset height first
+    if (this.value.trim() === '') {
+        this.style.height = '30px'; // Set to original height when empty (you can adjust this)
+    } else {
+        this.style.height = (this.scrollHeight) + 'px'; // Adjust height based on content
+    }
+});
+
+
+    // Limit the width to make around 15 characters fit per line (adjust based on your styling)
+    messageInput.setAttribute('maxlength', '200'); // Optional: Limit total characters to 200 or more if needed
+    
+    // Load profiles
+    profiles.forEach(profile => {
+        const profileDiv = document.createElement('div');
+        profileDiv.classList.add('profile');
+        profileDiv.innerHTML = `<img src="${profile.avatar}" class="avatar" alt="Avatar"><span>${profile.name}</span>`;
+        profileDiv.addEventListener('click', () => {
+            loadChat(profile);
+        });
+        profileList.appendChild(profileDiv);
+    });
+
+    // Load chat for selected user
+    function loadChat(profile) {
+        activeProfile = profile; // Set active profile
+        chatUserName.textContent = profile.name;
+        chatAvatar.src = profile.avatar;
+        profileList.style.display = 'none';
+        chatContainer.style.display = 'block';
+        profile.unread = 0; // Reset unread count
+    loadProfileList(); // Update profile list
+// Fetch chat history from server
+    fetch(`/api/loadMessages/${profile.name}`)
+        .then(response => response.json())
+        .then(data => {
+            const serverChatHistory = data.history;
+            serverChatHistory.forEach(message => {
+                displayMessage(message); // Display each message from the server
+            });
+        })
+        .catch(error => {
+            console.error('Error loading chat history:', error);
+        });
+        // Load chat history for the selected user
+    messageList.innerHTML = ''; // Clear the message list
+    const storedHistory = localStorage.getItem('chatHistory'); // Retrieve history from localStorage
+    if (storedHistory) {
+        chatHistory = JSON.parse(storedHistory); // Parse stored data
+        activeProfile = profile;
+    chatActive = true;
+    }
+    // Load chat history
+    messageList.innerHTML = '';
+    if (chatHistory[profile.name]) {
+        chatHistory[profile.name].forEach(message => {
+            displayMessage(message);
+        });
+    }
+        // Check if profile is blocked
+    if (blockedProfiles[profile.name]) {
+        disableMessaging();
+        blockUnblockBtn.textContent = 'Unblock';
+    } else {
+        enableMessaging();
+        blockUnblockBtn.textContent = 'Block';
+    }
+        // Function to display a message
+function displayMessage(message) {
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('message', message.sender === 'user' ? 'user' : 'other');
+    messageDiv.textContent = message.content;
+    messageList.appendChild(messageDiv);
+    
+    messageList.scrollTop = messageList.scrollHeight; // Scroll to the bottom
+}
+        // Function to enable messaging
+function enableMessaging() {
+    messageInput.disabled = false;
+    sendButton.disabled = false;
+    messageInput.placeholder = '';
+    messageInput.style.backgroundColor = '#fff';
+}
+        // Handle three dots menu toggle
+menuIcon.addEventListener('click', function() {
+    if (menuOptions.style.display === 'none' || menuOptions.style.display === '') {
+        menuOptions.style.display = 'block';
+    } else {
+        menuOptions.style.display = 'none';
+    }
+    
+});
+
+// Close menu if clicked outside
+window.addEventListener('click', function(e) {
+    if (!menuIcon.contains(e.target) && !menuOptions.contains(e.target)) {
+        menuOptions.style.display = 'none';
+    }
+});
+        // Handle block/unblock button click
+blockUnblockBtn.addEventListener('click', function() {
+    if (blockedProfiles[activeProfile.name]) {
+        // Unblock the user
+        delete blockedProfiles[activeProfile.name];
+        blockUnblockBtn.textContent = 'Block';
+        enableMessaging();
+    } else {
+        // Block the user
+        blockedProfiles[activeProfile.name] = true;
+        blockUnblockBtn.textContent = 'Unblock';
+        disableMessaging();
+    }
+});
+        // Save messages in localStorage
+function saveMessages() {
+    localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+}
+    }
+function scrollToBottom() {
+    const messageList = document.getElementById('message-list');
+    messageList.scrollTop = messageList.scrollHeight;
+}
+
+ 
+    // Hide the camera icon when the user starts typing, show it when the input is empty
+    messageInput.addEventListener('input', () => {
+        const cameraIcon = document.getElementById('camera-icon');
+        const clipIcon = document.getElementById('clip-icon');
+
+        if (messageInput.value.trim()) {
+            // If the input has text, hide the camera icon and move the clip icon
+            cameraIcon.classList.add('hide-camera');
+            clipIcon.classList.add('slide-clip');
+        } else {
+            // If the input is empty, show the camera icon and reset the clip icon
+            cameraIcon.classList.remove('hide-camera');
+            clipIcon.classList.remove('slide-clip');
+        }
+    });
+// After sending a message, reappear the camera icon
+sendButton.addEventListener('click', function () {
+    const message = messageInput.value.trim();
+    if (message !== '') {
+        sendMessage(message); // Your send message function
+        messageInput.value = ''; // Clear the input
+
+        // Reset input size and stay focused
+        messageInput.style.height = 'auto'; // Reset height
+        messageInput.focus(); // Keep the focus on the input after sending
+
+        // Reappear the camera icon after sending
+        const cameraIcon = document.getElementById('camera-icon');
+        const clipIcon = document.getElementById('clip-icon');
+        
+        cameraIcon.classList.remove('hide-camera'); // Reappear the camera icon
+        clipIcon.classList.remove('slide-clip'); // Reset the clip position
+    }
+});
+   sendButton.addEventListener('click', function () {
+    // Prevent sending messages if the active user is blocked
+    if (blockedProfiles[activeProfile.name]) {
+        alert("You have blocked this user. You cannot send messages."); 
+        return; 
+    }
+    
+
+        if (messageInput.value.trim() || swipedMessage) {
+            const messageContent = messageInput.value.trim();
+            const message = {
+                content: messageContent,
+                sender: 'user', // You can add more info to differentiate user/other messages
+                timestamp: new Date().toLocaleTimeString() // Optional
+            };
+            // Save message to the active user's chat history
+            if (!chatHistory[activeProfile.name]) {
+                chatHistory[activeProfile.name] = []; // Initialize if not exists
+            }
+            
+            chatHistory[activeProfile.name].push(message); // Add message to the user's chat history
+            sendMessage(messageInput.value, swipedMessage);
+            
+            messageInput.value = '';
+            swipedMessage = null; // Clear swiped message
+            hideQuotePreview();
+            toggleSendButton();
+
+            // Simulate avatar's response after 5 seconds with typing notification
+            displayTypingIndicator();
+            setTimeout(() => {
+                avatarResponse(activeProfile);
+            }, 5000);
+        }
+    });
+
+    function sendMessage(content, swipedContent) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', 'user');
+const messageList = document.getElementById('message-list');
+    const newMessage = document.createElement('div');
+  newMessage.innerText = messageInput.value;   // Use your input message
+    // Clear the input field after sending
+    messageInput.value = '';
+
+    // Call the scrollToBottom function to make sure the new message is visible
+    scrollToBottom();
+messageInput.focus(); 
+        // If swiped content is provided, create a quoted message
+        if (swipedContent) {
+            const resendMessageDiv = document.createElement('div');
+            resendMessageDiv.classList.add('resend-message');
+            // If swiped content is an image or video, display it as smaller media
+            if (swipedContent.querySelector('img')) {
+                const swipedImg = swipedContent.querySelector('img');
+                const resendImg = document.createElement('img');
+                resendImg.src = swipedImg.src;
+                resendImg.addEventListener('click', () => {
+                    openMediaInModal(swipedImg.src, 'image'); // Open full-size image on click
+                });
+                resendMessageDiv.appendChild(resendImg);
+            } else if (swipedContent.querySelector('video')) {
+                const swipedVideo = swipedContent.querySelector('video');
+                const resendVideo = document.createElement('video');
+                resendVideo.src = swipedVideo.src;
+                resendVideo.controls = true;
+                resendVideo.addEventListener('click', () => {
+                    openMediaInModal(swipedVideo.src, 'video'); // Open full-size video on click
+                });
+                resendMessageDiv.appendChild(resendVideo);
+            } else {
+                resendMessageDiv.textContent = swipedContent.textContent; // Text of the swiped message
+            }
+            messageDiv.appendChild(resendMessageDiv); // Append the gray box
+        }
+
+        messageDiv.appendChild(document.createTextNode(content));
+        addSwipeToMessage(messageDiv);
+        messageList.appendChild(messageDiv);
+        messageList.scrollTop = messageList.scrollHeight; // Scroll to the bottom
+        
+    }
+function receiveMessage(messageText) {
+    const messageList = document.getElementById('message-list');
+
+    // Example: Append the incoming message
+    const newMessage = document.createElement('div');
+    newMessage.classList.add('message', 'other'); // Other user's message class
+    newMessage.innerText = messageText;           // Incoming message text
+    messageList.appendChild(newMessage);
+
+    // Scroll to the bottom after receiving the new message
+    scrollToBottom();
+}
+
+    // Function to simulate avatar's response
+    function avatarResponse(profile) {
+        removeTypingIndicator(); // Remove the typing indicator before displaying the response
+        const message = {
+            content: `This is an automated response from ${profile.name}.`,
+            sender: 'avatar',
+            timestamp: new Date().toLocaleTimeString()
+        };
+        chatHistory[profile.name].push(message);
+        displayMessage(message);
+    }
+
+    // Display the typing indicator
+    function displayTypingIndicator() {
+        typingIndicator = document.createElement('div');
+        typingIndicator.classList.add('message', 'typing');
+        typingIndicator.innerHTML = `<span class="dot"></span><span class="dot"></span><span class="dot"></span> ${activeProfile.name} is typing...`;
+        messageList.appendChild(typingIndicator);
+        messageList.scrollTop = messageList.scrollHeight; // Scroll to the bottom
+    }
+
+    // Remove the typing indicator
+    function removeTypingIndicator() {
+        if (typingIndicator) {
+            messageList.removeChild(typingIndicator);
+            typingIndicator = null;
+        }
+    }
+
+    // Toggle send button visibility
+    messageInput.addEventListener('input', toggleSendButton);
+    function toggleSendButton() {
+        if (messageInput.value.trim()) {
+            sendButton.classList.add('show');
+            audioButton.classList.add('hide');
+        } else {
+            sendButton.classList.remove('show');
+            audioButton.classList.remove('hide');
+        }
+        
+    }
+
+    // Fullscreen view for images/videos
+    messageList.addEventListener('click', event => {
+        if (event.target.tagName === 'IMG') {
+            openMediaInModal(event.target.src, 'image');
+        } else if (event.target.tagName === 'VIDEO') {
+            openMediaInModal(event.target.src, 'video');
+        }
+    });
+// Function to fetch and display the last message when a conversation is clicked
+function onConversationClick(conversationId) {
+    // Fetch the last message from the server
+    fetch(`/conversations/${conversationId}/messages?limit=1`)
+        .then(response => response.json())
+        .then(messages => {
+            if (messages.length > 0) {
+                // Assuming messages are returned sorted by timestamp in descending order
+                const lastMessage = messages[0].content;
+                // Update the message input with the last message
+                document.getElementById('messageInput').value = lastMessage;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching last message:', error);
+        });
+}
+
+// Example of attaching the click event to each conversation item
+const conversationItems = document.querySelectorAll('.conversation-item');
+conversationItems.forEach(item => {
+    item.addEventListener('click', () => {
+        const conversationId = item.dataset.conversationId; // Assuming you store conversation ID in data attribute
+        onConversationClick(conversationId);
+    });
+});
+
+    function openMediaInModal(src, type) {
+        modal.style.display = 'flex';
+        if (type === 'image') {
+            modalImg.src = src;
+            modalImg.style.display = 'block';
+            modalVideo.style.display = 'none';
+        } else if (type === 'video') {
+            modalVideo.src = src;
+            modalImg.style.display = 'none';
+            modalVideo.style.display = 'block';
+            const modal = document.getElementById('modal');
+            const modalImg = document.getElementById('modal-img');
+            const modalVideo = document.getElementById('modal-video');
+
+        }
+    }
+
+    modalClose.addEventListener('click', () => {
+        modalImg.style.display = 'block'; // Show image
+            modalVideo.style.display = 'none'; // Hide video
+            modalImg.src = img.src; // Set the modal image source to the clicked image
+
+            modal.style.display = 'flex'; // Show modal
+// Hide the message input, buttons, and icons
+            document.getElementById('message-input-container').style.display = 'none';
+        });
+    
+// Handle modal close button click
+    document.getElementById('modal-close').addEventListener('click', function () {
+        const modal = document.getElementById('modal');
+        modal.style.display = 'none'; // Hide the modal
+
+        // Restore the message input, buttons, and icons
+        document.getElementById('message-input-container').style.display = 'flex';
+        setupImageClickEvents();
+    });
+    
+    // Swipe to resend functionality - WhatsApp style
+    function addSwipeToMessage(messageDiv) {
+        let startX = 0;
+        let swiped = false;
+
+        messageDiv.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            messageDiv.style.transition = 'transform 0s'; // Remove transition during swipe
+        });
+
+        messageDiv.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            const diffX = touch.clientX - startX;
+            if (diffX > 50) {
+                swiped = true;
+                // Move the message with the finger
+                const offset = diffX > 0 ? diffX : 0;
+                messageDiv.style.transform = `translateX(${offset}px)`;
+            }
+        });
+
+        messageDiv.addEventListener('touchend', () => {
+            if (swiped) {
+                swipedMessage = messageDiv; // Store the swiped message
+
+                // Display swiped message in the preview
+                quotePreview.style.display = 'block';
+                quotePreviewContent.textContent = messageDiv.textContent;
+                messageInput.classList.add('active'); // Add active class to increase height
+                messageDiv.style.transition = 'transform 0.3s ease'; // Smooth return animation
+                messageDiv.style.transform = ''; // Reset transformation after swipe
+            }
+        });
+
+        // Reset on touch cancel
+        messageDiv.addEventListener('touchcancel', () => {
+            messageDiv.style.transform = '';
+        });
+    }
+
+    // Cancel swipe action
+    quoteCancel.addEventListener('click', () => {
+        hideQuotePreview();
+        swipedMessage = null; // Clear swiped message
+    });
+
+    function hideQuotePreview() {
+        quotePreview.style.display = 'none';
+        quotePreviewContent.textContent = '';
+        messageInput.classList.remove('active');
+    }
+    
+
+    // Back button functionality
+    document.getElementById('back-button').addEventListener('click', () => {
+        chatContainer.style.display = 'none';
+        profileList.style.display = 'block';
+    });
+
+    // Camera functionality (for sending images)
+    document.getElementById('camera-icon').addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = e => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    sendMedia(event.target.result, 'image'); // Send image directly
+                };
+                reader.readAsDataURL(file); // Read file as Data URL
+            }
+            // Initialize the profile list on page load
+    window.onload = function() {
+        loadProfileList();
+    };
+
+        };
+        input.click();
+    });
+
+    // Clip functionality (for sending videos)
+    document.getElementById('clip-icon').addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'video/*'; // Accept video files
+        input.onchange = e => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    sendMedia(event.target.result, 'video'); // Send video directly
+                };
+                reader.readAsDataURL(file); // Read file as Data URL
+            }
+        };
+        input.click();
+    });
+
+    // Send image/video in the chat
+    function sendMedia(src, type) {
+        const mediaMessageDiv = document.createElement('div');
+        mediaMessageDiv.classList.add('message', 'user');
+
+        if (type === 'image') {
+            const img = document.createElement('img');
+            img.src = src;
+            mediaMessageDiv.appendChild(img);
+        } else if (type === 'video') {
+            const video = document.createElement('video');
+            video.src = src;
+            video.controls = true;
+            mediaMessageDiv.appendChild(video);
+        }
+
+        addSwipeToMessage(mediaMessageDiv); // Add swipe functionality
+        messageList.appendChild(mediaMessageDiv);
+        messageList.scrollTop = messageList.scrollHeight;
+    }
+
+    // CSS classes for hiding and sliding icons
+    document.styleSheets[0].insertRule(`
+        .hide-camera {
+            transform: translateX(-30px);
+            opacity: 0;
+        }
+    `, document.styleSheets[0].cssRules.length);
+
+    document.styleSheets[0].insertRule(`
+        .slide-clip {
+            transform: translateX(-30px);
+        }
+    `, document.styleSheets[0].cssRules.length);
+</script>
+

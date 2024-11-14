@@ -1,0 +1,84 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #fce4ec; /* Light pink background */
+    color: #333; /* Dark gray text */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+header {
+    width: 100%;
+    background-color: #f06292; /* Pink header */
+    padding: 20px;
+    text-align: center;
+    color: white;
+}
+
+main {
+    width: 100%;
+    max-width: 1200px; /* Larger container for more prominent profile */
+    padding: 20px;
+}
+
+/* Large Profile Section */
+.profile-section {
+    display: flex;
+    align-items: center;
+    background-color: #f8bbd0; /* Light pink background */
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 40px;
+}
+
+.profile-image-container {
+    position: relative;
+    margin-right: 30px;
+}
+
+.profile-image {
+    width: 200px; /* Larger profile image */
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #f48fb1; /* Pink background if image fails to load */
+}
+
+.upload-button {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: #d81b60; /* Pink button */
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.upload-button:hover {
+    background-color: #c2185b; /* Darker pink on hover */
+}
+
+.profile-details {
+    flex: 1; /* Takes remaining space */
+}
+
+.profile-details h2 {
+    margin: 0;
+    font-size: 28px; /* Larger user name font */
+    color: #880e4f; /* Darker pink color */
+}
+
+.profile-details p {
+    margin: 8px 0;
+    font-size: 18px;
+    color: #555; /* Softer gray for details */
+}
+
+/* Profile Options *
+
