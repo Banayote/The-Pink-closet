@@ -1,4 +1,0 @@
-{
-    "storeName": "El Armario Rosa",
-    "
-
