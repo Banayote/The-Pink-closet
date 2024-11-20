@@ -21,17 +21,13 @@
         .sidebar {
             position: fixed;
             top: 0;
-            right: -250px; /* Initially hidden */
+            right: 0;
             width: 250px;
-            height: 100%;
+            height: 100%; 
             background-color: #f4f4f4;
             box-shadow: -2px 0 5px rgba(0,0,0,0.5);
-            transition: right 0.3s ease-in-out; /* Smooth transition */
+            display: none; /* Initially hidden */
             z-index: 1000;
-        }
-
-        .sidebar.open {
-            right: 0; /* Show sidebar */
         }
 
         .close-btn {
@@ -115,19 +111,25 @@
         const closeBtn = document.getElementById('closeBtn');
         const productList = document.getElementById('product-list');
 
-        // Function to toggle the sidebar
-        function toggleSidebar() {
-            sidebar.classList.toggle('open');
+        // Function to open the sidebar
+        function openSidebar() {
+            sidebar.style.display = 'block';
+        }
+
+        // Function to close the sidebar
+        function closeSidebar() {
+            sidebar.style.display = 'none';
         }
 
         // Event listeners for sidebar
-        menuIcon.addEventListener('click', toggleSidebar);
-        closeBtn.addEventListener('click', toggleSidebar);
+        menuIcon.addEventListener('click', openSidebar);
+        closeBtn.addEventListener('click', closeSidebar);
 
         // Close sidebar when clicking outside of it
-        window.addEventListener('click', function (event) {
-            if (event.target !== sidebar && !sidebar.contains(event.target) && event.target !== menuIcon) {
-                sidebar.classList.remove('open');
+        window.addEventListener('click', function(event) {
+            // Check if the click target is not the menu icon or inside the sidebar
+            if (event.target !== menuIcon && !sidebar.contains(event.target)) {
+                closeSidebar();
             }
         });
 
@@ -160,4 +162,3 @@
     </script>
 </body>
 </html>
-
