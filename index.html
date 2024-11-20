@@ -99,7 +99,11 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script>
+        // Initialize Supabase client
+        const supabase = supabase.createClient('https://eczpdpysryifkekieloc.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4');
+        
         // Get elements
         const menuIcon = document.getElementById('menuIcon');
         const sidebar = document.getElementById('sidebar');
@@ -127,18 +131,22 @@
             }
         });
 
-        // Function to load products from localStorage
-        function loadProducts() {
-            const products = JSON.parse(localStorage.getItem("products")) || [];
+        // Function to load products from Supabase
+        async function loadProducts() {
+            const { data: products, error } = await supabase.from('products').select();
+            if (error) {
+                console.error('Error loading products:', error);
+                return;
+            }
             productList.innerHTML = '';
-
             products.forEach((product) => {
                 const productDiv = document.createElement('div');
-                productDiv.classList.add('product');                                                                                                                      productDiv.innerHTML = `
+                productDiv.classList.add('product');
+                productDiv.innerHTML = `
                     <h2>${product.name}</h2>
                     <p>${product.description}</p>
                     <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
-                    <img src="${product.image}" alt="${product.name}">
+                    <img src="${product.image_url}" alt="${product.name}">
                 `;
                 productDiv.addEventListener('click', () => {
                     alert(`You clicked on ${product.name}`);
