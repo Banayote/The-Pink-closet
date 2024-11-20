@@ -23,8 +23,7 @@
             top: 0;
             right: 0;
             width: 250px;
-            height: 100%; 
-            background-color: #f4f4f4;
+            height: 100%;                                                                                                                                             background-color: #f4f4f4;
             box-shadow: -2px 0 5px rgba(0,0,0,0.5);
             display: none; /* Initially hidden */
             z-index: 1000;
@@ -102,8 +101,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script>
-        // Initialize Supabase client
-        const supabase = supabase.createClient('https://eczpdpysryifkekieloc.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4');
+        // Initialize Supabase client using environment variables
+        const supabase = supabase.createClient(
+            process.env.SUPABASE_URL,   // Environment variable for Supabase URL
+            process.env.SUPABASE_KEY    // Environment variable for Supabase Key
+        );
         
         // Get elements
         const menuIcon = document.getElementById('menuIcon');
@@ -127,8 +129,7 @@
 
         // Close sidebar when clicking outside of it
         window.addEventListener('click', function(event) {
-            // Check if the click target is not the menu icon or inside the sidebar
-            if (event.target !== menuIcon && !sidebar.contains(event.target)) {
+            if (event.target === sidebar) {
                 closeSidebar();
             }
         });
@@ -140,7 +141,7 @@
                 console.error('Error loading products:', error);
                 return;
             }
-            productList.innerHTML = '';
+            productList.innerHTML = '';  // Clear the product list
             products.forEach((product) => {
                 const productDiv = document.createElement('div');
                 productDiv.classList.add('product');
