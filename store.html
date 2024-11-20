@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Your Store</title>
+    <link rel="stylesheet" href="store.css">
+    <style>
+        /* Inline styles for simplicity */
+        body {
+            background-color: pink;
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .form-container {
+            background-color: white;
+            color: pink;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 400px;
+            margin: auto;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .form-container h1 {
+            margin-bottom: 20px;
+        }
+
+        .form-container input[type="text"],
+        .form-container input[type="email"],
+        .form-container input[type="tel"],
+        .form-container input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .form-container button {
+            background-color: pink;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .form-container button:hover {
+            background-color: #f2f2f2;
+            color: pink;
+        }
+
+        .exit-icon {
+            font-size: 24px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            cursor: pointer;
+            color: pink;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="exit-icon" id="exitIcon">&#x2B05;</div> <!-- Exit Icon -->
+        <h1>Create Your Store</h1>
+        <form id="storeForm">
+            <input type="text" name="firstName" placeholder="First Name" required>
+            <input type="text" name="lastName" placeholder="Last Name" required>
+            <input type="email" name="email" placeholder="Email (Leave empty if you're a buyer)">
+            <input type="tel" name="phoneNumber" placeholder="Phone Number (Optional)">
+            <input type="password" name="password" placeholder="Password (Leave empty if you're a buyer)">
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
+    <script>
+        // Initialize Supabase client with your credentials
+        const supabase = supabase.createClient(
+            'https://eczpdpysryifkekieloc.supabase.co', // Your Supabase URL
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4' // Your Supabase anon key
+        );
+
+        // Exit icon functionality
+        document.getElementById('exitIcon').addEventListener('click', () => {
+            if (confirm('Are you sure you want to exit?')) {
+                window.location.href = 'index.html'; // Redirect to the main page
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('storeForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            // Gather form data
+            const formData = new FormData(this);
+            const firstName = formData.get('firstName');
+            const lastName = formData.get('lastName');
+            const email = formData.get('email');
+            const password = formData.get('password');
+            const fullName = `${firstName} ${lastName}`;
+            const isBuyer = !email || !password; // Check if the user didn't provide email/password
+
+            if (isBuyer) {
+                // Buyer logic: Generate a unique ID and store it
+                const buyerID = `buyer-${Date.now()}`;
+                localStorage.setItem('buyerID', buyerID);
+                localStorage.setItem('isBuyer', 'true');
+                alert('You have been registered as a Buyer!');
+            } else {
+                // Seller logic: Save data in Supabase
+                const { data, error } = await supabase.from('users').insert([
+                    { username: fullName, email: email, password: password }
+                ]);
+                
+                if (error) {
+                    alert('Error creating user: ' + error.message);
+                } else {
+                    localStorage.setItem('username', fullName);
+                    localStorage.setItem('email', email);
+                    localStorage.setItem('password', password);
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('storeCreated', 'true');
+                    localStorage.setItem('isBuyer', 'false');
+                    alert('Store Created Successfully!');
+                }
+            }
+
+            // Redirect to profile or message page
+            if (isBuyer) {
+                window.location.href = 'message.html'; // Buyer goes directly to messages
+            } else {
+                window.location.href = 'profile.html'; // Seller goes to profile
+            }
+        });
+    </script>
+</body>
+</html>
