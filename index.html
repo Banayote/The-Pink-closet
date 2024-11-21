@@ -23,7 +23,7 @@
             top: 0;
             right: 0;
             width: 250px;
-            height: 100%;                                                                                                                                             background-color: #f4f4f4;
+            height: 100%;
             box-shadow: -2px 0 5px rgba(0,0,0,0.5);
             display: none; /* Initially hidden */
             z-index: 1000;
@@ -101,66 +101,69 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script>
-        // Initialize Supabase client using environment variables
-        const supabase = supabase.createClient(
-            process.env.SUPABASE_URL,   // Environment variable for Supabase URL
-            process.env.SUPABASE_KEY    // Environment variable for Supabase Key
-        );
-        
-        // Get elements
-        const menuIcon = document.getElementById('menuIcon');
-        const sidebar = document.getElementById('sidebar');
-        const closeBtn = document.getElementById('closeBtn');
-        const productList = document.getElementById('product-list');
+        // Ensure the DOM is fully loaded before interacting with it
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get elements
+            const menuIcon = document.getElementById('menuIcon');
+            const sidebar = document.getElementById('sidebar');
+            const closeBtn = document.getElementById('closeBtn');
+            const productList = document.getElementById('product-list');
 
-        // Function to open the sidebar
-        function openSidebar() {
-            sidebar.style.display = 'block';
-        }
-
-        // Function to close the sidebar
-        function closeSidebar() {
-            sidebar.style.display = 'none';
-        }
-
-        // Event listeners for sidebar
-        menuIcon.addEventListener('click', openSidebar);
-        closeBtn.addEventListener('click', closeSidebar);
-
-        // Close sidebar when clicking outside of it
-        window.addEventListener('click', function(event) {
-            if (event.target === sidebar) {
-                closeSidebar();
+            if (!menuIcon) {
+                console.error('Menu icon not found!');
+                return;  // Prevent errors if the element is not found
             }
-        });
 
-        // Function to load products from Supabase
-        async function loadProducts() {
-            const { data: products, error } = await supabase.from('products').select();
-            if (error) {
-                console.error('Error loading products:', error);
-                return;
+            // Function to open the sidebar
+            function openSidebar() {
+                console.log("Burger icon clicked, opening sidebar");
+                sidebar.style.display = 'block';
             }
-            productList.innerHTML = '';  // Clear the product list
-            products.forEach((product) => {
-                const productDiv = document.createElement('div');
-                productDiv.classList.add('product');
-                productDiv.innerHTML = `
-                    <h2>${product.name}</h2>
-                    <p>${product.description}</p>
-                    <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
-                    <img src="${product.image_url}" alt="${product.name}">
-                `;
-                productDiv.addEventListener('click', () => {
-                    alert(`You clicked on ${product.name}`);
-                });
-                productList.appendChild(productDiv);
+
+            // Function to close the sidebar
+            function closeSidebar() {
+                console.log("Close button clicked, closing sidebar");
+                sidebar.style.display = 'none';
+            }
+
+            // Event listeners for sidebar
+            menuIcon.addEventListener('click', openSidebar);
+            closeBtn.addEventListener('click', closeSidebar);
+
+            // Close sidebar when clicking outside of it
+            window.addEventListener('click', function(event) {
+                if (event.target === sidebar) {
+                    closeSidebar();
+                }
             });
-        }
 
-        // Call loadProducts on page load
-        window.onload = loadProducts;
+            // Function to load products from Supabase (for your content)
+            async function loadProducts() {
+                const { data: products, error } = await supabase.from('products').select();
+                if (error) {
+                    console.error('Error loading products:', error);
+                    return;
+                }
+                productList.innerHTML = '';  // Clear the product list
+                products.forEach((product) => {
+                    const productDiv = document.createElement('div');
+                    productDiv.classList.add('product');
+                    productDiv.innerHTML = `
+                        <h2>${product.name}</h2>
+                        <p>${product.description}</p>
+                        <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
+                        <img src="${product.image_url}" alt="${product.name}">
+                    `;
+                    productDiv.addEventListener('click', () => {
+                        alert(`You clicked on ${product.name}`);
+                    });
+                    productList.appendChild(productDiv);
+                });
+            }
+
+            // Call loadProducts on page load
+            window.onload = loadProducts;
+        });
     </script>
 </body>
 </html>
-
