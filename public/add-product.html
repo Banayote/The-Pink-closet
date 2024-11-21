@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
-    <link rel="stylesheet" href="add-product.css">
+    <link rel="stylesheet" href="add_product.css">
     <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
 </head>
@@ -33,7 +33,10 @@
         </form>
     </main>
     <script>
-        const supabase = supabase.createClient('https://eczpdpysryifkekieloc.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4');
+        const supabase = supabase.createClient(
+            'https://eczpdpysryifkekieloc.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
+        );
 
         document.getElementById('add-product-form').addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -49,16 +52,13 @@
                 return;
             }
 
-            const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload'; // Your Cloudinary URL
+            const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload';
             const formData = new FormData();
             formData.append('file', productImage);
-            formData.append('upload_preset', 'BANYOTE'); // Your upload preset
+            formData.append('upload_preset', 'BANYOTE');
 
             try {
-                const imageResponse = await fetch(cloudinaryUrl, {
-                    method: 'POST',
-                    body: formData
-                });
+                const imageResponse = await fetch(cloudinaryUrl, { method: 'POST', body: formData });
                 const imageData = await imageResponse.json();
 
                 const product = {
