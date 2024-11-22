@@ -126,35 +126,33 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script>
+        const supabase = supabase.createClient('https://eczpdpysryifkekieloc.supabase.co', 
+                                               'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4');
+        
         document.addEventListener('DOMContentLoaded', function() {
-            // Get elements
             const menuIcon = document.getElementById('menuIcon');
             const sidebar = document.getElementById('sidebar');
             const closeBtn = document.getElementById('closeBtn');
             const productList = document.getElementById('product-list');
 
-            // Function to open the sidebar
+            // Sidebar functions
             function openSidebar() {
                 sidebar.style.display = 'block';
             }
 
-            // Function to close the sidebar
             function closeSidebar() {
                 sidebar.style.display = 'none';
             }
 
-            // Event listeners for sidebar
             menuIcon.addEventListener('click', openSidebar);
             closeBtn.addEventListener('click', closeSidebar);
-
-            // Close sidebar when clicking outside of it
             window.addEventListener('click', function(event) {
                 if (event.target === sidebar) {
                     closeSidebar();
                 }
             });
 
-            // Function to load products from Supabase (for your content)
+            // Function to load products from Supabase
             async function loadProducts() {
                 const { data: products, error } = await supabase.from('products').select();
                 if (error) {
@@ -178,7 +176,6 @@
                 });
             }
 
-            // Call loadProducts on page load
             window.onload = loadProducts;
         });
     </script>
