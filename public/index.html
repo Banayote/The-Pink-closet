@@ -16,6 +16,7 @@
             font-size: 30px;
             cursor: pointer;
             padding: 10px;
+            z-index: 100; /* Ensure it appears above other content */
         }
 
         .sidebar {
@@ -66,9 +67,9 @@
             height: auto;
         }
 
-        /* Button above logo */
-        .add-product-button {
-            background-color: #f06;  /* Pink color */
+        /* Store button style at the top */
+        .store-button {
+            background-color: #ff66b2;  /* Pink color */
             color: white;
             padding: 10px 20px;
             border: none;
@@ -80,8 +81,8 @@
             z-index: 100;
         }
 
-        .add-product-button:hover {
-            background-color: #d04c61; /* Darker pink */
+        .store-button:hover {
+            background-color: #d04c61; /* Darker pink on hover */
         }
 
         #storeName {
@@ -90,8 +91,8 @@
     </style>
 </head>
 <body>
-    <!-- Button to navigate to Add Product page -->
-    <button class="add-product-button" onclick="window.location.href='add-product.html'">Add Product</button>
+    <!-- Button to navigate to Store page -->
+    <button class="store-button" onclick="window.location.href='store.html'">Go to Store</button>
 
     <header>
         <div id="menuIcon" class="menu-icon">
