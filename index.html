@@ -65,9 +65,34 @@
             max-width: 100%;
             height: auto;
         }
+
+        /* Button above logo */
+        .add-product-button {
+            background-color: #f06;  /* Pink color */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+
+        .add-product-button:hover {
+            background-color: #d04c61; /* Darker pink */
+        }
+
+        #storeName {
+            margin-top: 60px; /* Push the store name down to avoid overlap with the button */
+        }
     </style>
 </head>
 <body>
+    <!-- Button to navigate to Add Product page -->
+    <button class="add-product-button" onclick="window.location.href='add-product.html'">Add Product</button>
+
     <header>
         <div id="menuIcon" class="menu-icon">
             &#9776; <!-- Unicode character for the hamburger icon -->
@@ -101,43 +126,33 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script>
-        // Ensure the DOM is fully loaded before interacting with it
+        const supabase = supabase.createClient('https://eczpdpysryifkekieloc.supabase.co', 
+                                               'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4');
+        
         document.addEventListener('DOMContentLoaded', function() {
-            // Get elements
             const menuIcon = document.getElementById('menuIcon');
             const sidebar = document.getElementById('sidebar');
             const closeBtn = document.getElementById('closeBtn');
             const productList = document.getElementById('product-list');
 
-            if (!menuIcon) {
-                console.error('Menu icon not found!');
-                return;  // Prevent errors if the element is not found
-            }
-
-            // Function to open the sidebar
+            // Sidebar functions
             function openSidebar() {
-                console.log("Burger icon clicked, opening sidebar");
                 sidebar.style.display = 'block';
             }
 
-            // Function to close the sidebar
             function closeSidebar() {
-                console.log("Close button clicked, closing sidebar");
                 sidebar.style.display = 'none';
             }
 
-            // Event listeners for sidebar
             menuIcon.addEventListener('click', openSidebar);
             closeBtn.addEventListener('click', closeSidebar);
-
-            // Close sidebar when clicking outside of it
             window.addEventListener('click', function(event) {
                 if (event.target === sidebar) {
                     closeSidebar();
                 }
             });
 
-            // Function to load products from Supabase (for your content)
+            // Function to load products from Supabase
             async function loadProducts() {
                 const { data: products, error } = await supabase.from('products').select();
                 if (error) {
@@ -161,10 +176,8 @@
                 });
             }
 
-            // Call loadProducts on page load
             window.onload = loadProducts;
         });
     </script>
 </body>
 </html>
-
