@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
-    <link rel="stylesheet" href="add_product.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script>
 </head>
@@ -40,30 +39,27 @@
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
         );
 
+        // Handle form submission
         document.getElementById('add-product-form').addEventListener('submit', async (event) => {
             event.preventDefault();
 
-            // Get form data
             const productName = document.getElementById('product-name').value;
             const productDescription = document.getElementById('product-description').value;
             const productPrice = document.getElementById('product-price').value;
             const productCategory = document.getElementById('product-category').value;
             const productImage = document.getElementById('product-image').files[0];
 
-            // Ensure image is selected
             if (!productImage) {
                 alert('Please select an image.');
                 return;
             }
 
-            // Prepare the Cloudinary upload
-            const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload'; // Your Cloudinary URL
+            const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload'; // Cloudinary URL
             const formData = new FormData();
             formData.append('file', productImage);
-            formData.append('upload_preset', 'BANYOTE'); // Your Cloudinary upload preset
+            formData.append('upload_preset', 'BANYOTE');  // Your Cloudinary upload preset
 
             try {
-                // Upload image to Cloudinary
                 const imageResponse = await fetch(cloudinaryUrl, {
                     method: 'POST',
                     body: formData
@@ -80,14 +76,14 @@
                         image_url: imageData.secure_url  // Cloudinary image URL
                     };
 
-                    // Insert product data into Supabase
+                    // Insert product into Supabase
                     const { data, error } = await supabase.from('products').insert([product]);
                     if (error) {
                         console.error('Error adding product:', error);
                         alert('Failed to add product. Please try again.');
                     } else {
                         alert('Product added successfully!');
-                        event.target.reset();  // Reset form after successful submission
+                        event.target.reset(); // Reset form after successful submission
                     }
                 } else {
                     console.error('Cloudinary upload failed', imageData);
