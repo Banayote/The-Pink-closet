@@ -1,25 +1,18 @@
 {
-  "name": "your-project-name",
+  "name": "the-pink-closet",
   "version": "1.0.0",
-  "description": "A brief description of your project",
-  "main": "server.js",
+  "description": "A web application for The Pink Closet, an e-commerce platform for fashion.",
+  "main": "index.html",  // Since you're not using server.js, let's point to the main HTML file
   "scripts": {
-    "start": "node server.js"
+    "build": "vite build",  // Add this if you're using a build tool like Vite
+    "start": "vite preview"  // This starts the Vercel preview locally
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.46.1",
-    "bcryptjs": "^2.4.3",
-    "body-parser": "^1.19.0",
-    "crypto": "^1.0.1",
-    "dotenv": "^16.4.5",
-    "express": "^4.17.1",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^5.10.9",
-    "multer": "^1.4.4-lts.1",
-    "socket.io": "^4.0.1"
+    "@supabase/supabase-js": "^2.46.1",  // Keep this for interacting with Supabase
+    "dotenv": "^16.4.5"  // Keep this for environment variables
   },
   "engines": {
-    "node": "20.x"
+    "node": "20.x"  // Specify the Node.js version if needed
   },
   "license": "ISC"
 }
