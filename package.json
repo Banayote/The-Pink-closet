@@ -2,17 +2,17 @@
   "name": "the-pink-closet",
   "version": "1.0.0",
   "description": "A web application for The Pink Closet, an e-commerce platform for fashion.",
-  "main": "index.html",  // Since you're not using server.js, let's point to the main HTML file
+  "main": "index.html",
   "scripts": {
-    "build": "vite build",  // Add this if you're using a build tool like Vite
-    "start": "vite preview"  // This starts the Vercel preview locally
+    "build": "vite build",
+    "start": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.46.1",  // Keep this for interacting with Supabase
-    "dotenv": "^16.4.5"  // Keep this for environment variables
+    "@supabase/supabase-js": "^2.46.1",
+    "dotenv": "^16.4.5"
   },
   "engines": {
-    "node": "20.x"  // Specify the Node.js version if needed
+    "node": "20.x"
   },
   "license": "ISC"
 }
