@@ -32,6 +32,10 @@
             transition: 0.3s ease;
         }
 
+        .sidebar.active {
+            display: block; /* Show the sidebar when active */
+        }
+
         .close-btn {
             font-size: 30px;
             cursor: pointer;
@@ -120,13 +124,13 @@
             // Function to open the sidebar
             function openSidebar() {
                 console.log("Burger icon clicked, opening sidebar");
-                sidebar.style.display = 'block';  // Show the sidebar
+                sidebar.classList.add('active');  // Add the 'active' class to show the sidebar
             }
 
             // Function to close the sidebar
             function closeSidebar() {
                 console.log("Close button clicked, closing sidebar");
-                sidebar.style.display = 'none';  // Hide the sidebar
+                sidebar.classList.remove('active');  // Remove the 'active' class to hide the sidebar
             }
 
             // Event listeners for sidebar
