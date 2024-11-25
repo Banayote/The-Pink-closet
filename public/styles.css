@@ -1,1 +1,219 @@
+/* General Styles */
+body {
+    background-color: pink;
+    color: white;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    text-align: center;
+    padding: 20px;
+    background-color: pink;
+    position: relative; /* Ensure the menu icon is positioned relative to the header */
+}
+
+#storeName {
+    font-size: 36px;
+}
+
+.search-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.search-bar input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.search-bar button {
+    padding: 10px 20px;
+    background-color: white;
+    color: pink;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.search-bar button:hover {
+    background-color: #f2f2f2;
+}
+
+/* Styling for Product Categories */
+.product-category {
+    margin: 20px;
+}
+
+.product-category h2 {
+    text-align: center;
+}
+
+/* Horizontal Scrolling for Product Lists */
+.product-list {
+    display: flex; /* Align products horizontally */
+    overflow-x: auto; /* Enable horizontal scrolling */
+    white-space: nowrap; /* Prevent wrapping */
+    padding: 10px 0;
+}
+
+.product {
+    display: inline-block; /* Align products horizontally */
+    width: 200px; /* Fixed width for products */
+    border: 1px solid #ccc;
+    padding: 20px;
+    text-align: center;
+    background-color: white;
+    color: pink;
+    margin-right: 20px; /* Space between products */
+}
+
+.product img {
+    width: 100%;
+    height: auto;
+}
+
+/* Menu Icon */
+.menu-icon {
+    font-size: 30px;
+    cursor: pointer;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+/* Sidebar */
+.sidebar {
+    height: 100%; /* Full-height */
+    width: 0; /* Initial width (collapsed) */
+    position: fixed; /* Stay in place */
+    top: 0;
+    right: 0;
+    background-color: white; /* Sidebar background color */
+    overflow-x: hidden; /* Disable horizontal scroll */
+    transition: 0.5s; /* Smooth transition effect */
+    padding-top: 60px; /* Place content 60px from the top */
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+    z-index: 999; /* Ensure sidebar is above other content */
+}
+
+/* Sidebar Links */
+.sidebar a {
+    padding: 15px 20px;
+    text-decoration: none;
+    font-size: 20px;
+    color: pink;
+    display: block;
+    transition: 0.3s;
+}
+
+.sidebar a:hover {
+    background-color: #f1f1f1; /* Change background color on hover */
+}
+
+/* Close Button */
+.close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 36px;
+    background: none;
+    border: none;
+    color: pink;
+    cursor: pointer;
+    z-index: 1001; /* Ensure close button is above other elements */
+}
+
+/* When the sidebar is opened */
+.sidebar.active {
+    width: 300px; /* Adjust the width of the sidebar */
+}
+
+/* Styles for the Store Page */
+.store-page {
+    background-color: pink;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    min-height: 100vh; /* Ensure full height */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.store-page h2 {
+    margin-bottom: 20px;
+}
+
+.store-page form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 600px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.store-page label {
+    margin-top: 10px;
+    font-size: 18px;
+}
+
+.store-page input {
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.store-page button {
+    padding: 10px 20px;
+    background-color: white;
+    color: pink;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.store-page button:hover {
+    background-color: #f2f2f2;
+}
+
+.exit-icon {
+    font-size: 24px;
+    position: fixed; /* Change to fixed positioning */
+    top: 20px;
+    left: 20px;
+    cursor: pointer;
+    color: white;
+    z-index: 1000; /* Ensure it's above other elements */
+}
+
+.exit-dialog {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    color: pink;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.exit-dialog button {
+    margin: 10px;
+}
 
