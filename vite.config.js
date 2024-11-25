@@ -1,14 +1,8 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  root: 'public', // Set the root directory to "public"
+  root: '.', // Set the root directory to the project root
   build: {
-    outDir: '../dist', // Output the build files to "../dist"
-    assetsDir: 'assets', // Make sure assets are in the correct directory
-    rollupOptions: {
-      input: {
-        main: 'public/index.html', // Specify the main entry point
-      },
-    },
+    outDir: './dist', // Output the build files to the "dist" directory inside the project root
   },
 });
