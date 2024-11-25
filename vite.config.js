@@ -1,12 +1,11 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  root: '.', // Keep the root at the project directory
+  root: 'public', // Root directory containing all HTML files
   build: {
-    outDir: './dist', // Output the build files to the "dist" directory
+    outDir: '../dist', // Where the built files will go
   },
   server: {
-    open: true, // Automatically opens your app in the browser during dev
+    open: true, // Automatically open the app in the browser during dev
   },
 });
-
