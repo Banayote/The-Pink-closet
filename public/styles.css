@@ -96,10 +96,11 @@ header {
     right: 0;
     background-color: white; /* Sidebar background color */
     overflow-x: hidden; /* Disable horizontal scroll */
-    transition: 0.5s; /* Smooth transition effect */
+    transition: transform 0.3s ease; /* Smooth transition for transform */
     padding-top: 60px; /* Place content 60px from the top */
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
     z-index: 999; /* Ensure sidebar is above other content */
+    transform: translateX(100%); /* Start off-screen */
 }
 
 /* Sidebar Links */
@@ -129,9 +130,9 @@ header {
     z-index: 1001; /* Ensure close button is above other elements */
 }
 
-/* When the sidebar is opened */
+/* When the sidebar is opened (with active class) */
 .sidebar.active {
-    width: 300px; /* Adjust the width of the sidebar */
+    transform: translateX(0); /* Move into view */
 }
 
 /* Styles for the Store Page */
@@ -209,11 +210,10 @@ header {
     color: pink;
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     text-align: center;
 }
 
 .exit-dialog button {
     margin: 10px;
 }
-
