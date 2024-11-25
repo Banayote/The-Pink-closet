@@ -1,5 +1,5 @@
-
-  "name": "the-pk-closet",
+{
+  "name": "the-pink-closet",
   "version": "1.0.0",
   "description": "A web application for The Pink Closet, an e-commerce platform for fashion.",
   "main": "index.html",
@@ -16,17 +16,3 @@
   },
   "license": "ISC"
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
