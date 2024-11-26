@@ -20,6 +20,10 @@
       "dest": "/public/messages.html"
     },
     {
+      "src": "/add-product.html",
+      "dest": "/public/add-product.html"
+    },
+    {
       "handle": "filesystem"
     },
     {
