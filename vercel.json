@@ -8,6 +8,18 @@
   ],
   "routes": [
     {
+      "src": "/store.html",
+      "dest": "/public/store.html"
+    },
+    {
+      "src": "/profile.html",
+      "dest": "/public/profile.html"
+    },
+    {
+      "src": "/messages.html",
+      "dest": "/public/messages.html"
+    },
+    {
       "handle": "filesystem"
     },
     {
