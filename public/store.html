@@ -82,7 +82,13 @@
         </form>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.40.0/dist/umd/supabase.js"></script>
     <script>
+        // Supabase client setup
+        const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
+        const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
+
         // Exit icon functionality
         document.getElementById('exitIcon').addEventListener('click', () => {
             if (confirm('Are you sure you want to exit?')) {
@@ -91,7 +97,7 @@
         });
 
         // Handle form submission
-        document.getElementById('storeForm').addEventListener('submit', function(event) {
+        document.getElementById('storeForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
             // Gather form data
@@ -109,24 +115,41 @@
                 localStorage.setItem('buyerID', buyerID);
                 localStorage.setItem('isBuyer', 'true');
                 alert('You have been registered as a Buyer!');
+                window.location.href = 'message.html'; // Buyer goes directly to messages
             } else {
                 // Seller logic: Save data in localStorage (simulate store creation)
+                const { user, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    alert(error.message);
+                    return;
+                }
+
+                // Create the profile in Supabase
+                const { data: profileData, profileError } = await supabase
+                    .from('profiles')
+                    .insert([
+                        { id: user.id, name: fullName, email: email, phone: formData.get('phoneNumber') }
+                    ]);
+
+                if (profileError) {
+                    alert(profileError.message);
+                    return;
+                }
+
                 localStorage.setItem('username', fullName);
                 localStorage.setItem('email', email);
-                localStorage.setItem('password', password);
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('storeCreated', 'true');
                 localStorage.setItem('isBuyer', 'false');
-            }
 
-            // Redirect to profile or message page
-            if (isBuyer) {
-                window.location.href = 'message.html'; // Buyer goes directly to messages
-            } else {
+                alert('Store created successfully!');
                 window.location.href = 'profile.html'; // Seller goes to profile
             }
         });
     </script>
 </body>
 </html>
-
