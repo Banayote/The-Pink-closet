@@ -6,7 +6,6 @@
     <title>Create Your Store</title>
     <link rel="stylesheet" href="store.css">
     <style>
-        /* Inline styles for simplicity */
         body {
             background-color: pink;
             font-family: Arial, sans-serif;
@@ -70,7 +69,7 @@
 </head>
 <body>
     <div class="form-container">
-        <div class="exit-icon" id="exitIcon">&#x2B05;</div> <!-- Exit Icon -->
+        <div class="exit-icon" id="exitIcon">&#x2B05;</div>
         <h1>Create Your Store</h1>
         <form id="storeForm">
             <input type="text" name="firstName" placeholder="First Name" required>
@@ -82,72 +81,64 @@
         </form>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.40.0/dist/umd/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script>
-        // Supabase client setup
-        const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
-        const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
+        const supabase = supabase.createClient('https://eczpdpysryifkekieloc.supabase.co', 
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4');
 
-        // Exit icon functionality
         document.getElementById('exitIcon').addEventListener('click', () => {
             if (confirm('Are you sure you want to exit?')) {
-                window.location.href = 'index.html'; // Redirect to the main page
+                window.location.href = 'index.html';
             }
         });
 
-        // Handle form submission
         document.getElementById('storeForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            // Gather form data
             const formData = new FormData(this);
             const firstName = formData.get('firstName');
             const lastName = formData.get('lastName');
             const email = formData.get('email');
             const password = formData.get('password');
             const fullName = `${firstName} ${lastName}`;
-            const isBuyer = !email || !password; // Check if the user didn't provide email/password
+            const isBuyer = !email || !password;
 
-            if (isBuyer) {
-                // Buyer logic: Generate a unique ID and store it
-                const buyerID = `buyer-${Date.now()}`;
-                localStorage.setItem('buyerID', buyerID);
-                localStorage.setItem('isBuyer', 'true');
-                alert('You have been registered as a Buyer!');
-                window.location.href = 'message.html'; // Buyer goes directly to messages
-            } else {
-                // Seller logic: Save data in localStorage (simulate store creation)
-                const { user, error } = await supabase.auth.signUp({
+            try {
+                const { user, error: signUpError } = await supabase.auth.signUp({
                     email: email,
                     password: password
                 });
 
-                if (error) {
-                    alert(error.message);
+                if (signUpError) {
+                    console.error('Sign up error:', signUpError);
+                    alert('Error during sign-up: ' + signUpError.message);
                     return;
                 }
 
-                // Create the profile in Supabase
-                const { data: profileData, profileError } = await supabase
+                console.log('User created:', user);
+
+                const { data: profileData, error: profileError } = await supabase
                     .from('profiles')
                     .insert([
                         { id: user.id, name: fullName, email: email, phone: formData.get('phoneNumber') }
                     ]);
 
                 if (profileError) {
-                    alert(profileError.message);
+                    console.error('Error inserting profile:', profileError);
+                    alert('Error inserting profile: ' + profileError.message);
                     return;
                 }
 
-                localStorage.setItem('username', fullName);
-                localStorage.setItem('email', email);
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('storeCreated', 'true');
-                localStorage.setItem('isBuyer', 'false');
+                console.log('Profile inserted:', profileData);
 
-                alert('Store created successfully!');
-                window.location.href = 'profile.html'; // Seller goes to profile
+                if (isBuyer) {
+                    window.location.href = 'message.html';
+                } else {
+                    window.location.href = 'profile.html';
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Something went wrong, please try again!');
             }
         });
     </script>
