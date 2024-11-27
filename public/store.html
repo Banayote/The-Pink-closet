@@ -38,18 +38,37 @@
             const fullName = `${firstName} ${lastName}`;
 
             // Register user with email and password in Supabase
-            const { user, error } = await supabase.auth.signUp({
+            const { user, error: signUpError } = await supabase.auth.signUp({
                 email: email,
                 password: password,
             });
 
-            if (error) {
-                alert('Error signing up: ' + error.message);
-            } else {
-                alert('User created! Welcome, ' + fullName);
-                // Redirect to profile page after successful sign up
-                window.location.href = 'profile.html'; 
+            if (signUpError) {
+                alert('Error signing up: ' + signUpError.message);
+                return;
             }
+
+            // Now insert additional user details (first name, last name) into the 'users' table
+            const { data, error: insertError } = await supabase
+                .from('users') // Assuming your table is called 'users'
+                .insert([
+                    {
+                        email: email,
+                        first_name: firstName,
+                        last_name: lastName,
+                        full_name: fullName,
+                    }
+                ]);
+
+            if (insertError) {
+                alert('Error inserting user data: ' + insertError.message);
+                return;
+            }
+
+            alert('User created successfully! Welcome, ' + fullName);
+
+            // Redirect to profile page after successful sign up
+            window.location.href = 'profile.html'; 
         });
     </script>
 </body>
