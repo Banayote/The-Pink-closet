@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Your Store</title>
-    <link rel="stylesheet" href="store.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.4/dist/supabase.js"></script>
     <script>
         // Supabase client setup
@@ -28,7 +27,9 @@
     <script>
         // Handle form submission and create a user
         document.getElementById('storeForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
+            event.preventDefault();  // Prevent the default form submit action
+
+            console.log("Form submitted"); // Debugging message
 
             const formData = new FormData(this);
             const firstName = formData.get('firstName');
@@ -36,6 +37,9 @@
             const email = formData.get('email');
             const password = formData.get('password');
             const fullName = `${firstName} ${lastName}`;
+
+            // Debugging output
+            console.log("Form Data: ", { firstName, lastName, email, password, fullName });
 
             // Register user with email and password in Supabase
             const { user, error: signUpError } = await supabase.auth.signUp({
