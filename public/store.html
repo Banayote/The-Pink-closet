@@ -90,10 +90,10 @@
             }
         });
 
-        // Initialize Supabase
-        const { createClient } = require('@supabase/supabase-js');
-        const supabaseUrl = process.env.SUPABASE_URL; // Using the environment variable
-        const supabaseKey = process.env.SUPABASE_API_KEY; // Using the environment variable
+        // Initialize Supabase client using Vercel environment variables
+        const { createClient } = supabase;
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL; // Using the environment variable for URL
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY; // Using the environment variable for API key
         const supabase = createClient(supabaseUrl, supabaseKey);
 
         // Handle form submission
@@ -113,4 +113,38 @@
                 // Buyer logic: Generate a unique ID and store it
                 const buyerID = `buyer-${Date.now()}`;
                 localStorage.setItem('buyerID', buyerID);
-               
+                localStorage.setItem('isBuyer', 'true');
+                alert('You have been registered as a Buyer!');
+            } else {
+                // Seller logic: Save data in localStorage (simulate store creation)
+                localStorage.setItem('username', fullName);
+                localStorage.setItem('email', email);
+                localStorage.setItem('password', password);
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('storeCreated', 'true');
+                localStorage.setItem('isBuyer', 'false');
+                
+                // Insert the new user data into Supabase
+                const { data, error } = await supabase
+                    .from('users')
+                    .insert([
+                        { username: fullName, email: email, password: password }
+                    ]);
+                
+                if (error) {
+                    alert(`Error creating store: ${error.message}`);
+                } else {
+                    alert('Store created successfully!');
+                }
+            }
+
+            // Redirect to profile or message page
+            if (isBuyer) {
+                window.location.href = 'message.html'; // Buyer goes directly to messages
+            } else {
+                window.location.href = 'profile.html'; // Seller goes to profile
+            }
+        });
+    </script>
+</body>
+</html>
