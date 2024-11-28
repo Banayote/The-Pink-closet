@@ -7,9 +7,21 @@
     }
   ],
   "routes": [
-    { "src": "/", "dest": "/index.html" },
-    { "src": "/store", "dest": "/store.html" },
-    { "src": "/profile", "dest": "/profile.html" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    {
+      "src": "/",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/store",
+      "dest": "/store.html"
+    },
+    {
+      "src": "/profile",
+      "dest": "/profile.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ]
 }
