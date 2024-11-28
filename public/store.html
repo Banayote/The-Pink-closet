@@ -73,16 +73,22 @@
         <div class="exit-icon" id="exitIcon">&#x2B05;</div> <!-- Exit Icon -->
         <h1>Create Your Store</h1>
         <form id="storeForm">
-            <input type="text" name="firstName" placeholder="First Name" required>
-            <input type="text" name="lastName" placeholder="Last Name" required>
-            <input type="email" name="email" placeholder="Email (Leave empty if you're a buyer)">
-            <input type="tel" name="phoneNumber" placeholder="Phone Number (Optional)">
-            <input type="password" name="password" placeholder="Password (Leave empty if you're a buyer)">
+            <input type="text" name="firstName" id="firstName" placeholder="First Name" required>
+            <input type="text" name="lastName" id="lastName" placeholder="Last Name" required>
+            <input type="email" name="email" id="email" placeholder="Email (Leave empty if you're a buyer)" required>
+            <input type="tel" name="phoneNumber" id="phoneNumber" placeholder="Phone Number (Optional)">
+            <input type="password" name="password" id="password" placeholder="Password (Leave empty if you're a buyer)">
             <button type="submit">Submit</button>
         </form>
     </div>
 
-    <script type="module">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = 'https://egdkwalmlhucljdbquso.supabase.co'; // Your Supabase URL
+        const supabaseAnonKey = 'NEXT_PUBLIC_SUPABASE_ANON_KEY'; // Replace with your Supabase anon key
+        const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
         // Exit icon functionality
         document.getElementById('exitIcon').addEventListener('click', () => {
             if (confirm('Are you sure you want to exit?')) {
@@ -90,59 +96,50 @@
             }
         });
 
-        // Initialize Supabase client using Vercel environment variables
-        const { createClient } = supabase;
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL; // Using the environment variable for URL
-        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY; // Using the environment variable for API key
-        const supabase = createClient(supabaseUrl, supabaseKey);
-
         // Handle form submission
         document.getElementById('storeForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
             // Gather form data
-            const formData = new FormData(this);
-            const firstName = formData.get('firstName');
-            const lastName = formData.get('lastName');
-            const email = formData.get('email');
-            const password = formData.get('password');
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
             const fullName = `${firstName} ${lastName}`;
-            const isBuyer = !email || !password; // Check if the user didn't provide email/password
 
-            if (isBuyer) {
-                // Buyer logic: Generate a unique ID and store it
-                const buyerID = `buyer-${Date.now()}`;
-                localStorage.setItem('buyerID', buyerID);
-                localStorage.setItem('isBuyer', 'true');
-                alert('You have been registered as a Buyer!');
-            } else {
-                // Seller logic: Save data in localStorage (simulate store creation)
-                localStorage.setItem('username', fullName);
-                localStorage.setItem('email', email);
-                localStorage.setItem('password', password);
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('storeCreated', 'true');
-                localStorage.setItem('isBuyer', 'false');
-                
-                // Insert the new user data into Supabase
-                const { data, error } = await supabase
-                    .from('users')
-                    .insert([
-                        { username: fullName, email: email, password: password }
-                    ]);
-                
-                if (error) {
-                    alert(`Error creating store: ${error.message}`);
+            try {
+                // If password is provided, create a new user using Supabase authentication
+                if (password) {
+                    const { data, error } = await supabase.auth.signUp({
+                        email: email,
+                        password: password,
+                    });
+
+                    if (error) throw error;
+                    alert('Account created successfully!');
+
+                    // After successful sign-up, store user info in localStorage
+                    localStorage.setItem('username', fullName);
+                    localStorage.setItem('email', email);
+                    localStorage.setItem('password', password);
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('storeCreated', 'true');
+
+                    // Redirect to the profile page for sellers
+                    window.location.href = 'profile.html';
                 } else {
-                    alert('Store created successfully!');
-                }
-            }
+                    // If no password is provided, handle as a buyer
+                    const buyerID = `buyer-${Date.now()}`;
+                    localStorage.setItem('buyerID', buyerID);
+                    localStorage.setItem('isBuyer', 'true');
+                    alert('You have been registered as a Buyer!');
 
-            // Redirect to profile or message page
-            if (isBuyer) {
-                window.location.href = 'message.html'; // Buyer goes directly to messages
-            } else {
-                window.location.href = 'profile.html'; // Seller goes to profile
+                    // Redirect to messages page for buyers
+                    window.location.href = 'message.html';
+                }
+            } catch (error) {
+                console.error('Error creating account:', error.message);
+                alert('Error: ' + error.message);
             }
         });
     </script>
