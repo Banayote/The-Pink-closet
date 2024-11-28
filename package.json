@@ -1,22 +1,16 @@
 {
-  "name": "the-pink-closet",
+  "name": "your-project-name",
   "version": "1.0.0",
-  "description": "A web application for The Pink Closet, an e-commerce platform for fashion.",
-  "main": "index.html",
   "scripts": {
-    "build": "vite build",
-    "start": "vite preview"
+    "dev": "vite", // Command to run the development server
+    "build": "vite build", // Command to build the production version
+    "preview": "vite preview" // Command to preview the production version locally
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.46.1",
-    "dotenv": "^16.4.5"
+    "supabase-js": "^2.0.0", // Supabase client library
+    "vite": "^4.0.0" // Vite bundler
   },
   "devDependencies": {
-    "vite": "^4.0.0"
-  },
-  "engines": {
-    "node": "20.x"
-  },
-  "license": "ISC"
+    "vite-plugin-html": "^2.0.0" // Optional if you need dynamic HTML template support
+  }
 }
-
