@@ -67,8 +67,6 @@
             z-index: 1000;
         }
     </style>
-    <!-- Include Supabase library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 </head>
 <body>
     <div class="form-container">
@@ -85,11 +83,11 @@
     </div>
 
     <script>
-        // Initialize Supabase client using environment variables
-        const supabase = supabase.createClient(
-            'https://eczpdpysryifkekieloc.supabase.co', // Your Supabase URL
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4' // Your Supabase Anon Key
-        );
+        // Initialize Supabase client
+        const { createClient } = supabase;
+        const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co'; // Your Supabase URL
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Your Supabase API key
+        const supabase = createClient(supabaseUrl, supabaseKey);
 
         // Exit icon functionality
         document.getElementById('exitIcon').addEventListener('click', () => {
@@ -110,39 +108,55 @@
             const phoneNumber = formData.get('phoneNumber');
             const password = formData.get('password');
             const fullName = `${firstName} ${lastName}`;
-            const isBuyer = !email || !password; // Check if the user didn't provide email/password
+            const isBuyer = !email || !password; // If no email or password, assume buyer
 
-            // Prepare data to send to Supabase
-            const userData = {
-                first_name: firstName,
-                last_name: lastName,
-                email: email || null,  // Email is optional for buyers
-                phone_number: phoneNumber || null,
-                password: password || null,  // Only sellers will have a password
-                is_buyer: isBuyer,
-                created_at: new Date().toISOString() // Store the current timestamp
-            };
-
-            // Insert data into Supabase
             try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .insert([userData]);
-
-                if (error) {
-                    console.error('Error inserting data:', error);
-                    alert('There was an error. Please try again.');
+                if (isBuyer) {
+                    // Buyer logic: Generate a unique ID and store it
+                    const buyerID = `buyer-${Date.now()}`;
+                    localStorage.setItem('buyerID', buyerID);
+                    localStorage.setItem('isBuyer', 'true');
+                    alert('You have been registered as a Buyer!');
                 } else {
-                    // Redirect after successful insertion
-                    if (isBuyer) {
-                        window.location.href = 'message.html'; // Buyer goes to messages
-                    } else {
-                        window.location.href = 'profile.html'; // Seller goes to profile
+                    // Seller logic: Insert into Supabase
+                    const { data, error } = await supabase
+                        .from('users') // Change 'users' to the name of your table in Supabase
+                        .insert([
+                            {
+                                first_name: firstName,
+                                last_name: lastName,
+                                email: email,
+                                phone_number: phoneNumber,
+                                password: password // Be sure to hash the password in production!
+                            },
+                        ]);
+
+                    if (error) {
+                        console.error("Error inserting data:", error.message);
+                        alert("There was an error registering your store.");
+                        return;
                     }
+
+                    console.log("User data inserted successfully:", data);
+                    localStorage.setItem('username', fullName);
+                    localStorage.setItem('email', email);
+                    localStorage.setItem('password', password);
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('storeCreated', 'true');
+                    localStorage.setItem('isBuyer', 'false');
+                    alert('You have created your store successfully!');
                 }
+
+                // Redirect to appropriate page
+                if (isBuyer) {
+                    window.location.href = 'message.html'; // Buyer goes to messages
+                } else {
+                    window.location.href = 'profile.html'; // Seller goes to profile
+                }
+
             } catch (error) {
-                console.error('Error:', error);
-                alert('Something went wrong.');
+                console.error("Error submitting form:", error);
+                alert("An unexpected error occurred. Please try again.");
             }
         });
     </script>
