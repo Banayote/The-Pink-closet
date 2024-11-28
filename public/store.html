@@ -67,89 +67,84 @@
             z-index: 1000;
         }
     </style>
+    <!-- Include Supabase library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 </head>
 <body>
     <div class="form-container">
         <div class="exit-icon" id="exitIcon">&#x2B05;</div> <!-- Exit Icon -->
         <h1>Create Your Store</h1>
         <form id="storeForm">
-            <input type="text" name="firstName" id="firstName" placeholder="First Name" required>
-            <input type="text" name="lastName" id="lastName" placeholder="Last Name" required>
-            <input type="email" name="email" id="email" placeholder="Email (Leave empty if you're a buyer)" required>
-            <input type="tel" name="phoneNumber" id="phoneNumber" placeholder="Phone Number (Optional)">
-            <input type="password" name="password" id="password" placeholder="Password (Leave empty if you're a buyer)">
+            <input type="text" name="firstName" placeholder="First Name" required>
+            <input type="text" name="lastName" placeholder="Last Name" required>
+            <input type="email" name="email" placeholder="Email (Leave empty if you're a buyer)">
+            <input type="tel" name="phoneNumber" placeholder="Phone Number (Optional)">
+            <input type="password" name="password" placeholder="Password (Leave empty if you're a buyer)">
             <button type="submit">Submit</button>
         </form>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
-            <script>
-    // Initialize Supabase client
-    const supabaseUrl = 'https://egdkwalmlhucljdbquso.supabase.co'; // Your Supabase URL
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnZGt3YWxtbGh1Y2xqZGJxdXNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI3Nzk5MzQsImV4cCI6MjA0ODM1NTkzNH0.G3K9uomXqTP4AVN9FcoMo3uE2zqiFUnNX-yN4WFLy_8'; // Your Supabase Anon Key
-    const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+    <script>
+        // Initialize Supabase client using environment variables
+        const supabase = supabase.createClient(
+            'https://eczpdpysryifkekieloc.supabase.co', // Your Supabase URL
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4' // Your Supabase Anon Key
+        );
 
-    // Exit icon functionality
-    document.getElementById('exitIcon').addEventListener('click', () => {
-        if (confirm('Are you sure you want to exit?')) {
-            window.location.href = 'index.html'; // Redirect to the main page
-        }
-    });
-
-    // Handle form submission
-    document.getElementById('storeForm').addEventListener('submit', async function(event) {
-        event.preventDefault();
-
-        // Gather form data
-        const firstName = document.getElementById('firstName').value;
-        const lastName = document.getElementById('lastName').value;
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const fullName = `${firstName} ${lastName}`;
-
-        try {
-            // If password is provided, create a new user using Supabase authentication
-            if (password) {
-                const { data, error } = await supabase.auth.signUp({
-                    email: email,
-                    password: password,
-                });
-
-                if (error) throw error;
-                alert('Account created successfully!');
-
-                // After successful sign-up, store user info in localStorage
-                localStorage.setItem('username', fullName);
-                localStorage.setItem('email', email);
-                localStorage.setItem('password', password);
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('storeCreated', 'true');
-
-                // Insert the user data into a custom table in Supabase
-                const { data: insertData, error: insertError } = await supabase
-                    .from('users')  // Replace with your custom table name
-                    .insert([
-                        { email: email, full_name: fullName, created_at: new Date() }
-                    ]);
-
-                if (insertError) throw insertError;
-                console.log("Inserted data:", insertData);
-
-                // Redirect to the profile page for sellers
-                window.location.href = 'profile.html';
-            } else {
-                // If no password is provided, handle as a buyer
-                const buyerID = `buyer-${Date.now()}`;
-                localStorage.setItem('buyerID', buyerID);
-                localStorage.setItem('isBuyer', 'true');
-                alert('You have been registered as a Buyer!');
-
-                // Redirect to messages page for buyers
-                window.location.href = 'message.html';
+        // Exit icon functionality
+        document.getElementById('exitIcon').addEventListener('click', () => {
+            if (confirm('Are you sure you want to exit?')) {
+                window.location.href = 'index.html'; // Redirect to the main page
             }
-        } catch (error) {
-            console.error('Error creating account:', error.message);
-            alert('Error: ' + error.message);
-        }
-    });
-</script>
+        });
+
+        // Handle form submission
+        document.getElementById('storeForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            // Gather form data
+            const formData = new FormData(this);
+            const firstName = formData.get('firstName');
+            const lastName = formData.get('lastName');
+            const email = formData.get('email');
+            const phoneNumber = formData.get('phoneNumber');
+            const password = formData.get('password');
+            const fullName = `${firstName} ${lastName}`;
+            const isBuyer = !email || !password; // Check if the user didn't provide email/password
+
+            // Prepare data to send to Supabase
+            const userData = {
+                first_name: firstName,
+                last_name: lastName,
+                email: email || null,  // Email is optional for buyers
+                phone_number: phoneNumber || null,
+                password: password || null,  // Only sellers will have a password
+                is_buyer: isBuyer,
+                created_at: new Date().toISOString() // Store the current timestamp
+            };
+
+            // Insert data into Supabase
+            try {
+                const { data, error } = await supabase
+                    .from('users')
+                    .insert([userData]);
+
+                if (error) {
+                    console.error('Error inserting data:', error);
+                    alert('There was an error. Please try again.');
+                } else {
+                    // Redirect after successful insertion
+                    if (isBuyer) {
+                        window.location.href = 'message.html'; // Buyer goes to messages
+                    } else {
+                        window.location.href = 'profile.html'; // Seller goes to profile
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Something went wrong.');
+            }
+        });
+    </script>
+</body>
+</html>
