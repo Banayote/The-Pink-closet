@@ -1,12 +1,7 @@
-import { defineConfig } from 'vite';
-
-export default defineConfig({
-  build: {
-    rollupOptions: {
-      input: {
-        main: 'index.html', // Explicitly define the entry point as index.html
-      },
-    },
-    outDir: 'dist', // Ensure Vite places the built assets in the 'dist' directory
+// vite.config.js
+export default {
+  define: {
+    'process.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL),
+    'process.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY)
   },
-});
+}
