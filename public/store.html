@@ -82,19 +82,19 @@
         </form>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script> <!-- Supabase Client -->
     <script>
-        // Initialize Supabase client
-        const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co'; // Your Supabase URL
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Your Supabase API Key
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
         // Exit icon functionality
         document.getElementById('exitIcon').addEventListener('click', () => {
             if (confirm('Are you sure you want to exit?')) {
                 window.location.href = 'index.html'; // Redirect to the main page
             }
         });
+
+        // Initialize Supabase
+        const { createClient } = require('@supabase/supabase-js');
+        const supabaseUrl = process.env.SUPABASE_URL; // Using the environment variable
+        const supabaseKey = process.env.SUPABASE_API_KEY; // Using the environment variable
+        const supabase = createClient(supabaseUrl, supabaseKey);
 
         // Handle form submission
         document.getElementById('storeForm').addEventListener('submit', async function(event) {
@@ -105,44 +105,12 @@
             const firstName = formData.get('firstName');
             const lastName = formData.get('lastName');
             const email = formData.get('email');
-            const phoneNumber = formData.get('phoneNumber');
             const password = formData.get('password');
             const fullName = `${firstName} ${lastName}`;
             const isBuyer = !email || !password; // Check if the user didn't provide email/password
 
             if (isBuyer) {
-                // Logic for buyers: Generate a unique ID and store it in localStorage
+                // Buyer logic: Generate a unique ID and store it
                 const buyerID = `buyer-${Date.now()}`;
                 localStorage.setItem('buyerID', buyerID);
-                localStorage.setItem('isBuyer', 'true');
-                alert('You have been registered as a Buyer!');
-                window.location.href = 'message.html'; // Buyer goes directly to messages
-            } else {
-                // Seller logic: Save data in Supabase (insert into users table)
-                const { data, error } = await supabase
-                    .from('users') // Table name in Supabase
-                    .insert([
-                        {
-                            first_name: firstName,
-                            last_name: lastName,
-                            email: email,
-                            phone_number: phoneNumber,
-                            password: password,  // You should hash the password before storing it for security
-                            is_buyer: false // Mark as seller
-                        }
-                    ]);
-
-                if (error) {
-                    console.error("Error inserting user: ", error);
-                    alert('Error while creating store.');
-                    return;
-                }
-
-                alert('Store created successfully!');
-                // Redirect to profile page for sellers
-                window.location.href = 'profile.html'; 
-            }
-        });
-    </script>
-</body>
-</html>
+               
