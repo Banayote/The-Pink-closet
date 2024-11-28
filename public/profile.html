@@ -48,11 +48,12 @@
         </div>
         <div class="user-products"></div>
     </div>
-    <script>
+
+    <script type="module">
         // Initialize Supabase client using Vercel environment variables
         const { createClient } = supabase;
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL; // Using the environment variable for URL
-        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY; // Using the environment variable for API key
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL; // Using the environment variable for URL
+        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY; // Using the environment variable for API key
         const supabase = createClient(supabaseUrl, supabaseKey);
 
         // Check if the user is logged in (using localStorage)
