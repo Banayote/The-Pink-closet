@@ -4,6 +4,14 @@
     {
       "src": "public/index.html",
       "use": "@vercel/static"
+    },
+    {
+      "src": "public/store.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "public/profile.html",
+      "use": "@vercel/static"
     }
   ],
   "env": {
@@ -20,10 +28,13 @@
       "dest": "/profile.html"
     },
     {
+      "src": "/",
+      "dest": "/index.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
   ]
 }
-
 
