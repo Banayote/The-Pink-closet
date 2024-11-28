@@ -18,7 +18,10 @@
     {
       "src": "/profile",
       "dest": "/public/profile.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
     }
   ]
 }
-
