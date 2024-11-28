@@ -2,33 +2,18 @@
   "version": 2,
   "builds": [
     {
-      "src": "public/**/*",
+      "src": "index.html",
       "use": "@vercel/static"
     }
   ],
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://egdkwalmlhucljdbquso.supabase.co", 
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnZGt3YWxtbGh1Y2xqZGJxdXNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI3Nzk5MzQsImV4cCI6MjA0ODM1NTkzNH0.G3K9uomXqTP4AVN9FcoMo3uE2zqiFUnNX-yN4WFLy_8"
+  },
   "routes": [
     {
-      "src": "/store.html",
-      "dest": "/public/store.html"
-    },
-    {
-      "src": "/profile.html",
-      "dest": "/public/profile.html"
-    },
-    {
-      "src": "/messages.html",
-      "dest": "/public/messages.html"
-    },
-    {
-      "src": "/add-product.html",
-      "dest": "/public/add-product.html"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/.*",
-      "dest": "/public/index.html"
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
