@@ -13,16 +13,15 @@
   "routes": [
     {
       "src": "/store",
-      "dest": "/public/store.html"
+      "dest": "/store.html"
     },
     {
       "src": "/profile",
-      "dest": "/public/profile.html"
+      "dest": "/profile.html"
     },
     {
       "src": "/(.*)",
-      "dest": "/public/index.html"
+      "dest": "/index.html"
     }
   ]
 }
-
