@@ -12,8 +12,17 @@
   },
   "routes": [
     {
+      "src": "/store",
+      "dest": "/public/store.html"
+    },
+    {
+      "src": "/profile",
+      "dest": "/public/profile.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/index.html"
     }
   ]
 }
+
