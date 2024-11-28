@@ -6,7 +6,72 @@
     <title>The Pink Closet</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Add your styles here */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .menu-icon {
+            font-size: 30px;
+            cursor: pointer;
+            padding: 10px;
+            z-index: 1001;  /* Ensuring it stays on top */
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 250px;
+            height: 100%;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.5);
+            display: none; /* Initially hidden */
+            background-color: #fff;
+            z-index: 1000;
+            transition: 0.3s ease;
+        }
+
+        .sidebar.active {
+            display: block; /* Show the sidebar when active */
+        }
+
+        .close-btn {
+            font-size: 30px;
+            cursor: pointer;
+            padding: 10px;
+            background: none;
+            border: none;
+        }
+
+        .sidebar-content {
+            padding: 20px;
+        }
+
+        .sidebar-item {
+            display: block;
+            padding: 10px;
+            color: black;
+            text-decoration: none;
+        }
+
+        .sidebar-item:hover {
+            background-color: #ddd;
+        }
+
+        /* Product styles */
+        .product {
+            border: 1px solid #ccc;
+            margin: 10px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .product img {
+            max-width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -22,6 +87,7 @@
     </header>
     <main>
         <section id="main-content">
+            <!-- Product sections will be dynamically populated here -->
             <div id="product-list"></div>
         </section>
     </main>
@@ -40,17 +106,44 @@
         </div>
     </div>
 
+    <!-- Load Supabase JS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Supabase client
-            const supabase = supabase.createClient(
-                'https://eczpdpysryifkekieloc.supabase.co', 
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
+            // Initialize Supabase client with environment variables (you can replace them with actual values if testing locally)
+            const supabase = createClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL, // Replace with your Supabase URL
+                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY // Replace with your Supabase Key
             );
 
+            // Get elements
+            const menuIcon = document.getElementById('menuIcon');
+            const sidebar = document.getElementById('sidebar');
+            const closeBtn = document.getElementById('closeBtn');
             const productList = document.getElementById('product-list');
 
+            // Function to open the sidebar
+            function openSidebar() {
+                sidebar.classList.add('active');
+            }
+
+            // Function to close the sidebar
+            function closeSidebar() {
+                sidebar.classList.remove('active');
+            }
+
+            // Event listeners for sidebar
+            menuIcon.addEventListener('click', openSidebar);
+            closeBtn.addEventListener('click', closeSidebar);
+
+            // Close sidebar when clicking outside of it
+            window.addEventListener('click', function(event) {
+                if (event.target === sidebar) {
+                    closeSidebar();
+                }
+            });
+
+            // Function to load products from Supabase
             async function loadProducts() {
                 const { data: products, error } = await supabase.from('products').select();
                 if (error) {
@@ -58,7 +151,10 @@
                     return;
                 }
 
-                productList.innerHTML = ''; // Clear previous products
+                // Clear the product list
+                productList.innerHTML = '';
+
+                // Loop through each product and create the HTML
                 products.forEach((product) => {
                     const productDiv = document.createElement('div');
                     productDiv.classList.add('product');
@@ -75,11 +171,9 @@
                 });
             }
 
+            // Call loadProducts on page load
             window.onload = loadProducts;
         });
     </script>
 </body>
 </html>
-
-
-
