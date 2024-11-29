@@ -9,6 +9,10 @@
   "routes": [
     {
       "src": "/",
+      "dest": "/public/login.html"
+    },
+    {
+      "src": "/index",
       "dest": "/public/index.html"
     },
     {
