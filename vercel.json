@@ -9,20 +9,19 @@
   "routes": [
     {
       "src": "/",
-      "dest": "/public/login.html"
+      "dest": "/login.html"
     },
     {
       "src": "/store",
-      "dest": "/public/store.html"
+      "dest": "/store.html"
     },
     {
       "src": "/profile",
-      "dest": "/public/profile.html"
+      "dest": "/profile.html"
     },
     {
       "src": "/(.*)",
-      "dest": "/public/$1"
+      "dest": "/$1"
     }
   ]
 }
-
