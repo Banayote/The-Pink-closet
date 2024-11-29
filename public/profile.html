@@ -76,32 +76,13 @@
 
             let isEditing = false;
 
-            // Supabase API URL and keys
-            const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';
-            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Provided API Key
+            // Check if the user is a seller or a buyer
+            const isBuyer = localStorage.getItem('isBuyer') === 'true';
 
-            // Fetch user data from Supabase
-            async function fetchUserProfile() {
-                const user = JSON.parse(localStorage.getItem('user'));
-                if (user) {
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${user.id}`, {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${user.token}`
-                        }
-                    });
-                    const data = await response.json();
-                    if (data.length > 0) {
-                        const userData = data[0];
-                        usernameElem.textContent = userData.first_name + " " + userData.last_name;
-                        profileImg.src = userData.profile_picture_url || 'default-profile.jpg';
-                        bannerImages[0].src = userData.banner_img_1 || 'default-banner1.jpg';
-                        bannerImages[1].src = userData.banner_img_2 || 'default-banner2.jpg';
-                        bannerImages[2].src = userData.banner_img_3 || 'default-banner3.jpg';
-                    }
-                }
+            // If the user is a buyer, redirect them to the message page
+            if (isBuyer) {
+                alert('Buyers do not have a profile page.');
+                window.location.href = 'message.html';
             }
 
             // Redirect to index.html when exit icon is clicked
@@ -115,8 +96,24 @@
                 window.location.href = 'add-product.html';
             });
 
-            // Initialize profile
-            fetchUserProfile();
+            // Initialize profile data for sellers only
+            function initializeProfile() {
+                const username = localStorage.getItem('username');
+                const profileImgSrc = localStorage.getItem('profileImgSrc');
+                const bannerImgsSrc = [
+                    localStorage.getItem('bannerImgSrc1'),
+                    localStorage.getItem('bannerImgSrc2'),
+                    localStorage.getItem('bannerImgSrc3')
+                ];
+
+                if (username) usernameElem.textContent = username;
+                if (profileImgSrc) profileImg.src = profileImgSrc;
+                if (bannerImgsSrc[0]) bannerImages[0].src = bannerImgsSrc[0];
+                if (bannerImgsSrc[1]) bannerImages[1].src = bannerImgsSrc[1];
+                if (bannerImgsSrc[2]) bannerImages[2].src = bannerImgsSrc[2];
+            }
+
+            initializeProfile();
 
             // Toggle between edit and save mode
             editButton.addEventListener('click', () => {
@@ -133,36 +130,42 @@
                     bannerImages.forEach(img => img.classList.remove('editable'));
 
                     // Save the profile data for sellers only
-                    const updatedUserData = {
-                        first_name: usernameElem.textContent,
-                        profile_picture_url: profileImg.src,
-                        banner_img_1: bannerImages[0].src,
-                        banner_img_2: bannerImages[1].src,
-                        banner_img_3: bannerImages[2].src
-                    };
-                    
-                    fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${user.id}`, {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${user.token}`
-                        },
-                        body: JSON.stringify(updatedUserData)
-                    })
-                    .then(response => response.json())
-                    .then(data => console.log('Profile updated:', data))
-                    .catch(error => console.error('Error updating profile:', error));
+                    localStorage.setItem('username', usernameElem.textContent);
+                    localStorage.setItem('profileImgSrc', profileImg.src);
+                    localStorage.setItem('bannerImgSrc1', bannerImages[0].src);
+                    localStorage.setItem('bannerImgSrc2', bannerImages[1].src);
+                    localStorage.setItem('bannerImgSrc3', bannerImages[2].src);
                 }
             });
 
-            // Handle image click (profile & banner images)
+            // Show modal with image when clicking on profile picture or banner images
             function openModal(imageSrc) {
                 modal.style.display = 'block';
                 modalImg.src = imageSrc;
             }
 
-            // Image upload handling
+            // Handle profile picture click
+            profileImg.addEventListener('click', () => {
+                if (isEditing) {
+                    profilePicUpload.click();
+                } else {
+                    openModal(profileImg.src);
+                }
+            });
+
+            // Handle banner image click
+            bannerImages.forEach((img, index) => {
+                img.addEventListener('click', () => {
+                    if (isEditing) {
+                        bannerUpload.setAttribute('data-index', index);
+                        bannerUpload.click();
+                    } else {
+                        openModal(img.src);
+                    }
+                });
+            });
+
+            // Handle profile picture upload
             profilePicUpload.addEventListener('change', function () {
                 const file = this.files[0];
                 if (file) {
@@ -171,9 +174,11 @@
                 }
             });
 
+            // Handle banner image upload
             bannerUpload.addEventListener('change', function () {
                 const files = this.files;
                 const index = this.getAttribute('data-index');
+
                 if (files.length > 0 && index != null) {
                     const imgURL = URL.createObjectURL(files[0]);
                     bannerImages[index].src = imgURL;
@@ -201,6 +206,11 @@
                 }
             });
         });
+
+        // Function to go back to the previous page
+        function goBack() {
+            window.history.back();
+        }
     </script>
 </body>
 </html>
