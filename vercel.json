@@ -9,7 +9,7 @@
   "routes": [
     {
       "src": "/",
-      "dest": "/public/index.html"
+      "dest": "/public/login.html"
     },
     {
       "src": "/store",
@@ -25,3 +25,4 @@
     }
   ]
 }
+
