@@ -36,11 +36,11 @@
             <div class="stats">
                 <div class="stat">
                     <h2>Sales</h2>
-                    <p id="sales-count"></p>
+                    <p id="sales-count">0</p> <!-- Add sales data here -->
                 </div>
                 <div class="stat">
                     <h2>Visitors</h2>
-                    <p id="visitors-count"></p>
+                    <p id="visitors-count">0</p> <!-- Add visitor data here -->
                 </div>
             </div>
         </div>
@@ -51,14 +51,17 @@
             <!-- User's posted products will be displayed here -->
         </div>
     </div>
+
     <!-- Hidden file inputs -->
     <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
     <input type="file" id="banner-upload" accept="image/*" multiple style="display:none;">
+
     <!-- Modal for displaying images -->
     <div id="image-modal" class="modal">
         <span class="close">&times;</span>
         <img class="modal-content" id="modal-img">
     </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const exitIcon = document.getElementById('exitIcon');
