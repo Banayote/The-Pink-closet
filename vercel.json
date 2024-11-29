@@ -12,6 +12,10 @@
       "dest": "/login.html"
     },
     {
+      "src": "/index",
+      "dest": "/index.html"
+    },
+    {
       "src": "/store",
       "dest": "/store.html"
     },
