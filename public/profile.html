@@ -8,6 +8,7 @@
 </head>
 <body>
     <div class="profile-container">
+        <!-- Exit Icon with redirection to index.html -->
         <div class="exit-icon">
             <a href="#" id="exitIcon"><span>&larr;</span></a>
         </div>
@@ -46,25 +47,160 @@
         <div class="product-list-button">
             <button>View Product List</button>
         </div>
-        <div class="user-products"></div>
+        <div class="user-products">
+            <!-- User's posted products will be displayed here -->
+        </div>
     </div>
+    <!-- Hidden file inputs -->
+    <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
+    <input type="file" id="banner-upload" accept="image/*" multiple style="display:none;">
+    <!-- Modal for displaying images -->
+    <div id="image-modal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modal-img">
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const exitIcon = document.getElementById('exitIcon');
+            const profileImg = document.getElementById('profile-img');
+            const bannerImages = document.querySelectorAll('.banner-images img');
+            const usernameElem = document.getElementById('username');
+            const profilePicUpload = document.getElementById('profile-pic-upload');
+            const bannerUpload = document.getElementById('banner-upload');
+            const modal = document.getElementById('image-modal');
+            const modalImg = document.getElementById('modal-img');
+            const closeModal = document.querySelector('.modal .close');
+            const editButton = document.getElementById('edit');
+            const copyLinkButton = document.getElementById('copy-link');
+            const addProductButton = document.getElementById('add-product');
 
-    <script type="module">
-        // Initialize Supabase client using Vercel environment variables
-        const { createClient } = supabase;
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL; // Using the environment variable for URL
-        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY; // Using the environment variable for API key
-        const supabase = createClient(supabaseUrl, supabaseKey);
+            let isEditing = false;
 
-        // Check if the user is logged in (using localStorage)
-        const isLoggedIn = localStorage.getItem('isLoggedIn');
-        const username = localStorage.getItem('username');
+            // Supabase API URL and keys
+            const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Provided API Key
 
-        if (isLoggedIn) {
-            document.getElementById('username').textContent = username;
-        } else {
-            window.location.href = 'index.html'; // Redirect to homepage if not logged in
-        }
+            // Fetch user data from Supabase
+            async function fetchUserProfile() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (user) {
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${user.id}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${user.token}`
+                        }
+                    });
+                    const data = await response.json();
+                    if (data.length > 0) {
+                        const userData = data[0];
+                        usernameElem.textContent = userData.first_name + " " + userData.last_name;
+                        profileImg.src = userData.profile_picture_url || 'default-profile.jpg';
+                        bannerImages[0].src = userData.banner_img_1 || 'default-banner1.jpg';
+                        bannerImages[1].src = userData.banner_img_2 || 'default-banner2.jpg';
+                        bannerImages[2].src = userData.banner_img_3 || 'default-banner3.jpg';
+                    }
+                }
+            }
+
+            // Redirect to index.html when exit icon is clicked
+            exitIcon.addEventListener('click', (event) => {
+                event.preventDefault();
+                window.location.href = 'index.html'; 
+            });
+
+            // Redirect to add-product.html when "Add Product" button is clicked
+            addProductButton.addEventListener('click', () => {
+                window.location.href = 'add-product.html';
+            });
+
+            // Initialize profile
+            fetchUserProfile();
+
+            // Toggle between edit and save mode
+            editButton.addEventListener('click', () => {
+                isEditing = !isEditing;
+                if (isEditing) {
+                    editButton.textContent = 'Save';
+                    usernameElem.contentEditable = true;
+                    profileImg.classList.add('editable');
+                    bannerImages.forEach(img => img.classList.add('editable'));
+                } else {
+                    editButton.textContent = 'Edit';
+                    usernameElem.contentEditable = false;
+                    profileImg.classList.remove('editable');
+                    bannerImages.forEach(img => img.classList.remove('editable'));
+
+                    // Save the profile data for sellers only
+                    const updatedUserData = {
+                        first_name: usernameElem.textContent,
+                        profile_picture_url: profileImg.src,
+                        banner_img_1: bannerImages[0].src,
+                        banner_img_2: bannerImages[1].src,
+                        banner_img_3: bannerImages[2].src
+                    };
+                    
+                    fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${user.id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${user.token}`
+                        },
+                        body: JSON.stringify(updatedUserData)
+                    })
+                    .then(response => response.json())
+                    .then(data => console.log('Profile updated:', data))
+                    .catch(error => console.error('Error updating profile:', error));
+                }
+            });
+
+            // Handle image click (profile & banner images)
+            function openModal(imageSrc) {
+                modal.style.display = 'block';
+                modalImg.src = imageSrc;
+            }
+
+            // Image upload handling
+            profilePicUpload.addEventListener('change', function () {
+                const file = this.files[0];
+                if (file) {
+                    const imgURL = URL.createObjectURL(file);
+                    profileImg.src = imgURL;
+                }
+            });
+
+            bannerUpload.addEventListener('change', function () {
+                const files = this.files;
+                const index = this.getAttribute('data-index');
+                if (files.length > 0 && index != null) {
+                    const imgURL = URL.createObjectURL(files[0]);
+                    bannerImages[index].src = imgURL;
+                }
+            });
+
+            // Close modal handler
+            closeModal.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+
+            // Close modal when clicking outside of the modal
+            window.addEventListener('click', (event) => {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+
+            // Generate profile link
+            copyLinkButton.addEventListener('click', () => {
+                const username = localStorage.getItem('username');
+                if (username) {
+                    const link = `${window.location.origin}/profile.html?username=${encodeURIComponent(username)}`;
+                    prompt('Copy this link to share:', link);
+                }
+            });
+        });
     </script>
 </body>
 </html>
