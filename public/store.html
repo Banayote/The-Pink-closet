@@ -120,7 +120,10 @@
 
                 if (response.ok) {
                     alert('User successfully created!');
-                    console.log(result);
+
+                    // Redirect to profile.html and pass the user ID
+                    const userId = result[0].id; // Assuming Supabase response includes the created user's ID
+                    window.location.href = `profile.html?seller_id=${userId}`;
                 } else {
                     console.error('Error:', result);
                     alert('Failed to create user. Check console for details.');
