@@ -59,74 +59,60 @@
         <span class="close">&times;</span>
         <img class="modal-content" id="modal-img">
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const exitIcon = document.getElementById('exitIcon');
-            const addProductButton = document.getElementById('add-product');
-            const copyLinkButton = document.getElementById('copy-link');
-            const usernameElem = document.getElementById('username');
-            const profileImg = document.getElementById('profile-img');
-            const salesCountElem = document.getElementById('sales-count');
-            const visitorsCountElem = document.getElementById('visitors-count');
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const exitIcon = document.getElementById('exitIcon');
+        const usernameElem = document.getElementById('username');
+        const profileImg = document.getElementById('profile-img');
+        const salesCountElem = document.getElementById('sales-count');
+        const visitorsCountElem = document.getElementById('visitors-count');
 
-            // Extract seller_id from the query string
-            const urlParams = new URLSearchParams(window.location.search);
-            const sellerId = urlParams.get('seller_id');
+        // Extract seller_id from the query string
+        const urlParams = new URLSearchParams(window.location.search);
+        const sellerId = urlParams.get('seller_id');
 
-            if (!sellerId) {
-                alert('No seller ID found. Redirecting to home page.');
-                window.location.href = 'index.html';
-                return;
-            }
+        if (!sellerId) {
+            alert('No seller ID found. Redirecting to home page.');
+            window.location.href = 'index.html';
+            return;
+        }
 
-            try {
-                // Fetch user data from Supabase
-                const response = await fetch(`https://eczpdpysryifkekieloc.supabase.co/rest/v1/users?id=eq.${sellerId}`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4',
-                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
-                    }
-                });
-
-                const userData = await response.json();
-
-                if (userData.length > 0) {
-                    const user = userData[0];
-                    usernameElem.textContent = `${user.first_name} ${user.last_name}`;
-                    profileImg.src = 'profile-picture.jpg'; // Placeholder image
-                    salesCountElem.textContent = user.sales || 0;
-                    visitorsCountElem.textContent = user.visitors || 0;
-                } else {
-                    alert('User not found. Redirecting to home page.');
-                    window.location.href = 'index.html';
+        try {
+            // Fetch user data from Supabase
+            const response = await fetch(`https://eczpdpysryifkekieloc.supabase.co/rest/v1/users?id=eq.${sellerId}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4',
+                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
                 }
-            } catch (error) {
-                console.error('Error fetching user data:', error);
-                alert('Failed to load user data.');
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch user data. Status: ${response.status}`);
             }
 
-            // Redirect to add-product.html when "Add Product" button is clicked
-            addProductButton.addEventListener('click', () => {
-                window.location.href = `add-product.html?seller_id=${sellerId}`;
-            });
+            const userData = await response.json();
 
-            // Copy profile link to clipboard
-            copyLinkButton.addEventListener('click', () => {
-                const profileLink = `${window.location.origin}/profile.html?seller_id=${sellerId}`;
-                navigator.clipboard.writeText(profileLink).then(() => {
-                    alert('Profile link copied to clipboard!');
-                }).catch(err => {
-                    console.error('Failed to copy profile link:', err);
-                });
-            });
-
-            // Exit profile
-            exitIcon.addEventListener('click', (event) => {
-                event.preventDefault();
+            if (userData.length > 0) {
+                const user = userData[0];
+                usernameElem.textContent = `${user.first_name} ${user.last_name}`;
+                profileImg.src = 'profile-picture.jpg'; // Placeholder image
+                salesCountElem.textContent = user.sales || 0;
+                visitorsCountElem.textContent = user.visitors || 0;
+            } else {
+                alert('User not found. Redirecting to home page.');
                 window.location.href = 'index.html';
-            });
+            }
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+            alert('An unexpected error occurred while loading the profile.');
+            window.location.href = 'index.html'; // Redirect to home page on error
+        }
+
+        // Exit profile
+        exitIcon.addEventListener('click', (event) => {
+            event.preventDefault();
+            window.location.href = 'index.html';
         });
-    </script>
-</body>
-</html>
+    });
+</script>
