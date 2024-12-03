@@ -110,6 +110,12 @@
             const rawResponse = await response.text();  // Get raw response text
             console.log('Raw response from server:', rawResponse);
 
+            if (!rawResponse) {
+                console.error('Empty response received from server');
+                alert('The server did not return any data. Please try again later.');
+                return;
+            }
+
             let result = null;
             try {
                 result = JSON.parse(rawResponse); // Try parsing JSON
