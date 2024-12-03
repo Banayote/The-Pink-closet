@@ -107,18 +107,19 @@
                 body: JSON.stringify(payload),
             });
 
-            const rawResponse = await response.text();
+            const rawResponse = await response.text();  // Get raw response text
             console.log('Raw response from server:', rawResponse);
 
-            let result;
+            let result = null;
             try {
-                result = JSON.parse(rawResponse); // Parse JSON to get response details
+                result = JSON.parse(rawResponse); // Try parsing JSON
             } catch (jsonError) {
                 console.error('Failed to parse JSON:', jsonError);
                 alert('Server returned invalid data. Please check the console for details.');
                 return;
             }
 
+            // Check for success or failure
             if (response.ok) {
                 const sellerId = result[0]?.id;
                 if (sellerId) {
@@ -127,6 +128,7 @@
                     alert('User created successfully, but redirection failed. Check console.');
                 }
             } else {
+                // Error handling for duplicate email or any other errors
                 if (result.message && result.message.includes('duplicate key value violates unique constraint')) {
                     alert('Email already exists! Please try a different email.');
                 } else {
