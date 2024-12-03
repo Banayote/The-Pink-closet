@@ -72,12 +72,12 @@
     <div class="form-container">
         <div class="exit-icon" id="exitIcon">&#x2B05;</div> <!-- Exit Icon -->
         <h1>Create Your Store</h1>
-        <form id="storeForm">
-            <input type="text" name="firstName" placeholder="First Name" required>
-            <input type="text" name="lastName" placeholder="Last Name" required>
-            <input type="email" name="email" placeholder="Email (Leave empty if you're a buyer)" required>
-            <input type="tel" name="phoneNumber" placeholder="Phone Number (Optional)">
-            <input type="password" name="password" placeholder="Password" required>
+        <form id="storeForm" autocomplete="on"> <!-- Enable autofill for the whole form -->
+            <input type="text" name="firstName" placeholder="First Name" required autocomplete="given-name"> <!-- Auto-fill for first name -->
+            <input type="text" name="lastName" placeholder="Last Name" required autocomplete="family-name"> <!-- Auto-fill for last name -->
+            <input type="email" name="email" placeholder="Email (Leave empty if you're a buyer)" required autocomplete="email"> <!-- Auto-fill for email -->
+            <input type="tel" name="phoneNumber" placeholder="Phone Number (Optional)" autocomplete="tel"> <!-- Auto-fill for phone number -->
+            <input type="password" name="password" placeholder="Password" required autocomplete="new-password"> <!-- Auto-fill for password -->
             <button type="submit">Submit</button>
         </form>
     </div>
