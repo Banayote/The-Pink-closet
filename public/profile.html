@@ -8,7 +8,6 @@
 </head>
 <body>
     <div class="profile-container">
-        <!-- Exit Icon with redirection to index.html -->
         <div class="exit-icon">
             <a href="#" id="exitIcon"><span>&larr;</span> Back</a>
         </div>
@@ -47,10 +46,9 @@
         <div class="product-list-button">
             <button id="view-products">View Product List</button>
         </div>
-        <div class="user-products">
-            <!-- User's posted products will be dynamically displayed here -->
-        </div>
+        <div class="user-products"></div>
     </div>
+
     <!-- Modal for displaying images -->
     <div id="image-modal" class="modal">
         <span class="close">&times;</span>
@@ -72,9 +70,11 @@
 
             if (!sellerId) {
                 alert('No seller ID found. Redirecting to home page.');
-                window.location.href = 'index.html';
+                window.location.href = 'index.html'; // Redirect if seller_id is missing
                 return;
             }
+
+            console.log("Seller ID from URL:", sellerId); // Log the seller_id for debugging
 
             try {
                 // Fetch user data from Supabase
@@ -91,17 +91,16 @@
                 }
 
                 const userData = await response.json();
-
                 if (userData.length > 0) {
                     const user = userData[0];
                     usernameElem.textContent = `${user.first_name} ${user.last_name}`;
-                    profileImg.src = user.profile_img || 'profile-picture.jpg'; // Use default image if not provided
+                    profileImg.src = user.profile_img || 'profile-picture.jpg';
                     salesCountElem.textContent = user.sales || 0;
                     visitorsCountElem.textContent = user.visitors || 0;
                     userRoleElem.textContent = `Role: ${user.role || 'Seller'}`;
                 } else {
                     alert('User not found. Redirecting to home page.');
-                    window.location.href = 'index.html';
+                    window.location.href = 'index.html'; // If user is not found
                 }
             } catch (error) {
                 console.error('Error fetching user data:', error);
@@ -109,13 +108,11 @@
                 window.location.href = 'index.html'; // Redirect to home page on error
             }
 
-            // Exit profile
             exitIcon.addEventListener('click', (event) => {
                 event.preventDefault();
-                window.location.href = 'index.html';
+                window.location.href = 'index.html'; // Redirect to home page on exit
             });
         });
     </script>
 </body>
 </html>
-
