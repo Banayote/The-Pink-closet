@@ -6,7 +6,6 @@
     <title>Create Your Store</title>
     <link rel="stylesheet" href="store.css">
     <style>
-        /* Inline styles for simplicity */
         body {
             background-color: pink;
             font-family: Arial, sans-serif;
@@ -70,22 +69,24 @@
 </head>
 <body>
     <div class="form-container">
-        <div class="exit-icon" id="exitIcon">&#x2B05;</div> <!-- Exit Icon -->
+        <div class="exit-icon" id="exitIcon">&#x2B05;</div>
         <h1>Create Your Store</h1>
-        <form id="storeForm" autocomplete="on"> <!-- Enable autofill for the whole form -->
-            <input type="text" name="firstName" placeholder="First Name" required autocomplete="given-name"> <!-- Auto-fill for first name -->
-            <input type="text" name="lastName" placeholder="Last Name" required autocomplete="family-name"> <!-- Auto-fill for last name -->
-            <input type="email" name="email" placeholder="Email (Leave empty if you're a buyer)" required autocomplete="email"> <!-- Auto-fill for email -->
-            <input type="tel" name="phoneNumber" placeholder="Phone Number (Optional)" autocomplete="tel"> <!-- Auto-fill for phone number -->
-            <input type="password" name="password" placeholder="Password" required autocomplete="new-password"> <!-- Auto-fill for password -->
+        <form id="storeForm" autocomplete="on">
+            <input type="text" name="firstName" placeholder="First Name" required autocomplete="given-name">
+            <input type="text" name="lastName" placeholder="Last Name" required autocomplete="family-name">
+            <input type="email" name="email" placeholder="Email (Leave empty if you're a buyer)" required autocomplete="email">
+            <input type="tel" name="phoneNumber" placeholder="Phone Number (Optional)" autocomplete="tel">
+            <input type="password" name="password" placeholder="Password" required autocomplete="new-password">
             <button type="submit">Submit</button>
         </form>
     </div>
     <script>
     document.getElementById('storeForm').addEventListener('submit', async function (event) {
-        event.preventDefault(); // Prevent the default form submission behavior
+        event.preventDefault();
 
-        // Gather form data
+        // Debugging: Log form submission
+        console.debug("Form submission initiated.");
+
         const formData = new FormData(this);
         const payload = {
             first_name: formData.get('firstName'),
@@ -95,8 +96,12 @@
             password: formData.get('password'),
         };
 
+        console.debug("Prepared Payload:", payload);
+
         try {
-            // First, check if the email already exists
+            // Check if email exists
+            console.debug("Checking if email already exists...");
+
             const emailCheckResponse = await fetch(`https://eczpdpysryifkekieloc.supabase.co/rest/v1/users?email=eq.${payload.email}`, {
                 method: 'GET',
                 headers: {
@@ -108,17 +113,21 @@
 
             if (emailCheckResponse.ok) {
                 const emailCheckData = await emailCheckResponse.json();
+                console.debug("Email check response:", emailCheckData);
 
-                // If email already exists
                 if (emailCheckData.length > 0) {
                     alert('Email already exists! Please try a different email.');
                     return;
                 }
             } else {
-                console.error('Error checking email:', await emailCheckResponse.text());
+                console.error("Error checking email:", await emailCheckResponse.text());
+                alert('Error checking email. See console for details.');
+                return;
             }
 
             // Send data to Supabase
+            console.debug("Sending user data to Supabase...");
+
             const response = await fetch('https://eczpdpysryifkekieloc.supabase.co/rest/v1/users', {
                 method: 'POST',
                 headers: {
@@ -129,49 +138,48 @@
                 body: JSON.stringify(payload),
             });
 
-            const rawResponse = await response.text();  // Get raw response text
-            console.log('Raw response from server:', rawResponse);
+            const rawResponse = await response.text();
+            console.debug("Raw response from server:", rawResponse);
 
             if (!rawResponse) {
-                console.error('Empty response received from server');
+                console.error('Empty response received from server.');
                 alert('The server did not return any data. Please try again later.');
                 return;
             }
 
             let result = null;
             try {
-                result = JSON.parse(rawResponse); // Try parsing JSON
-                console.log('Parsed response:', result);
+                result = JSON.parse(rawResponse);
+                console.debug("Parsed response from server:", result);
             } catch (jsonError) {
-                console.error('Failed to parse JSON:', jsonError);
-                alert('Server returned invalid data. Please check the console for details.');
+                console.error("Failed to parse JSON response:", jsonError);
+                alert('Invalid response from server. Check console for details.');
                 return;
             }
 
-            // Check for success or failure
             if (response.ok) {
-                const sellerId = result[0]?.id;  // Assuming your response contains an array
+                const sellerId = result[0]?.id;
                 if (sellerId) {
+                    console.debug("User created successfully. Redirecting to profile...");
                     window.location.href = `profile.html?seller_id=${sellerId}`;
                 } else {
-                    alert('User created successfully, but redirection failed. Check console.');
+                    console.warn("User created but no seller ID in response.");
+                    alert('User created successfully, but redirection failed.');
                 }
             } else {
-                console.error('Error response:', result);
-                alert('Failed to create user. Check the console for details.');
+                console.error("Error response from server:", result);
+                alert('Failed to create user. See console for details.');
             }
         } catch (error) {
-            console.error('Unexpected error occurred:', error);
-            alert('An unexpected error occurred. Please check the console for details.');
+            console.error("Unexpected error:", error);
+            alert('An unexpected error occurred. See console for details.');
         }
     });
 
-    // Exit button handler
     document.getElementById('exitIcon').addEventListener('click', () => {
+        console.debug("Exit icon clicked. Redirecting to index...");
         window.location.href = 'index.html';
     });
     </script>
 </body>
 </html>
-
-
