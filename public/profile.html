@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
     <link rel="stylesheet" href="profile.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body>
     <div class="profile-container">
@@ -56,6 +57,10 @@
     </div>
 
     <script>
+        const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co'; // Supabase URL
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Your Supabase API Key
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
         document.addEventListener('DOMContentLoaded', async () => {
             const exitIcon = document.getElementById('exitIcon');
             const usernameElem = document.getElementById('username');
@@ -64,53 +69,42 @@
             const visitorsCountElem = document.getElementById('visitors-count');
             const userRoleElem = document.getElementById('user-role');
 
-            // Extract seller_id from the query string
-            const urlParams = new URLSearchParams(window.location.search);
-            const sellerId = urlParams.get('seller_id');
-
-            // Log the seller_id for debugging
-            console.log("Seller ID from URL:", sellerId);
-
-            if (!sellerId) {
-                alert('No seller ID found. Redirecting to home page.');
-                window.location.href = 'index.html'; // Redirect if seller_id is missing
+            // Login and session check
+            const { data: { user }, error } = await supabase.auth.getUser();
+            if (error || !user) {
+                alert("You need to be logged in to view this page");
+                window.location.href = "login.html"; // Redirect to login page if not authenticated
                 return;
             }
 
-            console.log("Seller ID is available: ", sellerId); // Check if sellerId is available
+            console.log("Logged-in user:", user);
 
             try {
-                // Fetch user data from Supabase
-                const response = await fetch(`https://eczpdpysryifkekieloc.supabase.co/rest/v1/users?id=eq.${sellerId}`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4', // Your Supabase API Key
-                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4' // Your Bearer Token
-                    }
-                });
+                // Fetch user profile data from Supabase
+                const { data, error: fetchError } = await supabase
+                    .from('users') // Assuming you have a 'users' table in Supabase
+                    .select('*')
+                    .eq('email', user.email)
+                    .single();
 
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch user data. Status: ${response.status}`);
+                if (fetchError || !data) {
+                    throw new Error('Failed to fetch profile data.');
                 }
 
-                const userData = await response.json();
-                if (userData.length > 0) {
-                    const user = userData[0];
-                    usernameElem.textContent = `${user.first_name} ${user.last_name}`;
-                    profileImg.src = user.profile_img || 'profile-picture.jpg';
-                    salesCountElem.textContent = user.sales || 0;
-                    visitorsCountElem.textContent = user.visitors || 0;
-                    userRoleElem.textContent = `Role: ${user.role || 'Seller'}`;
-                } else {
-                    alert('User not found. Redirecting to home page.');
-                    window.location.href = 'index.html'; // If user is not found
-                }
+                // Populate profile with user data
+                usernameElem.textContent = `${data.first_name} ${data.last_name}`;
+                profileImg.src = data.profile_img || 'profile-picture.jpg';
+                salesCountElem.textContent = data.sales || 0;
+                visitorsCountElem.textContent = data.visitors || 0;
+                userRoleElem.textContent = `Role: ${data.role || 'Seller'}`;
+
             } catch (error) {
-                console.error('Error fetching user data:', error);
+                console.error('Error fetching user profile:', error);
                 alert('An unexpected error occurred while loading the profile.');
                 window.location.href = 'index.html'; // Redirect to home page on error
             }
 
+            // Handle exit (go back to homepage)
             exitIcon.addEventListener('click', (event) => {
                 event.preventDefault();
                 window.location.href = 'index.html'; // Redirect to home page on exit
