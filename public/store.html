@@ -83,67 +83,68 @@
     </div>
     <script>
     document.getElementById('storeForm').addEventListener('submit', async function (event) {
-        event.preventDefault(); // Prevent the default form submission behavior
+    event.preventDefault(); // Prevent the default form submission behavior
 
-        // Gather form data
-        const formData = new FormData(this);
-        const payload = {
-            first_name: formData.get('firstName'),
-            last_name: formData.get('lastName'),
-            email: formData.get('email'),
-            phone_number: formData.get('phoneNumber'),
-            password: formData.get('password'),
-        };
+    // Gather form data
+    const formData = new FormData(this);
+    const payload = {
+        first_name: formData.get('firstName'),
+        last_name: formData.get('lastName'),
+        email: formData.get('email'),
+        phone_number: formData.get('phoneNumber'),
+        password: formData.get('password'),
+    };
 
-        try {
-            // Send data to Supabase
-            const response = await fetch('https://eczpdpysryifkekieloc.supabase.co/rest/v1/users', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4',
-                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4',
-                },
-                body: JSON.stringify(payload),
-            });
+    try {
+        // Send data to Supabase
+        const response = await fetch('https://eczpdpysryifkekieloc.supabase.co/rest/v1/users', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4',
+                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4',
+            },
+            body: JSON.stringify(payload),
+        });
 
-            const rawResponse = await response.text();
-            console.log('Raw response from server:', rawResponse);
+        // Log raw response from server for debugging
+        const rawResponse = await response.text();
+        console.log('Raw response from server:', rawResponse);
 
-            let result;
-            try {
-                result = JSON.parse(rawResponse); // Parse JSON to get response details
-            } catch (jsonError) {
-                console.error('Failed to parse JSON:', jsonError);
-                alert('Server returned invalid data. Please check the console for details.');
-                return;
-            }
-
-            if (response.ok) {
-                const sellerId = result[0]?.id;
-                if (sellerId) {
-                    window.location.href = `profile.html?seller_id=${sellerId}`;
-                } else {
-                    alert('User created successfully, but redirection failed. Check console.');
-                }
-            } else {
-                if (result.message && result.message.includes('duplicate key value violates unique constraint')) {
-                    alert('Email already exists! Please try a different email.');
-                } else {
-                    console.error('Error response:', result);
-                    alert('Failed to create user. Check the console for details.');
-                }
-            }
-        } catch (error) {
-            console.error('Unexpected error occurred:', error);
-            alert('An unexpected error occurred. Please check the console for details.');
+        if (!response.ok) {
+            console.error('Error response status:', response.status);
+            alert('Request failed. Check console for details.');
+            return;
         }
-    });
 
-    // Exit button handler
-    document.getElementById('exitIcon').addEventListener('click', () => {
-        window.location.href = 'index.html';
-    });
-    </script>
-</body>
-</html>
+        let result = {};
+        try {
+            if (rawResponse.trim()) {
+                result = JSON.parse(rawResponse);
+            }
+        } catch (jsonError) {
+            console.error('Failed to parse JSON:', jsonError);
+            alert('Server returned invalid data. Please check the console for details.');
+            return;
+        }
+
+        if (response.ok) {
+            const sellerId = result[0]?.id;
+            if (sellerId) {
+                window.location.href = `profile.html?seller_id=${sellerId}`;
+            } else {
+                alert('User created successfully, but redirection failed. Check console.');
+            }
+        } else {
+            if (result.message && result.message.includes('duplicate key value violates unique constraint')) {
+                alert('Email already exists! Please try a different email.');
+            } else {
+                console.error('Error response:', result);
+                alert('Failed to create user. Check the console for details.');
+            }
+        }
+    } catch (error) {
+        console.error('Unexpected error occurred:', error);
+        alert('An unexpected error occurred. Please check the console for details.');
+    }
+});
