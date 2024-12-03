@@ -107,20 +107,30 @@
                 body: JSON.stringify(payload),
             });
 
-            const result = await response.json();
+            // Get raw response and debug
+            const rawResponse = await response.text();
+            console.log('Raw response from server:', rawResponse);
+
+            // Try parsing the response as JSON
+            let result;
+            try {
+                result = JSON.parse(rawResponse);
+            } catch (jsonError) {
+                console.error('Failed to parse JSON:', jsonError);
+                alert('Server returned invalid data. Please check the console for details.');
+                return;
+            }
 
             if (response.ok) {
-                // Assuming Supabase returns the newly created user's ID
-                const sellerId = result[0]?.id; // Adjust this if your schema or response is different
+                console.log('Parsed JSON:', result);
+                const sellerId = result[0]?.id;
                 if (sellerId) {
-                    // Redirect to profile.html with seller_id in the query string
                     window.location.href = `profile.html?seller_id=${sellerId}`;
                 } else {
-                    console.error('User created, but no ID returned:', result);
                     alert('User created successfully, but redirection failed. Check console.');
                 }
             } else {
-                console.error('Error:', result);
+                console.error('Error response:', result);
                 alert('Failed to create user. Check the console for details.');
             }
         } catch (error) {
@@ -128,4 +138,11 @@
             alert('An unexpected error occurred. Please check the console for details.');
         }
     });
-</script>
+
+    // Exit button handler
+    document.getElementById('exitIcon').addEventListener('click', () => {
+        window.location.href = 'index.html';
+    });
+    </script>
+</body>
+</html>
