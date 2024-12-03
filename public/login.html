@@ -19,35 +19,38 @@
     </div>
 
     <script>
+        // Initialize Supabase client
         const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // Login form submission event
         document.getElementById('loginForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
             const email = event.target.email.value;
             const password = event.target.password.value;
 
+            // Sign in using Supabase
             const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             });
 
             if (error) {
-                alert('Login failed: ' + error.message);
+                alert('Login failed: ' + error.message);  // Show error message if login fails
             } else {
-                // Redirect to profile page
+                // Save the user ID in localStorage and redirect to profile page
                 localStorage.setItem('user_id', data.user.id);
                 window.location.href = 'profile.html';
             }
         });
 
-        // Redirect if already logged in
+        // Redirect to profile page if already logged in
         document.addEventListener('DOMContentLoaded', async () => {
-            const user = await supabase.auth.getUser();
-            if (user.data) {
-                window.location.href = 'profile.html';
+            const { data: user } = await supabase.auth.getUser();
+            if (user) {
+                window.location.href = 'profile.html';  // If logged in, redirect to profile
             }
         });
     </script>
