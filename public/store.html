@@ -138,6 +138,8 @@
                 body: JSON.stringify(payload),
             });
 
+            // Log the response status code
+            console.debug("Response status code:", response.status);
             const rawResponse = await response.text();
             console.debug("Raw response from server:", rawResponse);
 
