@@ -68,13 +68,16 @@
             const urlParams = new URLSearchParams(window.location.search);
             const sellerId = urlParams.get('seller_id');
 
+            // Log the seller_id for debugging
+            console.log("Seller ID from URL:", sellerId);
+
             if (!sellerId) {
                 alert('No seller ID found. Redirecting to home page.');
                 window.location.href = 'index.html'; // Redirect if seller_id is missing
                 return;
             }
 
-            console.log("Seller ID from URL:", sellerId); // Log the seller_id for debugging
+            console.log("Seller ID is available: ", sellerId); // Check if sellerId is available
 
             try {
                 // Fetch user data from Supabase
