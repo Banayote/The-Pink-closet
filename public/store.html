@@ -96,7 +96,29 @@
         };
 
         try {
-            // Send data to Supabase (Replace with your actual API URL and keys)
+            // First, check if the email already exists
+            const emailCheckResponse = await fetch(`https://eczpdpysryifkekieloc.supabase.co/rest/v1/users?email=eq.${payload.email}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4',
+                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4',
+                },
+            });
+
+            if (emailCheckResponse.ok) {
+                const emailCheckData = await emailCheckResponse.json();
+
+                // If email already exists
+                if (emailCheckData.length > 0) {
+                    alert('Email already exists! Please try a different email.');
+                    return;
+                }
+            } else {
+                console.error('Error checking email:', await emailCheckResponse.text());
+            }
+
+            // Send data to Supabase
             const response = await fetch('https://eczpdpysryifkekieloc.supabase.co/rest/v1/users', {
                 method: 'POST',
                 headers: {
@@ -135,13 +157,8 @@
                     alert('User created successfully, but redirection failed. Check console.');
                 }
             } else {
-                // Error handling for duplicate email or any other errors
-                if (result.message && result.message.includes('duplicate key value violates unique constraint')) {
-                    alert('Email already exists! Please try a different email.');
-                } else {
-                    console.error('Error response:', result);
-                    alert('Failed to create user. Check the console for details.');
-                }
+                console.error('Error response:', result);
+                alert('Failed to create user. Check the console for details.');
             }
         } catch (error) {
             console.error('Unexpected error occurred:', error);
