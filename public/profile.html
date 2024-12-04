@@ -4,77 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <link rel="stylesheet" href="profile.css">
 </head>
 <body>
     <div class="profile-container">
         <div class="exit-icon">
-            <a href="#" id="exitIcon"><span>&larr;</span> Back</a>
+            <a href="#" id="exitIcon"><span>&larr;</span></a>
+        </div>
+        <div class="profile-picture">
+            <img id="profile-img" src="default-profile.jpg" alt="Profile Picture">
         </div>
         <div class="profile-info">
             <h1 id="username">Loading...</h1>
-            <p id="user-role">Role: Seller</p>
-            <div class="profile-actions">
-                <button id="message">Message</button>
-                <button id="add-product">Add Product</button>
-                <button id="edit">Edit</button>
-                <button id="copy-link">Link</button>
-            </div>
+            <p>Banayote</p>
         </div>
         <div class="profile-dashboard">
             <div class="stats">
-                <h2>Sales</h2>
-                <p id="sales-count">0</p>
-                <h2>Visitors</h2>
-                <p id="visitors-count">0</p>
+                <div class="stat">
+                    <h2>Sales</h2>
+                    <p id="sales-count">0</p>
+                </div>
+                <div class="stat">
+                    <h2>Visitors</h2>
+                    <p id="visitors-count">0</p>
+                </div>
             </div>
         </div>
     </div>
-
     <script>
-        const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Your Supabase API Key
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        // Supabase configuration
+        const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';
+        const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
 
         document.addEventListener('DOMContentLoaded', async () => {
-            const exitIcon = document.getElementById('exitIcon');
-            const usernameElem = document.getElementById('username');
-            const salesCountElem = document.getElementById('sales-count');
-            const visitorsCountElem = document.getElementById('visitors-count');
-            const userRoleElem = document.getElementById('user-role');
+            const params = new URLSearchParams(window.location.search);
+            const userEmail = params.get('email');
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const uid = urlParams.get('uid');
-
-            if (!uid) {
-                alert('User ID not found in the URL.');
+            if (!userEmail) {
+                alert('No user email found in the query parameters!');
                 window.location.href = 'index.html'; // Redirect to homepage
                 return;
             }
 
-            // Fetch user profile from Supabase based on user ID
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', uid)
-                .single();
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/users?email=eq.${userEmail}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_API_KEY,
+                        'Authorization': `Bearer ${SUPABASE_API_KEY}`
+                    }
+                });
 
-            if (error || !data) {
-                alert('Error fetching profile data.');
-                window.location.href = 'index.html'; // Redirect to homepage if error
-                return;
+                const result = await response.json();
+
+                if (result.length === 0) {
+                    alert('User not found!');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                const user = result[0];
+
+                // Populate the profile with user data
+                document.getElementById('username').textContent = `${user.first_name} ${user.last_name}`;
+                document.getElementById('profile-img').src = user.profile_img || 'default-profile.jpg';
+                document.getElementById('sales-count').textContent = user.sales || 0;
+                document.getElementById('visitors-count').textContent = user.visitors || 0;
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                alert('An error occurred while loading the profile.');
             }
-
-            // Display user profile
-            usernameElem.textContent = `${data.first_name} ${data.last_name}`;
-            userRoleElem.textContent = `Role: ${data.role || 'Seller'}`;
-            salesCountElem.textContent = data.sales || 0;
-            visitorsCountElem.textContent = data.visitors || 0;
-
-            // Handle exit (go back to homepage)
-            exitIcon.addEventListener('click', () => {
-                window.location.href = 'index.html'; // Redirect to homepage
-            });
         });
     </script>
 </body>
