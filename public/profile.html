@@ -79,13 +79,14 @@
 
             console.log("Logged-in user:", user);
 
+            // Fetch user profile data from Supabase using either 'user.id' or 'user.email'
             try {
-                // Fetch user profile data from Supabase
+                // Use 'user.id' for fetching user profile based on the authenticated user
                 const { data, error: fetchError } = await supabase
                     .from('users') // Assuming you have a 'users' table in Supabase
                     .select('*')
-                    .eq('email', user.email)
-                    .single();
+                    .eq('id', user.id)  // Fetch by user ID instead of email
+                    .single(); // Expect only one result
 
                 if (fetchError || !data) {
                     throw new Error('Failed to fetch profile data.');
