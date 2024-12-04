@@ -116,9 +116,6 @@
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
     );
 
-    // Simulate fetching the logged-in user's ID (you should replace this with actual authentication)
-    const sellerId = 'b4f12d92-6309-4ac7-bbf9-5ea79021e0cd'; // Example seller ID, replace with dynamic user ID
-
     document.getElementById('add-product-form').addEventListener('submit', async (event) => {
         event.preventDefault();  // Prevent page reload
 
@@ -156,8 +153,7 @@
                     description: productDescription,
                     price: parseFloat(productPrice), // Ensure price is a number
                     category: productCategory,
-                    image_url: imageData.secure_url, // Cloudinary image URL
-                    seller_id: sellerId // Add seller ID to the product data
+                    image_url: imageData.secure_url // Cloudinary image URL
                 };
 
                 // Insert product data into Supabase
@@ -179,6 +175,4 @@
             alert('Failed to upload image. Please try again.');
         }
     });
-    </script>
-</body>
-</html>
+</script>
