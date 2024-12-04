@@ -3,52 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile</title>
+    <title>User Profile</title>
+    <link rel="stylesheet" href="profile.css">
 </head>
 <body>
-    <h1>Welcome to Your Profile</h1>
-    <p id="username">Loading...</p>
+    <div class="profile-container">
+        <div class="exit-icon">
+            <a href="#" id="exitIcon"><span>&larr;</span></a>
+        </div>
+        <div class="banner">
+            <div id="banner-images" class="banner-images">
+                <img id="banner-img-1" src="image1.jpg" alt="Banner Image 1" class="banner-img">
+                <img id="banner-img-2" src="image2.jpg" alt="Banner Image 2" class="banner-img">
+                <img id="banner-img-3" src="image3.jpg" alt="Banner Image 3" class="banner-img">
+            </div>
+        </div>
+        <div class="profile-picture">
+            <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture">
+        </div>
+        <div class="profile-info">
+            <h1 id="username">Username</h1>
+            <p>Banayote</p>
+            <div class="profile-actions">
+                <button id="message"><span class="icon">✉️</span> Message</button>
+                <button id="add-product"><span class="icon">➕</span> Add Product</button>
+                <button id="edit"><span class="icon">🔧</span> Edit</button>
+                <button id="copy-link"><span class="icon">🔗</span> Link</button>
+            </div>
+        </div>
+        <div class="profile-dashboard">
+            <div class="stats">
+                <div class="stat">
+                    <h2>Sales</h2>
+                    <p id="sales-count"></p>
+                </div>
+                <div class="stat">
+                    <h2>Visitors</h2>
+                    <p id="visitors-count"></p>
+                </div>
+            </div>
+        </div>
+        <div class="product-list-button">
+            <button>View Product List</button>
+        </div>
+        <div class="user-products"></div>
+    </div>
 
-    <script type="module">
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
+    <input type="file" id="banner-upload" accept="image/*" multiple style="display:none;">
 
-        // Initialize Supabase client
-        const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
-        const supabase = createClient(supabaseUrl, supabaseKey);
+    <div id="image-modal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modal-img">
+    </div>
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Retrieve user data from localStorage
-            const user = JSON.parse(localStorage.getItem('user'));
-
-            if (!user) {
-                alert('No user data found. Redirecting to store creation page.');
-                window.location.href = 'store.html';
-                return;
-            }
-
-            // Display basic user information
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const exitIcon = document.getElementById('exitIcon');
+            const profileImg = document.getElementById('profile-img');
+            const bannerImages = document.querySelectorAll('.banner-images img');
             const usernameElem = document.getElementById('username');
-            usernameElem.textContent = user.email;
+            const profilePicUpload = document.getElementById('profile-pic-upload');
+            const bannerUpload = document.getElementById('banner-upload');
+            const modal = document.getElementById('image-modal');
+            const modalImg = document.getElementById('modal-img');
+            const closeModal = document.querySelector('.modal .close');
+            const editButton = document.getElementById('edit');
+            const copyLinkButton = document.getElementById('copy-link');
+            const addProductButton = document.getElementById('add-product');
+            
+            let isEditing = false;
 
-            // Fetch additional profile data from Supabase
-            try {
-                const { data: profile, error } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', user.id)
-                    .single();
+            const userEmail = localStorage.getItem('email'); // Get email from localStorage
 
-                if (error) {
-                    console.error('Error fetching profile:', error.message);
-                    return;
-                }
-
-                // Display fetched profile data
-                document.getElementById('username').textContent = `${profile.first_name} ${profile.last_name}`;
-            } catch (err) {
-                console.error('Unexpected error fetching profile:', err);
+            if (!userEmail) {
+                alert('User not found.');
+                window.location.href = 'index.html';
             }
+
+            exitIcon.addEventListener('click', (event) => {
+                event.preventDefault();
+                window.location.href = 'index.html'; 
+            });
+
+            addProductButton.addEventListener('click', () => {
+                window.location.href = 'add-product.html';
+            });
+
+            // Fetch profile data from Supabase
+            async function fetchUserProfile() {
+                try {
+                    const response = await fetch('https://eczpdpysryifkekieloc.supabase.co/rest/v1/users?email=eq.' + encodeURIComponent(userEmail), {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4',
+                            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
+                        }
+                    });
+                    const data = await response.json();
+                    if (data.length > 0) {
+                        const userData = data[0];
+                        usernameElem.textContent = userData.first_name + ' ' + userData.last_name;
+                        profileImg.src = userData.profile_image || 'profile-picture.jpg';
+                        bannerImages[0].src = userData.banner_image1 || 'image1.jpg';
+                        bannerImages[1].src = userData.banner_image2 || 'image2.jpg';
+                        bannerImages[2].src = userData.banner_image3 || 'image3.jpg';
+                    } else {
+                        alert('User data not found');
+                    }
+                } catch (error) {
+                    console.error('Error fetching user profile:', error);
+                }
+            }
+
+            fetchUserProfile();
+
+            editButton.addEventListener('click', () => {
+                isEditing = !isEditing;
+                if (isEditing) {
+                    editButton.textContent = 'Save';
+                    usernameElem.contentEditable = true;
+                    profileImg.classList.add('editable');
+                    bannerImages.forEach(img => img.classList.add('editable'));
+                } else {
+                    editButton.textContent = 'Edit';
+                    usernameElem.contentEditable = false;
+                    profileImg.classList.remove('editable');
+                    bannerImages.forEach(img => img.classList.remove('editable'));
+
+                    const updatedProfileData = {
+                        first_name: usernameElem.textContent.split(' ')[0],
+                        last_name: usernameElem.textContent.split(' ')[1],
+                        profile_image: profileImg.src,
+                        banner_image1: bannerImages[0].src,
+                        banner_image2: bannerImages[1].src,
+                        banner_image3: bannerImages[2].src
+                    };
+
+                    // Send updated data to Supabase
+                    fetch('https://eczpdpysryifkekieloc.supabase.co/rest/v1/users?email=eq.' + encodeURIComponent(userEmail), {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4',
+                            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4',
+                        body: JSON.stringify(updatedProfileData)
+                    })
+                    .then(response => response.json())
+                    .then(data => console.log('Profile updated:', data))
+                    .catch(error => console.error('Error updating profile:', error));
+                }
+            });
+
+            copyLinkButton.addEventListener('click', () => {
+                const profileUrl = window.location.href;
+                navigator.clipboard.writeText(profileUrl).then(() => {
+                    alert('Profile link copied to clipboard!');
+                });
+            });
         });
     </script>
 </body>
