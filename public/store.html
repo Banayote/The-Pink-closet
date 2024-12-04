@@ -3,130 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Your Store</title>
-    <link rel="stylesheet" href="store.css">
-    <style>
-        /* Inline styles for simplicity */
-        body {
-            background-color: pink;
-            font-family: Arial, sans-serif;
-            color: white;
-            text-align: center;
-            padding: 20px;
-            margin: 0;
-        }
-
-        .form-container {
-            background-color: white;
-            color: pink;
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 400px;
-            margin: auto;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-
-        .form-container h1 {
-            margin-bottom: 20px;
-        }
-
-        .form-container input[type="text"],
-        .form-container input[type="email"],
-        .form-container input[type="tel"],
-        .form-container input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        .form-container button {
-            background-color: pink;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .form-container button:hover {
-            background-color: #f2f2f2;
-            color: pink;
-        }
-
-        .exit-icon {
-            font-size: 24px;
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            cursor: pointer;
-            color: pink;
-            z-index: 1000;
-        }
-    </style>
+    <title>Create Store</title>
 </head>
 <body>
-    <div class="form-container">
-        <div class="exit-icon" id="exitIcon">&#x2B05;</div> <!-- Exit Icon -->
-        <h1>Create Your Store</h1>
-        <form id="storeForm">
-            <input type="text" name="firstName" placeholder="First Name" required>
-            <input type="text" name="lastName" placeholder="Last Name" required>
-            <input type="email" name="email" placeholder="Email (Leave empty if you're a buyer)" required>
-            <input type="tel" name="phoneNumber" placeholder="Phone Number (Optional)">
-            <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Submit</button>
-        </form>
-    </div>
+    <h1>Create Your Store</h1>
+    <form id="storeForm">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" name="firstName" required><br>
 
-    <script>
-        // Exit icon functionality
-        document.getElementById('exitIcon').addEventListener('click', () => {
-            if (confirm('Are you sure you want to exit?')) {
-                window.location.href = 'index.html'; // Redirect to the main page
-            }
-        });
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" name="lastName" required><br>
 
-        // Handle form submission
-        document.getElementById('storeForm').addEventListener('submit', async function(event) {
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br>
+
+        <button type="submit">Create Store</button>
+    </form>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // Initialize Supabase client
+        const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        document.getElementById('storeForm').addEventListener('submit', async function (event) {
             event.preventDefault();
 
             // Gather form data
             const formData = new FormData(this);
-            const payload = {
-                first_name: formData.get('firstName'),
-                last_name: formData.get('lastName'),
-                email: formData.get('email'),
-                phone_number: formData.get('phoneNumber'),
-                password: formData.get('password')
-            };
+            const email = formData.get('email');
+            const password = formData.get('password');
+            const firstName = formData.get('firstName');
+            const lastName = formData.get('lastName');
 
             try {
-                // Send data to Supabase
-                const response = await fetch('https://eczpdpysryifkekieloc.supabase.co/rest/v1/users', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4',
-                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
-                    },
-                    body: JSON.stringify(payload)
+                // Use Supabase Auth to create a new user
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
                 });
 
-                const result = await response.json();
-
-                if (response.ok) {
-                    alert('User successfully created!');
-                    console.log(result);
-                } else {
-                    console.error('Error:', result);
-                    alert('Failed to create user. Check console for details.');
+                if (error) {
+                    console.error('Error signing up:', error.message);
+                    alert('Failed to create user. Please check the console for details.');
+                    return;
                 }
-            } catch (error) {
-                console.error('Error:', error);
+
+                // Store additional profile data in a Supabase table
+                const userId = data.user.id; // Get the user's ID
+                const profileResponse = await supabase.from('profiles').insert([
+                    {
+                        id: userId,
+                        first_name: firstName,
+                        last_name: lastName,
+                    },
+                ]);
+
+                if (profileResponse.error) {
+                    console.error('Error creating profile:', profileResponse.error.message);
+                    alert('Profile creation failed.');
+                    return;
+                }
+
+                // Save user data locally and redirect
+                localStorage.setItem('user', JSON.stringify(data.user));
+                alert('User successfully created!');
+                window.location.href = 'profile.html';
+            } catch (err) {
+                console.error('Unexpected error:', err);
                 alert('An unexpected error occurred.');
             }
         });
