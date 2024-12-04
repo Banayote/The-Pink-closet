@@ -72,23 +72,6 @@
             max-width: 100%;
             height: auto;
         }
-
-        /* Added styles for the new links */
-        .additional-links {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .additional-links a {
-            margin: 10px;
-            font-size: 18px;
-            text-decoration: none;
-            color: #333;
-        }
-
-        .additional-links a:hover {
-            color: #e91e63;
-        }
     </style>
 </head>
 <body>
@@ -102,21 +85,12 @@
             <button id="search-button">Search</button>
         </div>
     </header>
-    
-    <!-- Additional links below the search bar -->
-    <div class="additional-links">
-        <a href="store.html">Create Store</a>
-        <a href="login.html">Login</a>
-        <a href="profile.html">Profile</a>
-    </div>
-
     <main>
         <section id="main-content">
             <!-- Product sections will be dynamically populated here -->
             <div id="product-list"></div>
         </section>
     </main>
-
     <footer>
         <p>&copy; The Pink Closet 2024. All rights reserved.</p>
     </footer>
@@ -132,8 +106,15 @@
         </div>
     </div>
 
+    <!-- Supabase & Cloudinary Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script>
+        // Initialize Supabase Client
+        const supabase = supabase.createClient('https://your-supabase-url.supabase.co', 'your-supabase-key');  // Replace with your Supabase URL and key
+
+        // Cloudinary Configuration
+        const CLOUDINARY_URL = 'cloudinary://314127258218722:WLVn61C80DIoQ62kRhPsNq2xpZA@dnfavv3ud';  // Your Cloudinary URL
+        
         // Ensure the DOM is fully loaded before interacting with it
         document.addEventListener('DOMContentLoaded', function() {
             // Get elements
@@ -141,17 +122,17 @@
             const sidebar = document.getElementById('sidebar');
             const closeBtn = document.getElementById('closeBtn');
             const productList = document.getElementById('product-list');
-
+            
             // Function to open the sidebar
             function openSidebar() {
                 console.log("Burger icon clicked, opening sidebar");
-                sidebar.classList.add('active');  // Add the 'active' class to show the sidebar
+                sidebar.classList.add('active');
             }
 
             // Function to close the sidebar
             function closeSidebar() {
                 console.log("Close button clicked, closing sidebar");
-                sidebar.classList.remove('active');  // Remove the 'active' class to hide the sidebar
+                sidebar.classList.remove('active');
             }
 
             // Event listeners for sidebar
@@ -165,14 +146,17 @@
                 }
             });
 
-            // Function to load products from Supabase (for your content)
+            // Function to load products from Supabase
             async function loadProducts() {
                 const { data: products, error } = await supabase.from('products').select();
                 if (error) {
                     console.error('Error loading products:', error);
                     return;
                 }
-                productList.innerHTML = '';  // Clear the product list
+
+                productList.innerHTML = '';  // Clear previous products
+
+                // Iterate through the products and display them
                 products.forEach((product) => {
                     const productDiv = document.createElement('div');
                     productDiv.classList.add('product');
