@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
     <link rel="stylesheet" href="profile.css">
+    <!-- Supabase library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
     <div class="profile-container">
@@ -79,19 +81,18 @@
             // Supabase credentials
             const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';
             const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
-            const headers = {
-                'Content-Type': 'application/json',
-                'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`
-            };
+            const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
             // Fetch User Profile
             async function fetchUserProfile() {
                 try {
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(userEmail)}`, { headers });
-                    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-                    
-                    const data = await response.json();
+                    const { data, error } = await supabase
+                        .from('users')
+                        .select('*')
+                        .eq('email', userEmail);
+
+                    if (error) throw error;
+
                     console.log('User data fetched:', data);
                     if (data.length > 0) {
                         const userData = data[0];
@@ -123,19 +124,16 @@
                     usernameElem.contentEditable = false;
 
                     const [first_name, last_name] = usernameElem.textContent.split(' ') || ['First', 'Last'];
-                    const updatedProfileData = { first_name, last_name };
 
-                    fetch(`${SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(userEmail)}`, {
-                        method: 'PATCH',
-                        headers,
-                        body: JSON.stringify(updatedProfileData)
-                    })
-                    .then(response => {
-                        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-                        return response.json();
-                    })
-                    .then(data => console.log('Profile updated:', data))
-                    .catch(error => console.error('Error updating profile:', error));
+                    supabase
+                        .from('users')
+                        .update({ first_name, last_name })
+                        .eq('email', userEmail)
+                        .then(({ error }) => {
+                            if (error) throw error;
+                            console.log('Profile updated');
+                        })
+                        .catch(error => console.error('Error updating profile:', error));
                 }
             });
 
@@ -160,4 +158,3 @@
     </script>
 </body>
 </html>
-
