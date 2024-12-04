@@ -8,15 +8,14 @@
 </head>
 <body>
     <div class="profile-container">
-        <div class="exit-icon">
-            <a href="#" id="exitIcon"><span>&larr;</span></a>
-        </div>
-        <div class="profile-picture">
-            <img id="profile-img" src="default-profile.jpg" alt="Profile Picture">
-        </div>
+        <div class="exit-icon" id="exitIcon">&#x2B05;</div>
         <div class="profile-info">
             <h1 id="username">Loading...</h1>
-            <p>Banayote</p>
+            <p id="email">Email: Loading...</p>
+            <div class="profile-actions">
+                <button id="message">Message</button>
+                <button id="edit">Edit</button>
+            </div>
         </div>
         <div class="profile-dashboard">
             <div class="stats">
@@ -31,50 +30,44 @@
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
-        // Supabase configuration
         const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';
-        const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Replace with your Supabase key
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            const params = new URLSearchParams(window.location.search);
-            const userEmail = params.get('email');
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        const userEmail = urlParams.get('email');
 
+        async function fetchUserProfile() {
             if (!userEmail) {
-                alert('No user email found in the query parameters!');
-                window.location.href = 'index.html'; // Redirect to homepage
+                alert('Email not found in the URL.');
                 return;
             }
 
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/users?email=eq.${userEmail}`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'apikey': SUPABASE_API_KEY,
-                        'Authorization': `Bearer ${SUPABASE_API_KEY}`
-                    }
-                });
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('email', userEmail)
+                .single();
 
-                const result = await response.json();
-
-                if (result.length === 0) {
-                    alert('User not found!');
-                    window.location.href = 'index.html';
-                    return;
-                }
-
-                const user = result[0];
-
-                // Populate the profile with user data
-                document.getElementById('username').textContent = `${user.first_name} ${user.last_name}`;
-                document.getElementById('profile-img').src = user.profile_img || 'default-profile.jpg';
-                document.getElementById('sales-count').textContent = user.sales || 0;
-                document.getElementById('visitors-count').textContent = user.visitors || 0;
-            } catch (error) {
+            if (error) {
                 console.error('Error fetching user data:', error);
-                alert('An error occurred while loading the profile.');
+                alert('Could not fetch user data.');
+                return;
             }
+
+            document.getElementById('username').textContent = `${data.first_name} ${data.last_name}`;
+            document.getElementById('email').textContent = `Email: ${data.email}`;
+        }
+
+        document.getElementById('exitIcon').addEventListener('click', () => {
+            window.location.href = 'index.html';
         });
+
+        fetchUserProfile();
     </script>
 </body>
 </html>
