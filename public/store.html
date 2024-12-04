@@ -5,72 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Your Store</title>
     <link rel="stylesheet" href="store.css">
-    <style>
-        /* Inline styles for simplicity */
-        body {
-            background-color: pink;
-            font-family: Arial, sans-serif;
-            color: white;
-            text-align: center;
-            padding: 20px;
-            margin: 0;
-        }
-
-        .form-container {
-            background-color: white;
-            color: pink;
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 400px;
-            margin: auto;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-
-        .form-container h1 {
-            margin-bottom: 20px;
-        }
-
-        .form-container input[type="text"],
-        .form-container input[type="email"],
-        .form-container input[type="tel"],
-        .form-container input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        .form-container button {
-            background-color: pink;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .form-container button:hover {
-            background-color: #f2f2f2;
-            color: pink;
-        }
-
-        .exit-icon {
-            font-size: 24px;
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            cursor: pointer;
-            color: pink;
-            z-index: 1000;
-        }
-    </style>
 </head>
 <body>
     <div class="form-container">
-        <div class="exit-icon" id="exitIcon">&#x2B05;</div> <!-- Exit Icon -->
+        <div class="exit-icon" id="exitIcon">&#x2B05;</div>
         <h1>Create Your Store</h1>
         <form id="storeForm">
             <input type="text" name="firstName" placeholder="First Name" required>
@@ -82,12 +20,10 @@
         </form>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
-        // Initialize Supabase
-        const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co'; // Supabase URL
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Your Supabase API Key
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        // Supabase configuration
+        const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';
+        const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
 
         // Exit icon functionality
         document.getElementById('exitIcon').addEventListener('click', () => {
@@ -111,40 +47,25 @@
             };
 
             try {
-                // Create user with Supabase Authentication
-                const { user, error: authError } = await supabase.auth.signUp({
-                    email: payload.email,
-                    password: payload.password
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_API_KEY,
+                        'Authorization': `Bearer ${SUPABASE_API_KEY}`
+                    },
+                    body: JSON.stringify(payload)
                 });
 
-                if (authError) {
-                    alert('Error signing up: ' + authError.message);
-                    return;
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('User successfully created!');
+                    window.location.href = `profile.html?email=${encodeURIComponent(payload.email)}`;
+                } else {
+                    console.error('Error:', result);
+                    alert('Failed to create user. Check console for details.');
                 }
-
-                // Save user profile data in Supabase
-                const { data, error: profileError } = await supabase
-                    .from('profiles')
-                    .insert([
-                        {
-                            id: user.id,
-                            first_name: payload.first_name,
-                            last_name: payload.last_name,
-                            email: payload.email,
-                            phone_number: payload.phone_number,
-                            profile_img: '', // Optional, could be added later
-                            role: 'Seller' // Default role, could be changed later
-                        }
-                    ]);
-
-                if (profileError) {
-                    alert('Error saving profile: ' + profileError.message);
-                    return;
-                }
-
-                // Redirect to profile page after successful signup
-                window.location.href = `profile.html?uid=${user.id}`;
-
             } catch (error) {
                 console.error('Error:', error);
                 alert('An unexpected error occurred.');
@@ -153,4 +74,3 @@
     </script>
 </body>
 </html>
-
