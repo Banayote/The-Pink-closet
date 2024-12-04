@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
-    <link rel="stylesheet" href="profile.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body>
@@ -12,103 +11,69 @@
         <div class="exit-icon">
             <a href="#" id="exitIcon"><span>&larr;</span> Back</a>
         </div>
-        <div class="banner">
-            <div id="banner-images" class="banner-images">
-                <img id="banner-img-1" src="image1.jpg" alt="Banner Image 1" class="banner-img">
-                <img id="banner-img-2" src="image2.jpg" alt="Banner Image 2" class="banner-img">
-                <img id="banner-img-3" src="image3.jpg" alt="Banner Image 3" class="banner-img">
-            </div>
-        </div>
-        <div class="profile-picture">
-            <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture" onerror="this.src='default-profile.jpg';">
-        </div>
         <div class="profile-info">
             <h1 id="username">Loading...</h1>
             <p id="user-role">Role: Seller</p>
             <div class="profile-actions">
-                <button id="message"><span class="icon">✉️</span> Message</button>
-                <button id="add-product"><span class="icon">➕</span> Add Product</button>
-                <button id="edit"><span class="icon">🔧</span> Edit</button>
-                <button id="copy-link"><span class="icon">🔗</span> Link</button>
+                <button id="message">Message</button>
+                <button id="add-product">Add Product</button>
+                <button id="edit">Edit</button>
+                <button id="copy-link">Link</button>
             </div>
         </div>
         <div class="profile-dashboard">
             <div class="stats">
-                <div class="stat">
-                    <h2>Sales</h2>
-                    <p id="sales-count">0</p>
-                </div>
-                <div class="stat">
-                    <h2>Visitors</h2>
-                    <p id="visitors-count">0</p>
-                </div>
+                <h2>Sales</h2>
+                <p id="sales-count">0</p>
+                <h2>Visitors</h2>
+                <p id="visitors-count">0</p>
             </div>
         </div>
-        <div class="product-list-button">
-            <button id="view-products">View Product List</button>
-        </div>
-        <div class="user-products"></div>
-    </div>
-
-    <!-- Modal for displaying images -->
-    <div id="image-modal" class="modal">
-        <span class="close">&times;</span>
-        <img class="modal-content" id="modal-img">
     </div>
 
     <script>
-        const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co'; // Supabase URL
+        const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Your Supabase API Key
         const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
         document.addEventListener('DOMContentLoaded', async () => {
             const exitIcon = document.getElementById('exitIcon');
             const usernameElem = document.getElementById('username');
-            const profileImg = document.getElementById('profile-img');
             const salesCountElem = document.getElementById('sales-count');
             const visitorsCountElem = document.getElementById('visitors-count');
             const userRoleElem = document.getElementById('user-role');
 
-            // Login and session check
-            const { data: { user }, error } = await supabase.auth.getUser();
-            if (error || !user) {
-                alert("You need to be logged in to view this page");
-                window.location.href = "login.html"; // Redirect to login page if not authenticated
+            const urlParams = new URLSearchParams(window.location.search);
+            const uid = urlParams.get('uid');
+
+            if (!uid) {
+                alert('User ID not found in the URL.');
+                window.location.href = 'index.html'; // Redirect to homepage
                 return;
             }
 
-            console.log("Logged-in user:", user);
+            // Fetch user profile from Supabase based on user ID
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', uid)
+                .single();
 
-            // Fetch user profile data from Supabase using either 'user.id' or 'user.email'
-            try {
-                // Use 'user.id' for fetching user profile based on the authenticated user
-                const { data, error: fetchError } = await supabase
-                    .from('users') // Assuming you have a 'users' table in Supabase
-                    .select('*')
-                    .eq('id', user.id)  // Fetch by user ID instead of email
-                    .single(); // Expect only one result
-
-                if (fetchError || !data) {
-                    throw new Error('Failed to fetch profile data.');
-                }
-
-                // Populate profile with user data
-                usernameElem.textContent = `${data.first_name} ${data.last_name}`;
-                profileImg.src = data.profile_img || 'profile-picture.jpg';
-                salesCountElem.textContent = data.sales || 0;
-                visitorsCountElem.textContent = data.visitors || 0;
-                userRoleElem.textContent = `Role: ${data.role || 'Seller'}`;
-
-            } catch (error) {
-                console.error('Error fetching user profile:', error);
-                alert('An unexpected error occurred while loading the profile.');
-                window.location.href = 'index.html'; // Redirect to home page on error
+            if (error || !data) {
+                alert('Error fetching profile data.');
+                window.location.href = 'index.html'; // Redirect to homepage if error
+                return;
             }
 
+            // Display user profile
+            usernameElem.textContent = `${data.first_name} ${data.last_name}`;
+            userRoleElem.textContent = `Role: ${data.role || 'Seller'}`;
+            salesCountElem.textContent = data.sales || 0;
+            visitorsCountElem.textContent = data.visitors || 0;
+
             // Handle exit (go back to homepage)
-            exitIcon.addEventListener('click', (event) => {
-                event.preventDefault();
-                window.location.href = 'index.html'; // Redirect to home page on exit
+            exitIcon.addEventListener('click', () => {
+                window.location.href = 'index.html'; // Redirect to homepage
             });
         });
     </script>
