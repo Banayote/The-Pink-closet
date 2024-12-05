@@ -70,8 +70,7 @@
 </head>
 <body>
     <div class="form-container">
-        <!-- Exit Icon -->
-        <div class="exit-icon" id="exitIcon">&#x2B05;</div> 
+        <div class="exit-icon" id="exitIcon">&#x2B05;</div> <!-- Exit Icon -->
         <h1>Create Your Store</h1>
         <form id="storeForm">
             <input type="text" name="firstName" placeholder="First Name" required>
@@ -126,20 +125,16 @@
                         body: JSON.stringify(payload),
                     });
 
-                    const result = await response.json(); // Parse JSON response
+                    const result = await response.text(); // Get the raw response body
 
                     if (response.ok) {
                         alert('User successfully created!');
-                        console.log('Response:', result);
-
-                        // Redirect to profile.html with ID and email in the query string
-                        const userId = result.id; // Ensure your Supabase table returns an 'id'
-                        const userEmail = encodeURIComponent(payload.email);
-                        window.location.href = `profile.html?id=${userId}&email=${userEmail}`;
+                        console.log('Response:', result); // Log raw response for debugging
+                        storeForm.reset(); // Clear the form after successful submission
                     } else {
                         console.error('Error:', result);
                         alert(
-                            `Failed to create user: ${result.message || 'Unknown error.'}`
+                            `Failed to create user: ${result || 'Unknown error.'}`
                         );
                     }
                 } catch (error) {
