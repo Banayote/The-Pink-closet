@@ -23,132 +23,90 @@
         </div>
         <div class="profile-info">
             <h1 id="username">Username</h1>
-            <p id="email">Email</p>
+            <p>Banayote</p>
             <div class="profile-actions">
+                <button id="message"><span class="icon">✉️</span> Message</button>
                 <button id="add-product"><span class="icon">➕</span> Add Product</button>
-                <button id="edit-profile"><span class="icon">🔧</span> Edit Profile</button>
-                <button id="copy-link"><span class="icon">🔗</span> Copy Profile Link</button>
+                <button id="edit"><span class="icon">🔧</span> Edit</button>
+                <button id="copy-link"><span class="icon">🔗</span> Link</button>
             </div>
         </div>
         <div class="profile-dashboard">
             <div class="stats">
                 <div class="stat">
                     <h2>Sales</h2>
-                    <p id="sales-count">0</p>
+                    <p id="sales-count"></p>
                 </div>
                 <div class="stat">
                     <h2>Visitors</h2>
-                    <p id="visitors-count">0</p>
+                    <p id="visitors-count"></p>
                 </div>
             </div>
         </div>
         <div class="product-list-button">
-            <button id="view-products">View Product List</button>
+            <button>View Product List</button>
         </div>
         <div class="user-products">
             <!-- User's posted products will be displayed here -->
         </div>
     </div>
 
-    <!-- Supabase Initialization -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
+    <input type="file" id="banner-upload" accept="image/*" multiple style="display:none;">
+    <div id="image-modal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modal-img">
+    </div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Supabase Initialization with URL and API Key
-            const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';
-            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
-            const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+        document.addEventListener('DOMContentLoaded', () => {
             const exitIcon = document.getElementById('exitIcon');
-            const usernameElem = document.getElementById('username');
-            const emailElem = document.getElementById('email');
             const profileImg = document.getElementById('profile-img');
-            const salesCount = document.getElementById('sales-count');
-            const visitorsCount = document.getElementById('visitors-count');
+            const bannerImages = document.querySelectorAll('.banner-images img');
+            const usernameElem = document.getElementById('username');
+            const editButton = document.getElementById('edit');
             const addProductButton = document.getElementById('add-product');
-            const editProfileButton = document.getElementById('edit-profile');
-            const copyLinkButton = document.getElementById('copy-link');
-            const viewProductsButton = document.getElementById('view-products');
+            const profilePicUpload = document.getElementById('profile-pic-upload');
+            const bannerUpload = document.getElementById('banner-upload');
+            
+            // Supabase credentials
+            const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co'; 
+            const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; 
 
-            // Check user session
-            const session = supabase.auth.session();
-            if (!session) {
-                alert('You need to log in to access this page.');
-                window.location.href = 'login.html';
-                return;
+            // Check if user data is available in localStorage
+            const email = localStorage.getItem('email');
+            const userId = localStorage.getItem('userId');
+            if (!email || !userId) {
+                window.location.href = 'store.html'; // Redirect to store page if not logged in
             }
 
-            const userId = session.user.id;
-
-            // Fetch user profile
+            // Fetch user profile data from Supabase
             async function fetchUserProfile() {
                 try {
-                    const { data, error } = await supabase
-                        .from('users') // Update table name if necessary
-                        .select('*')
-                        .eq('id', userId)
-                        .single();
-
-                    if (error) throw error;
-
-                    usernameElem.textContent = `${data.first_name || ''} ${data.last_name || ''}`;
-                    emailElem.textContent = data.email || 'No email provided';
-                    profileImg.src = data.profile_image || 'profile-picture.jpg';
-                    salesCount.textContent = data.sales || '0';
-                    visitorsCount.textContent = data.visitors || '0';
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${userId}`, {
+                        method: 'GET',
+                        headers: {
+                            apikey: SUPABASE_API_KEY,
+                            Authorization: `Bearer ${SUPABASE_API_KEY}`,
+                        },
+                    });
+                    const data = await response.json();
+                    if (data.length > 0) {
+                        const userData = data[0];
+                        usernameElem.textContent = `${userData.first_name} ${userData.last_name}`;
+                        // Set profile image, banner, etc.
+                    }
                 } catch (error) {
-                    console.error('Error fetching user profile:', error.message);
-                    alert('Failed to load profile. Please try again later.');
+                    console.error('Error fetching user profile:', error);
                 }
             }
 
             fetchUserProfile();
 
-            // Edit profile
-            editProfileButton.addEventListener('click', async () => {
-                const firstName = prompt('Enter new first name:', usernameElem.textContent.split(' ')[0]);
-                const lastName = prompt('Enter new last name:', usernameElem.textContent.split(' ')[1]);
-
-                if (firstName && lastName) {
-                    try {
-                        const { data, error } = await supabase
-                            .from('users')
-                            .update({ first_name: firstName, last_name: lastName })
-                            .eq('id', userId);
-
-                        if (error) throw error;
-
-                        usernameElem.textContent = `${data.first_name} ${data.last_name}`;
-                        alert('Profile updated successfully.');
-                    } catch (error) {
-                        console.error('Error updating profile:', error.message);
-                        alert('Failed to update profile. Please try again.');
-                    }
-                }
-            });
-
-            // Add product
-            addProductButton.addEventListener('click', () => {
-                window.location.href = `add-product.html?userId=${userId}`;
-            });
-
-            // Copy profile link
-            copyLinkButton.addEventListener('click', () => {
-                navigator.clipboard.writeText(window.location.href)
-                    .then(() => alert('Profile link copied to clipboard!'))
-                    .catch((error) => console.error('Failed to copy link:', error));
-            });
-
-            // View product list
-            viewProductsButton.addEventListener('click', () => {
-                window.location.href = `product-list.html?userId=${userId}`;
-            });
-
-            // Exit to homepage
+            // Exit functionality
             exitIcon.addEventListener('click', () => {
-                supabase.auth.signOut().then(() => {
-                    window.location.href = 'index.html';
-                });
+                localStorage.clear();
+                window.location.href = 'index.html'; // Redirect to main page
             });
         });
     </script>
