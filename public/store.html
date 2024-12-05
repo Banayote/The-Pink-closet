@@ -94,13 +94,13 @@
                 }
             });
 
+            // Supabase credentials
+            const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co'; // Supabase URL
+            const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Supabase API Key
+
             // Handle form submission
             storeForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
-
-                // Supabase credentials
-                const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co'; // Supabase URL
-                const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Supabase API Key
 
                 // Gather form data
                 const formData = new FormData(storeForm);
@@ -113,57 +113,40 @@
                 };
 
                 try {
-                    // Check if email already exists
-                    const emailCheckResponse = await fetch(`${SUPABASE_URL}/rest/v1/users?email=eq.${payload.email}`, {
-                        method: 'GET',
-                        headers: {
-                            apikey: SUPABASE_API_KEY,
-                            Authorization: `Bearer ${SUPABASE_API_KEY}`,
-                        },
+                    // Sign up using Supabase authentication
+                    const { data, error } = await supabase.auth.signUp({
+                        email: payload.email,
+                        password: payload.password,
                     });
 
-                    const emailCheckData = await emailCheckResponse.json();
-
-                    if (emailCheckData.length > 0) {
-                        alert('Email already exists. Please use a different email.');
-                        return;
+                    if (error) {
+                        throw new Error('Error during signup: ' + error.message);
                     }
 
-                    // Send data to Supabase
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+                    // Store user details in Supabase 'profiles' table (for example)
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             apikey: SUPABASE_API_KEY,
                             Authorization: `Bearer ${SUPABASE_API_KEY}`,
                         },
-                        body: JSON.stringify(payload),
+                        body: JSON.stringify({
+                            user_id: data.user.id,
+                            first_name: payload.first_name,
+                            last_name: payload.last_name,
+                            email: payload.email,
+                            phone_number: payload.phone_number,
+                        }),
                     });
 
-                    // Check if response is successful and contains valid JSON
+                    // Check if response is successful
                     if (!response.ok) {
-                        throw new Error('Failed to create user. Status: ' + response.status);
+                        throw new Error('Failed to create user profile. Status: ' + response.status);
                     }
 
-                    // Check if response has body content
-                    const responseText = await response.text();
-                    if (!responseText) {
-                        throw new Error('Empty response from the server.');
-                    }
-
-                    // Try to parse the response
-                    let result;
-                    try {
-                        result = JSON.parse(responseText);
-                    } catch (parseError) {
-                        throw new Error('Failed to parse response as JSON: ' + parseError.message);
-                    }
-
-                    alert('User successfully created!');
-                    // Store the email and ID in localStorage
-                    localStorage.setItem('email', payload.email);  // Store email
-                    localStorage.setItem('userId', result.id);     // Store user ID (if available)
-                    storeForm.reset(); // Clear the form after successful submission
+                    // Redirect to profile page after successful registration
+                    alert('Account successfully created!');
                     window.location.href = 'profile.html'; // Redirect to profile page
                 } catch (error) {
                     console.error('Error:', error);
