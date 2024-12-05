@@ -6,7 +6,6 @@
     <title>Create Your Store</title>
     <link rel="stylesheet" href="store.css">
     <style>
-        /* Inline styles for simplicity */
         body {
             background-color: pink;
             font-family: Arial, sans-serif;
@@ -90,11 +89,11 @@
             const exitIcon = document.getElementById('exitIcon');
             const storeForm = document.getElementById('storeForm');
 
-            // Initialize Supabase client
-            const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co'; // Supabase URL
-            const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Supabase API Key
+            // Your Supabase URL and API Key (Make sure these are correct)
+            const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co'; // Your Supabase URL
+            const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Your Supabase API Key
 
-            // Initialize Supabase client
+            // Initialize Supabase
             const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
             // Exit icon functionality
@@ -106,7 +105,7 @@
 
             // Handle form submission
             storeForm.addEventListener('submit', async (event) => {
-                event.preventDefault();
+                event.preventDefault(); // Prevent the default form submission
 
                 // Gather form data
                 const formData = new FormData(storeForm);
@@ -119,40 +118,37 @@
                 };
 
                 try {
-                    // Sign up using Supabase authentication
-                    const { data, error } = await supabase.auth.signUp({
+                    // Step 1: Sign up user with email and password
+                    const { data: signupData, error: signupError } = await supabase.auth.signUp({
                         email: payload.email,
                         password: payload.password,
                     });
 
-                    if (error) {
-                        throw new Error('Error during signup: ' + error.message);
+                    if (signupError) {
+                        throw new Error('Signup failed: ' + signupError.message);
                     }
 
-                    // Store user details in Supabase 'profiles' table (for example)
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            apikey: SUPABASE_API_KEY,
-                            Authorization: `Bearer ${SUPABASE_API_KEY}`,
-                        },
-                        body: JSON.stringify({
-                            user_id: data.user.id,
-                            first_name: payload.first_name,
-                            last_name: payload.last_name,
-                            email: payload.email,
-                            phone_number: payload.phone_number,
-                        }),
-                    });
+                    // Step 2: Insert user profile into the database
+                    const { data: profileData, error: profileError } = await supabase
+                        .from('profiles') // Ensure you have a "profiles" table in Supabase
+                        .insert([
+                            {
+                                user_id: signupData.user.id,
+                                first_name: payload.first_name,
+                                last_name: payload.last_name,
+                                email: payload.email,
+                                phone_number: payload.phone_number,
+                            }
+                        ]);
 
-                    // Check if response is successful
-                    if (!response.ok) {
-                        throw new Error('Failed to create user profile. Status: ' + response.status);
+                    if (profileError) {
+                        throw new Error('Error inserting profile data: ' + profileError.message);
                     }
 
-                    // Redirect to profile page after successful registration
+                    // Step 3: Redirect to the profile page after successful registration
                     alert('Account successfully created!');
+                    localStorage.setItem('email', payload.email);  // Store email in localStorage
+                    localStorage.setItem('userId', signupData.user.id); // Store user ID
                     window.location.href = 'profile.html'; // Redirect to profile page
                 } catch (error) {
                     console.error('Error:', error);
@@ -163,3 +159,4 @@
     </script>
 </body>
 </html>
+
