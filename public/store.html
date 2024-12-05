@@ -72,12 +72,12 @@
     <div class="form-container">
         <div class="exit-icon" id="exitIcon">&#x2B05;</div> <!-- Exit Icon -->
         <h1>Create Your Store</h1>
-        <form id="storeForm">
-            <input type="text" name="firstName" placeholder="First Name" required>
-            <input type="text" name="lastName" placeholder="Last Name" required>
-            <input type="email" name="email" placeholder="Email (Leave empty if you're a buyer)" required>
-            <input type="tel" name="phoneNumber" placeholder="Phone Number (Optional)">
-            <input type="password" name="password" placeholder="Password" required>
+        <form id="storeForm" autocomplete="on">
+            <input type="text" name="firstName" placeholder="First Name" autocomplete="given-name" required>
+            <input type="text" name="lastName" placeholder="Last Name" autocomplete="family-name" required>
+            <input type="email" name="email" placeholder="Email (Leave empty if you're a buyer)" autocomplete="email" required>
+            <input type="tel" name="phoneNumber" placeholder="Phone Number (Optional)" autocomplete="tel">
+            <input type="password" name="password" placeholder="Password" autocomplete="new-password" required>
             <button type="submit">Submit</button>
         </form>
     </div>
