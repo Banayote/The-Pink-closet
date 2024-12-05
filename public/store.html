@@ -140,11 +140,25 @@
                         body: JSON.stringify(payload),
                     });
 
+                    // Check if response is successful and contains valid JSON
                     if (!response.ok) {
                         throw new Error('Failed to create user. Status: ' + response.status);
                     }
 
-                    const result = await response.json(); // Get the response as JSON
+                    // Check if response has body content
+                    const responseText = await response.text();
+                    if (!responseText) {
+                        throw new Error('Empty response from the server.');
+                    }
+
+                    // Try to parse the response
+                    let result;
+                    try {
+                        result = JSON.parse(responseText);
+                    } catch (parseError) {
+                        throw new Error('Failed to parse response as JSON: ' + parseError.message);
+                    }
+
                     alert('User successfully created!');
                     // Store the email and ID in localStorage
                     localStorage.setItem('email', payload.email);  // Store email
