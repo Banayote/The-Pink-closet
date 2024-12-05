@@ -6,6 +6,7 @@
     <title>Create Your Store</title>
     <link rel="stylesheet" href="store.css">
     <style>
+        /* Inline styles for simplicity */
         body {
             background-color: pink;
             font-family: Arial, sans-serif;
@@ -71,27 +72,17 @@
     <div class="form-container">
         <div class="exit-icon" id="exitIcon">&#x2B05;</div> <!-- Exit Icon -->
         <h1>Create Your Store</h1>
-        <form id="storeForm" autocomplete="on">
-            <input type="text" name="firstName" placeholder="First Name" autocomplete="given-name" required>
-            <input type="text" name="lastName" placeholder="Last Name" autocomplete="family-name" required>
-            <input type="email" name="email" placeholder="Email (Leave empty if you're a buyer)" autocomplete="email" required>
-            <input type="tel" name="phoneNumber" placeholder="Phone Number (Optional)" autocomplete="tel">
-            <input type="password" name="password" placeholder="Password" autocomplete="new-password" required>
+        <form id="storeForm">
+            <input type="text" name="firstName" placeholder="First Name" required>
+            <input type="text" name="lastName" placeholder="Last Name" required>
+            <input type="email" name="email" placeholder="Email (Leave empty if you're a buyer)" required>
+            <input type="tel" name="phoneNumber" placeholder="Phone Number (Optional)">
+            <input type="password" name="password" placeholder="Password" required>
             <button type="submit">Submit</button>
         </form>
     </div>
 
-    <!-- Supabase JavaScript client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
-
     <script>
-        // Initialize Supabase after the script is loaded
-        const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co'; // Your Supabase URL
-        const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Your Supabase API Key
-
-        // Initialize Supabase client
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
-
         document.addEventListener('DOMContentLoaded', () => {
             const exitIcon = document.getElementById('exitIcon');
             const storeForm = document.getElementById('storeForm');
@@ -105,7 +96,12 @@
 
             // Handle form submission
             storeForm.addEventListener('submit', async (event) => {
-                event.preventDefault(); // Prevent the default form submission
+                event.preventDefault();
+
+                // Replace these with your actual Supabase credentials
+                const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';
+                const SUPABASE_API_KEY =
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
 
                 // Gather form data
                 const formData = new FormData(storeForm);
@@ -118,41 +114,32 @@
                 };
 
                 try {
-                    // Step 1: Sign up user with email and password
-                    const { data: signupData, error: signupError } = await supabase.auth.signUp({
-                        email: payload.email,
-                        password: payload.password,
+                    // Send data to Supabase
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            apikey: SUPABASE_API_KEY,
+                            Authorization: `Bearer ${SUPABASE_API_KEY}`,
+                        },
+                        body: JSON.stringify(payload),
                     });
 
-                    if (signupError) {
-                        throw new Error('Signup failed: ' + signupError.message);
+                    const result = await response.text(); // Get the raw response body
+
+                    if (response.ok) {
+                        alert('User successfully created!');
+                        console.log('Response:', result); // Log raw response for debugging
+                        storeForm.reset(); // Clear the form after successful submission
+                    } else {
+                        console.error('Error:', result);
+                        alert(
+                            `Failed to create user: ${result || 'Unknown error.'}`
+                        );
                     }
-
-                    // Step 2: Insert user profile into the database
-                    const { data: profileData, error: profileError } = await supabase
-                        .from('profiles') // Ensure you have a "profiles" table in Supabase
-                        .insert([
-                            {
-                                user_id: signupData.user.id,
-                                first_name: payload.first_name,
-                                last_name: payload.last_name,
-                                email: payload.email,
-                                phone_number: payload.phone_number,
-                            }
-                        ]);
-
-                    if (profileError) {
-                        throw new Error('Error inserting profile data: ' + profileError.message);
-                    }
-
-                    // Step 3: Redirect to the profile page after successful registration
-                    alert('Account successfully created!');
-                    localStorage.setItem('email', payload.email);  // Store email in localStorage
-                    localStorage.setItem('userId', signupData.user.id); // Store user ID
-                    window.location.href = 'profile.html'; // Redirect to profile page
                 } catch (error) {
-                    console.error('Error:', error);
-                    alert('An error occurred: ' + error.message);
+                    console.error('Error:', error.message);
+                    alert('An unexpected error occurred. Please try again.');
                 }
             });
         });
