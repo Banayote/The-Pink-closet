@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
     <link rel="stylesheet" href="profile.css">
-    <!-- Supabase library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
     <div class="profile-container">
+        <!-- Exit Icon with redirection to index.html -->
         <div class="exit-icon">
             <a href="#" id="exitIcon"><span>&larr;</span></a>
         </div>
@@ -46,14 +45,16 @@
             </div>
         </div>
         <div class="product-list-button">
-            <button>View Product List</button>
+            <button id="view-products">View Product List</button>
         </div>
-        <div class="user-products"></div>
+        <div class="user-products">
+            <!-- User's posted products will be displayed here -->
+        </div>
     </div>
-
+    <!-- Hidden file inputs -->
     <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
     <input type="file" id="banner-upload" accept="image/*" multiple style="display:none;">
-
+    <!-- Modal for displaying images -->
     <div id="image-modal" class="modal">
         <span class="close">&times;</span>
         <img class="modal-content" id="modal-img">
@@ -68,31 +69,36 @@
             const editButton = document.getElementById('edit');
             const addProductButton = document.getElementById('add-product');
             const copyLinkButton = document.getElementById('copy-link');
+            const viewProductsButton = document.getElementById('view-products');
 
             let isEditing = false;
 
-            // Retrieve user email from localStorage
-            const userEmail = localStorage.getItem('email') || '';
-            if (!userEmail) {
-                alert('User not found. Redirecting to homepage...');
+            // Parse query parameters
+            const params = new URLSearchParams(window.location.search);
+            const userId = params.get('id');
+            const userEmail = params.get('email');
+
+            if (!userId || !userEmail) {
+                alert('Invalid user information. Redirecting to homepage...');
                 window.location.href = 'index.html';
             }
 
             // Supabase credentials
             const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';
             const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
-            const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            const headers = {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+            };
 
             // Fetch User Profile
             async function fetchUserProfile() {
                 try {
-                    const { data, error } = await supabase
-                        .from('users')
-                        .select('*')
-                        .eq('email', userEmail);
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${userId}`, { headers });
+                    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
 
-                    if (error) throw error;
-
+                    const data = await response.json();
                     if (data.length > 0) {
                         const userData = data[0];
                         usernameElem.textContent = `${userData.first_name || 'First'} ${userData.last_name || 'Last'}`;
@@ -100,6 +106,8 @@
                         bannerImages[0].src = userData.banner_image1 || 'image1.jpg';
                         bannerImages[1].src = userData.banner_image2 || 'image2.jpg';
                         bannerImages[2].src = userData.banner_image3 || 'image3.jpg';
+                        document.getElementById('sales-count').textContent = userData.sales || '0';
+                        document.getElementById('visitors-count').textContent = userData.visitors || '0';
                     } else {
                         alert('No profile data found.');
                     }
@@ -123,29 +131,37 @@
                     usernameElem.contentEditable = false;
 
                     const [first_name, last_name] = usernameElem.textContent.split(' ') || ['First', 'Last'];
+                    const updatedProfileData = { first_name, last_name };
 
-                    supabase
-                        .from('users')
-                        .update({ first_name, last_name })
-                        .eq('email', userEmail)
-                        .then(({ error }) => {
-                            if (error) throw error;
-                            console.log('Profile updated');
+                    fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${userId}`, {
+                        method: 'PATCH',
+                        headers,
+                        body: JSON.stringify(updatedProfileData),
+                    })
+                        .then((response) => {
+                            if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                            return response.json();
                         })
-                        .catch(error => console.error('Error updating profile:', error));
+                        .then((data) => console.log('Profile updated:', data))
+                        .catch((error) => console.error('Error updating profile:', error));
                 }
             });
 
             // Redirect to Add Product Page
             addProductButton.addEventListener('click', () => {
-                window.location.href = 'add-product.html';
+                window.location.href = `add-product.html?userId=${userId}`;
             });
 
             // Copy Profile Link
             copyLinkButton.addEventListener('click', () => {
                 navigator.clipboard.writeText(window.location.href)
                     .then(() => alert('Profile link copied to clipboard!'))
-                    .catch(error => console.error('Failed to copy link:', error));
+                    .catch((error) => console.error('Failed to copy link:', error));
+            });
+
+            // View Product List
+            viewProductsButton.addEventListener('click', () => {
+                window.location.href = `product-list.html?userId=${userId}`;
             });
 
             // Exit to Homepage
