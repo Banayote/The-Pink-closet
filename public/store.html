@@ -113,6 +113,22 @@
                 };
 
                 try {
+                    // Check if email already exists
+                    const emailCheckResponse = await fetch(`${SUPABASE_URL}/rest/v1/users?email=eq.${payload.email}`, {
+                        method: 'GET',
+                        headers: {
+                            apikey: SUPABASE_API_KEY,
+                            Authorization: `Bearer ${SUPABASE_API_KEY}`,
+                        },
+                    });
+
+                    const emailCheckData = await emailCheckResponse.json();
+
+                    if (emailCheckData.length > 0) {
+                        alert('Email already exists. Please use a different email.');
+                        return;
+                    }
+
                     // Send data to Supabase
                     const response = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
                         method: 'POST',
@@ -124,21 +140,20 @@
                         body: JSON.stringify(payload),
                     });
 
-                    const result = await response.json(); // Get the response as JSON
-                    if (response.ok) {
-                        alert('User successfully created!');
-                        // Store the email and ID in localStorage
-                        localStorage.setItem('email', payload.email);  // Store email
-                        localStorage.setItem('userId', result.id);     // Store user ID (if available)
-                        storeForm.reset(); // Clear the form after successful submission
-                        window.location.href = 'profile.html'; // Redirect to profile page
-                    } else {
-                        console.error('Error:', result);
-                        alert(`Failed to create user: ${result.message || 'Unknown error.'}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to create user. Status: ' + response.status);
                     }
+
+                    const result = await response.json(); // Get the response as JSON
+                    alert('User successfully created!');
+                    // Store the email and ID in localStorage
+                    localStorage.setItem('email', payload.email);  // Store email
+                    localStorage.setItem('userId', result.id);     // Store user ID (if available)
+                    storeForm.reset(); // Clear the form after successful submission
+                    window.location.href = 'profile.html'; // Redirect to profile page
                 } catch (error) {
-                    console.error('Error:', error.message);
-                    alert('An unexpected error occurred. Please try again.');
+                    console.error('Error:', error);
+                    alert('An error occurred: ' + error.message);
                 }
             });
         });
