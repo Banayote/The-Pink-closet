@@ -45,7 +45,7 @@
         const cloudinaryPreset = 'BANYOTE';
 
         document.getElementById('add-product-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
+            e.preventDefault(); // Prevent the default form submission
 
             const name = document.getElementById('product-name').value;
             const description = document.getElementById('product-description').value;
