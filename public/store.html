@@ -126,16 +126,20 @@
                         body: JSON.stringify(payload),
                     });
 
-                    const result = await response.text(); // Get the raw response body
+                    const result = await response.json(); // Parse JSON response
 
                     if (response.ok) {
                         alert('User successfully created!');
-                        console.log('Response:', result); // Log raw response for debugging
-                        storeForm.reset(); // Clear the form after successful submission
+                        console.log('Response:', result);
+
+                        // Redirect to profile.html with ID and email in the query string
+                        const userId = result.id; // Ensure your Supabase table returns an 'id'
+                        const userEmail = encodeURIComponent(payload.email);
+                        window.location.href = `profile.html?id=${userId}&email=${userEmail}`;
                     } else {
                         console.error('Error:', result);
                         alert(
-                            `Failed to create user: ${result || 'Unknown error.'}`
+                            `Failed to create user: ${result.message || 'Unknown error.'}`
                         );
                     }
                 } catch (error) {
