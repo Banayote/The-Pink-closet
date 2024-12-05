@@ -81,20 +81,20 @@
         </form>
     </div>
 
-    <!-- Add Supabase Client Library -->
+    <!-- Supabase JavaScript client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
 
     <script>
+        // Initialize Supabase after the script is loaded
+        const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co'; // Your Supabase URL
+        const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Your Supabase API Key
+
+        // Initialize Supabase client
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
+
         document.addEventListener('DOMContentLoaded', () => {
             const exitIcon = document.getElementById('exitIcon');
             const storeForm = document.getElementById('storeForm');
-
-            // Your Supabase URL and API Key (Make sure these are correct)
-            const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co'; // Your Supabase URL
-            const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Your Supabase API Key
-
-            // Initialize Supabase
-            const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
             // Exit icon functionality
             exitIcon.addEventListener('click', () => {
@@ -159,4 +159,3 @@
     </script>
 </body>
 </html>
-
