@@ -143,46 +143,57 @@
                 }
             });
 
-            // Function to load images from the image table
-            async function loadImages() {
-                const { data: images, error } = await supabase.from('image').select();
-                if (error) {
-                    console.error('Error loading images:', error);
-                    errorMessage.textContent = 'Error loading images. Please try again later.';
+            // Function to load products and images together
+            async function loadProducts() {
+                // Fetch products from the 'products' table
+                const { data: products, error: productError } = await supabase.from('products').select('name, description, price, category, image_id');
+
+                if (productError) {
+                    console.error('Error loading products:', productError);
+                    errorMessage.textContent = 'Error loading products. Please try again later.';
                     return;
                 }
 
-                if (images.length === 0) {
-                    errorMessage.textContent = 'No images found.';
+                if (products.length === 0) {
+                    errorMessage.textContent = 'No products found.';
                     return;
                 }
 
-                productList.innerHTML = ''; // Clear the product list
+                // Loop through each product and fetch its corresponding image
+                for (const product of products) {
+                    const { data: imageData, error: imageError } = await supabase
+                        .from('image')
+                        .select('url')
+                        .eq('id', product.image_id)
+                        .single();
 
-                // Loop through each image and display it
-                images.forEach((image) => {
-                    console.log('Image URL:', image.image_url); // Log image URL for debugging
+                    if (imageError) {
+                        console.error('Error loading image for product', product.name, imageError);
+                        continue; // Skip this product if image not found
+                    }
 
                     const productDiv = document.createElement('div');
                     productDiv.classList.add('product');
 
-                    // Check if image URL exists before displaying
-                    const imgUrl = image.image_url ? image.image_url : 'default-image.jpg';
+                    // Construct product HTML
                     productDiv.innerHTML = `
-                        <h2>Product Image</h2>
-                        <img src="${imgUrl}" alt="Product Image">
+                        <h2>${product.name}</h2>
+                        <p>${product.description}</p>
+                        <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
+                        <img src="${imageData.url}" alt="${product.name}">
                     `;
 
+                    // Add click event to the product div
                     productDiv.addEventListener('click', () => {
-                        alert('You clicked on the product image');
+                        alert('You clicked on ' + product.name);
                     });
 
                     productList.appendChild(productDiv);
-                });
+                }
             }
 
-            // Call loadImages on page load
-            window.onload = loadImages;
+            // Call loadProducts on page load
+            window.onload = loadProducts;
         });
     </script>
 </body>
