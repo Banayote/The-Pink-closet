@@ -16,7 +16,7 @@
             font-size: 30px;
             cursor: pointer;
             padding: 10px;
-            z-index: 1001;  /* Ensuring it stays on top */
+            z-index: 1001;
         }
 
         .sidebar {
@@ -26,14 +26,14 @@
             width: 250px;
             height: 100%;
             box-shadow: -2px 0 5px rgba(0,0,0,0.5);
-            display: none; /* Initially hidden */
+            display: none;
             background-color: #fff;
             z-index: 1000;
             transition: 0.3s ease;
         }
 
         .sidebar.active {
-            display: block; /* Show the sidebar when active */
+            display: block;
         }
 
         .close-btn {
@@ -73,7 +73,6 @@
             height: auto;
         }
 
-        /* Error message styling */
         .error-message {
             color: red;
             font-weight: bold;
@@ -83,7 +82,7 @@
 <body>
     <header>
         <div id="menuIcon" class="menu-icon">
-            &#9776; <!-- Unicode character for the hamburger icon -->
+            &#9776;
         </div>
         <h1 id="storeName">The Pink Closet</h1>
         <div class="search-bar">
@@ -93,7 +92,6 @@
     </header>
     <main>
         <section id="main-content">
-            <!-- Product sections will be dynamically populated here -->
             <div id="product-list"></div>
             <div id="error-message" class="error-message"></div>
         </section>
@@ -115,9 +113,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script>
-        // Ensure the DOM is fully loaded before interacting with it
         document.addEventListener('DOMContentLoaded', function() {
-            // Get elements
             const menuIcon = document.getElementById('menuIcon');
             const sidebar = document.getElementById('sidebar');
             const closeBtn = document.getElementById('closeBtn');
@@ -127,13 +123,13 @@
             // Function to open the sidebar
             function openSidebar() {
                 console.log("Burger icon clicked, opening sidebar");
-                sidebar.classList.add('active');  // Add the 'active' class to show the sidebar
+                sidebar.classList.add('active');
             }
 
             // Function to close the sidebar
             function closeSidebar() {
                 console.log("Close button clicked, closing sidebar");
-                sidebar.classList.remove('active');  // Remove the 'active' class to hide the sidebar
+                sidebar.classList.remove('active');
             }
 
             // Event listeners for sidebar
@@ -147,48 +143,46 @@
                 }
             });
 
-            // Function to load products from Supabase
-            async function loadProducts() {
-                const { data: products, error } = await supabase.from('products').select();
+            // Function to load images from the image table
+            async function loadImages() {
+                const { data: images, error } = await supabase.from('image').select();
                 if (error) {
-                    console.error('Error loading products:', error);
-                    errorMessage.textContent = 'Error loading products. Please try again later.';
+                    console.error('Error loading images:', error);
+                    errorMessage.textContent = 'Error loading images. Please try again later.';
                     return;
                 }
 
-                if (products.length === 0) {
-                    errorMessage.textContent = 'No products found.';
+                if (images.length === 0) {
+                    errorMessage.textContent = 'No images found.';
                     return;
                 }
 
-                productList.innerHTML = '';  // Clear the product list
+                productList.innerHTML = ''; // Clear the product list
 
-                // Loop through each product and display
-                products.forEach((product) => {
-                    console.log('Product Image URL:', product.image_url);  // Log image URL for debugging
+                // Loop through each image and display it
+                images.forEach((image) => {
+                    console.log('Image URL:', image.image_url); // Log image URL for debugging
 
                     const productDiv = document.createElement('div');
                     productDiv.classList.add('product');
 
                     // Check if image URL exists before displaying
-                    const imgUrl = product.image_url ? product.image_url : 'default-image.jpg';
+                    const imgUrl = image.image_url ? image.image_url : 'default-image.jpg';
                     productDiv.innerHTML = `
-                        <h2>${product.name}</h2>
-                        <p>${product.description}</p>
-                        <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
-                        <img src="${imgUrl}" alt="${product.name}">
+                        <h2>Product Image</h2>
+                        <img src="${imgUrl}" alt="Product Image">
                     `;
 
                     productDiv.addEventListener('click', () => {
-                        alert(`You clicked on ${product.name}`);
+                        alert('You clicked on the product image');
                     });
 
                     productList.appendChild(productDiv);
                 });
             }
 
-            // Call loadProducts on page load
-            window.onload = loadProducts;
+            // Call loadImages on page load
+            window.onload = loadImages;
         });
     </script>
 </body>
