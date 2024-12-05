@@ -84,65 +84,65 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const exitIcon = document.getElementById('exitIcon');
-            const storeForm = document.getElementById('storeForm');
+    const exitIcon = document.getElementById('exitIcon');
+    const storeForm = document.getElementById('storeForm');
 
-            // Exit icon functionality
-            exitIcon.addEventListener('click', () => {
-                if (confirm('Are you sure you want to exit?')) {
-                    window.location.href = 'index.html'; // Redirect to the main page
-                }
-            });
+    // Exit icon functionality
+    exitIcon.addEventListener('click', () => {
+        if (confirm('Are you sure you want to exit?')) {
+            window.location.href = 'index.html'; // Redirect to the main page
+        }
+    });
 
-            // Handle form submission
-            storeForm.addEventListener('submit', async (event) => {
-                event.preventDefault();
+    // Handle form submission
+    storeForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
 
-                // Replace these with your actual Supabase credentials
-                const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';
-                const SUPABASE_API_KEY =
-                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
+        // Replace these with your actual Supabase credentials
+        const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';
+        const SUPABASE_API_KEY =
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
 
-                // Gather form data
-                const formData = new FormData(storeForm);
-                const payload = {
-                    first_name: formData.get('firstName'),
-                    last_name: formData.get('lastName'),
-                    email: formData.get('email'),
-                    phone_number: formData.get('phoneNumber'),
-                    password: formData.get('password'),
-                };
+        // Gather form data
+        const formData = new FormData(storeForm);
+        const payload = {
+            first_name: formData.get('firstName'),
+            last_name: formData.get('lastName'),
+            email: formData.get('email'),
+            phone_number: formData.get('phoneNumber'),
+            password: formData.get('password'),
+        };
 
-                try {
-                    // Send data to Supabase
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            apikey: SUPABASE_API_KEY,
-                            Authorization: `Bearer ${SUPABASE_API_KEY}`,
-                        },
-                        body: JSON.stringify(payload),
-                    });
+        try {
+            // Sign up user with Supabase Authentication
+            const { data, error } = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    apikey: SUPABASE_API_KEY,
+                },
+                body: JSON.stringify({
+                    email: payload.email,
+                    password: payload.password,
+                    user_metadata: {
+                        first_name: payload.first_name,
+                        last_name: payload.last_name,
+                        phone_number: payload.phone_number,
+                    },
+                }),
+            }).then(res => res.json());
 
-                    const result = await response.text(); // Get the raw response body
-
-                    if (response.ok) {
-                        alert('User successfully created!');
-                        console.log('Response:', result); // Log raw response for debugging
-                        storeForm.reset(); // Clear the form after successful submission
-                    } else {
-                        console.error('Error:', result);
-                        alert(
-                            `Failed to create user: ${result || 'Unknown error.'}`
-                        );
-                    }
-                } catch (error) {
-                    console.error('Error:', error.message);
-                    alert('An unexpected error occurred. Please try again.');
-                }
-            });
-        });
-    </script>
-</body>
-</html>
+            if (error) {
+                console.error('Error:', error.message);
+                alert(`Failed to create user: ${error.message}`);
+            } else {
+                alert('User successfully created!');
+                localStorage.setItem('email', payload.email); // Save email for profile.html
+                window.location.href = 'profile.html'; // Redirect to profile page
+            }
+        } catch (error) {
+            console.error('Error:', error.message);
+            alert('An unexpected error occurred. Please try again.');
+        }
+    });
+});
