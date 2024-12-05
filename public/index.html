@@ -16,7 +16,7 @@
             font-size: 30px;
             cursor: pointer;
             padding: 10px;
-            z-index: 1001;
+            z-index: 1001;  /* Ensuring it stays on top */
         }
 
         .sidebar {
@@ -26,14 +26,14 @@
             width: 250px;
             height: 100%;
             box-shadow: -2px 0 5px rgba(0,0,0,0.5);
-            display: none;
+            display: none; /* Initially hidden */
             background-color: #fff;
             z-index: 1000;
             transition: 0.3s ease;
         }
 
         .sidebar.active {
-            display: block;
+            display: block; /* Show the sidebar when active */
         }
 
         .close-btn {
@@ -65,6 +65,7 @@
             margin: 10px;
             padding: 10px;
             text-align: center;
+            cursor: pointer;
         }
 
         .product img {
@@ -72,44 +73,17 @@
             height: auto;
         }
 
-        .search-bar {
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .search-bar input {
-            width: 60%;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        .search-bar button {
-            padding: 10px 20px;
-            background-color: #ffc0cb;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .search-bar button:hover {
-            background-color: #ffb6c1;
-        }
-
-        footer {
-            text-align: center;
-            padding: 10px 0;
-            background-color: #f4f4f4;
-            margin-top: 20px;
+        /* Error message styling */
+        .error-message {
+            color: red;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <header>
         <div id="menuIcon" class="menu-icon">
-            &#9776;
+            &#9776; <!-- Unicode character for the hamburger icon -->
         </div>
         <h1 id="storeName">The Pink Closet</h1>
         <div class="search-bar">
@@ -119,7 +93,9 @@
     </header>
     <main>
         <section id="main-content">
+            <!-- Product sections will be dynamically populated here -->
             <div id="product-list"></div>
+            <div id="error-message" class="error-message"></div>
         </section>
     </main>
     <footer>
@@ -130,7 +106,7 @@
     <div id="sidebar" class="sidebar">
         <button id="closeBtn" class="close-btn">&times;</button>
         <div class="sidebar-content">
-            <a href="profile.html" class="sidebar-item">Profile</a>
+            <a href="profile.html" id="profileLink" class="sidebar-item">Profile</a>
             <a href="store.html" class="sidebar-item">Create Store</a>
             <a href="login.html" class="sidebar-item">Login</a>
             <a href="messages.html" class="sidebar-item">Messages</a>
@@ -139,53 +115,80 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script>
-        // Initialize Supabase client
-        const supabase = supabase.createClient(
-            'https://eczpdpysryifkekieloc.supabase.co', 
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
-        );
-
+        // Ensure the DOM is fully loaded before interacting with it
         document.addEventListener('DOMContentLoaded', function() {
+            // Get elements
             const menuIcon = document.getElementById('menuIcon');
             const sidebar = document.getElementById('sidebar');
             const closeBtn = document.getElementById('closeBtn');
             const productList = document.getElementById('product-list');
+            const errorMessage = document.getElementById('error-message');
 
-            menuIcon.addEventListener('click', () => {
-                sidebar.classList.add('active');
+            // Function to open the sidebar
+            function openSidebar() {
+                console.log("Burger icon clicked, opening sidebar");
+                sidebar.classList.add('active');  // Add the 'active' class to show the sidebar
+            }
+
+            // Function to close the sidebar
+            function closeSidebar() {
+                console.log("Close button clicked, closing sidebar");
+                sidebar.classList.remove('active');  // Remove the 'active' class to hide the sidebar
+            }
+
+            // Event listeners for sidebar
+            menuIcon.addEventListener('click', openSidebar);
+            closeBtn.addEventListener('click', closeSidebar);
+
+            // Close sidebar when clicking outside of it
+            window.addEventListener('click', function(event) {
+                if (event.target === sidebar) {
+                    closeSidebar();
+                }
             });
 
-            closeBtn.addEventListener('click', () => {
-                sidebar.classList.remove('active');
-            });
-
-            // Load products from Supabase
+            // Function to load products from Supabase
             async function loadProducts() {
                 const { data: products, error } = await supabase.from('products').select();
-
                 if (error) {
                     console.error('Error loading products:', error);
+                    errorMessage.textContent = 'Error loading products. Please try again later.';
                     return;
                 }
 
-                productList.innerHTML = '';
+                if (products.length === 0) {
+                    errorMessage.textContent = 'No products found.';
+                    return;
+                }
+
+                productList.innerHTML = '';  // Clear the product list
+
+                // Loop through each product and display
                 products.forEach((product) => {
+                    console.log('Product Image URL:', product.image_url);  // Log image URL for debugging
+
                     const productDiv = document.createElement('div');
                     productDiv.classList.add('product');
+
+                    // Check if image URL exists before displaying
+                    const imgUrl = product.image_url ? product.image_url : 'default-image.jpg';
                     productDiv.innerHTML = `
                         <h2>${product.name}</h2>
                         <p>${product.description}</p>
                         <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
-                        <img src="${product.image_url}" alt="${product.name}">
+                        <img src="${imgUrl}" alt="${product.name}">
                     `;
+
                     productDiv.addEventListener('click', () => {
                         alert(`You clicked on ${product.name}`);
                     });
+
                     productList.appendChild(productDiv);
                 });
             }
 
-            loadProducts();
+            // Call loadProducts on page load
+            window.onload = loadProducts;
         });
     </script>
 </body>
