@@ -93,7 +93,6 @@
 
                     if (error) throw error;
 
-                    console.log('User data fetched:', data);
                     if (data.length > 0) {
                         const userData = data[0];
                         usernameElem.textContent = `${userData.first_name || 'First'} ${userData.last_name || 'Last'}`;
@@ -158,3 +157,4 @@
     </script>
 </body>
 </html>
+
