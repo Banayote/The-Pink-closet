@@ -36,20 +36,17 @@
     </main>
 
     <script>
-        // Supabase client
         const supabase = supabase.createClient(
             'https://eczpdpysryifkekieloc.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
         );
 
-        // Cloudinary URL and preset
         const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload';
         const cloudinaryPreset = 'BANYOTE';
 
         document.getElementById('add-product-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // Get form values
             const name = document.getElementById('product-name').value;
             const description = document.getElementById('product-description').value;
             const price = parseFloat(document.getElementById('product-price').value);
@@ -61,32 +58,45 @@
                 return;
             }
 
-            // Prepare data to upload image to Cloudinary
+            // Upload image to Cloudinary
             const formData = new FormData();
             formData.append('file', image);
             formData.append('upload_preset', cloudinaryPreset);
 
             try {
-                // Upload image to Cloudinary
                 const res = await fetch(cloudinaryUrl, { method: 'POST', body: formData });
                 const imageData = await res.json();
 
                 if (imageData.secure_url) {
-                    // If image upload is successful, insert product into Supabase
-                    const { data, error } = await supabase.from('products').insert([{
+                    // Insert the image URL into the 'image' table
+                    const { data: imageDataFromDB, error: imageError } = await supabase.from('image').insert([{
+                        url: imageData.secure_url, // Store the image URL
+                    }]);
+
+                    if (imageError) {
+                        console.error(imageError);
+                        alert('Failed to add image. Try again.');
+                        return;
+                    }
+
+                    // Get the image_id from the 'image' table
+                    const image_id = imageDataFromDB[0].id;
+
+                    // Now insert the product into the 'products' table
+                    const { data: productData, error: productError } = await supabase.from('products').insert([{
                         name,
                         description,
                         price,
                         category,
-                        image_url: imageData.secure_url, // Store the image URL
+                        image_id, // Link the product to the image via image_id
                     }]);
 
-                    if (error) {
-                        console.error(error);
+                    if (productError) {
+                        console.error(productError);
                         alert('Failed to add product. Try again.');
                     } else {
                         alert('Product added successfully!');
-                        e.target.reset(); // Reset form after submission
+                        e.target.reset(); // Reset the form after submission
                     }
                 } else {
                     alert('Image upload failed. Try again.');
