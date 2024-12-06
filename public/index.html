@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Pink Closet</title>
+    <link rel="stylesheet" href="styles.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,15 +12,36 @@
             padding: 0;
         }
 
-        header {
-            background-color: #ffc0cb; /* Light pink background */
-            color: white;
-            text-align: center;
-            padding: 1rem;
+        .menu-icon {
+            font-size: 30px;
+            cursor: pointer;
+            padding: 10px;
         }
 
-        h1 {
-            margin: 0;
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 250px;
+            height: 100%;
+            background-color: #fff;
+            display: none;
+            z-index: 1000;
+            transition: 0.3s ease;
+        }
+
+        .sidebar.active {
+            display: block;
+        }
+
+        .close-btn {
+            font-size: 30px;
+            cursor: pointer;
+            padding: 10px;
+        }
+
+        .sidebar-content {
+            padding: 20px;
         }
 
         .product {
@@ -27,63 +49,46 @@
             margin: 10px;
             padding: 10px;
             text-align: center;
-            cursor: pointer;
         }
 
         .product img {
             max-width: 100%;
             height: auto;
         }
-
-        .product-list {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            padding: 20px;
-        }
-
-        footer {
-            text-align: center;
-            padding: 10px;
-            background-color: #ffc0cb;
-        }
     </style>
 </head>
 <body>
     <header>
-        <h1>The Pink Closet</h1>
+        <div id="menuIcon" class="menu-icon">&#9776;</div>
+        <h1 id="storeName">The Pink Closet</h1>
     </header>
-
     <main>
-        <div id="product-list" class="product-list">
-            <!-- Product items will be dynamically added here -->
-        </div>
+        <section id="main-content">
+            <div id="product-list"></div>
+        </section>
     </main>
-
     <footer>
         <p>&copy; The Pink Closet 2024. All rights reserved.</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script>
-        // Initialize Supabase client
         const supabase = supabase.createClient(
             'https://eczpdpysryifkekieloc.supabase.co', 
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
         );
 
-        // Function to load products from Supabase
         async function loadProducts() {
-            const { data: products, error } = await supabase.from('products').select();
+            const { data: products, error } = await supabase.from('products').select('*');
             if (error) {
                 console.error('Error loading products:', error);
                 return;
             }
-            const productList = document.getElementById('product-list');
-            productList.innerHTML = '';  // Clear the product list before appending new items
 
-            // Loop through the products and display them
-            products.forEach((product) => {
+            const productList = document.getElementById('product-list');
+            productList.innerHTML = '';
+
+            products.forEach(product => {
                 const productDiv = document.createElement('div');
                 productDiv.classList.add('product');
                 productDiv.innerHTML = `
@@ -92,15 +97,12 @@
                     <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
                     <img src="${product.image_url}" alt="${product.name}">
                 `;
-                productDiv.addEventListener('click', () => {
-                    alert(`You clicked on ${product.name}`);
-                });
                 productList.appendChild(productDiv);
             });
         }
 
-        // Call the loadProducts function to load products on page load
-        window.onload = loadProducts;
+        document.addEventListener('DOMContentLoaded', loadProducts);
     </script>
 </body>
 </html>
+
