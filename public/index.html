@@ -6,7 +6,7 @@
     <title>The Pink Closet</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Same styles as before */
+        /* Add your existing styles here */
     </style>
 </head>
 <body>
@@ -44,12 +44,12 @@
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
 
-    <!-- Script that uses Supabase -->
+    <!-- Your JavaScript logic below, which should come after supabase SDK -->
     <script>
-        // Supabase initialization (ensure this comes before you use 'supabase')
+        // Initialize supabase after loading the SDK
         const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co'; // Your Supabase URL
         const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Replace with your actual API key
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);  // Initialize supabase
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);  // Initialize supabase client
 
         // Ensure the DOM is fully loaded before interacting with it
         document.addEventListener('DOMContentLoaded', function() {
@@ -82,29 +82,33 @@
 
             // Function to load products from Supabase (for your content)
             async function loadProducts() {
-                const { data: products, error } = await supabase.from('products').select();
-                if (error) {
-                    console.error('Error loading products:', error);
-                    return;
-                }
-                productList.innerHTML = '';  // Clear the product list
-                products.forEach((product) => {
-                    const productDiv = document.createElement('div');
-                    productDiv.classList.add('product');
-                    productDiv.innerHTML = `
-                        <h2>${product.name}</h2>
-                        <p>${product.description}</p>
-                        <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
-                        <img src="${product.image_url}" alt="${product.name}">
-                    `;
-                    productDiv.addEventListener('click', () => {
-                        alert(`You clicked on ${product.name}`);
+                try {
+                    const { data: products, error } = await supabase.from('products').select();
+                    if (error) {
+                        console.error('Error loading products:', error);
+                        return;
+                    }
+                    productList.innerHTML = '';  // Clear the product list
+                    products.forEach((product) => {
+                        const productDiv = document.createElement('div');
+                        productDiv.classList.add('product');
+                        productDiv.innerHTML = `
+                            <h2>${product.name}</h2>
+                            <p>${product.description}</p>
+                            <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
+                            <img src="${product.image_url}" alt="${product.name}">
+                        `;
+                        productDiv.addEventListener('click', () => {
+                            alert(`You clicked on ${product.name}`);
+                        });
+                        productList.appendChild(productDiv);
                     });
-                    productList.appendChild(productDiv);
-                });
+                } catch (error) {
+                    console.error('Error fetching products:', error);
+                }
             }
 
-            // Call loadProducts on page load
+            // Load products when the page is loaded
             loadProducts();
 
             // Function to handle search
