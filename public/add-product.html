@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
-    <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script>
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
     <style>
         /* General Styles */
         body {
@@ -94,9 +94,8 @@
         </form>
     </main>
     <script>
-        const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';
-        const SUPABASE_API_KEY =
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
+        const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';  // Your Supabase URL
+        const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';  // Your Supabase API key
 
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
