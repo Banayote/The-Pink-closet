@@ -3,144 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Pink Closet</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Add Product</title>
+
+    <!-- Load Supabase JavaScript client first -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
+
+    <!-- Load Cloudinary widget script -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+    
     <style>
-        /* Same styles as before */
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #ffc0cb;
+            color: #fff;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        main {
+            padding: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        form {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #ffc0cb;
+            color: #fff;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #ffb6c1;
+        }
     </style>
 </head>
 <body>
     <header>
-        <div id="menuIcon" class="menu-icon">
-            &#9776; <!-- Unicode character for the hamburger icon -->
-        </div>
-        <h1 id="storeName">The Pink Closet</h1>
-        <div class="search-bar">
-            <input type="text" id="search-input" placeholder="Search products...">
-            <button id="search-button">Search</button>
-        </div>
+        <h1>Add a New Product</h1>
     </header>
     <main>
-        <section id="main-content">
-            <!-- Product sections will be dynamically populated here -->
-            <div id="product-list"></div>
-        </section>
+        <form id="add-product-form">
+            <label for="product-name">Product Name:</label>
+            <input type="text" id="product-name" name="name" required>
+
+            <label for="product-description">Description:</label>
+            <textarea id="product-description" name="description" required></textarea>
+
+            <label for="product-price">Price:</label>
+            <input type="number" id="product-price" name="price" step="0.01" required>
+
+            <label for="product-category">Category:</label>
+            <input type="text" id="product-category" name="category" required>
+
+            <label for="product-image">Image:</label>
+            <input type="file" id="product-image" name="image" accept="image/*" required>
+
+            <button type="submit">Add Product</button>
+        </form>
     </main>
-    <footer>
-        <p>&copy; The Pink Closet 2024. All rights reserved.</p>
-    </footer>
 
-    <!-- Sidebar -->
-    <div id="sidebar" class="sidebar">
-        <button id="closeBtn" class="close-btn">&times;</button>
-        <div class="sidebar-content">
-            <a href="profile.html" id="profileLink" class="sidebar-item">Profile</a>
-            <a href="store.html" class="sidebar-item">Create Store</a>
-            <a href="login.html" class="sidebar-item">Login</a>
-            <a href="messages.html" class="sidebar-item">Messages</a>
-        </div>
-    </div>
-
-    <!-- Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
-
-    <!-- Script that uses Supabase -->
+    <!-- Your Custom JavaScript to interact with Supabase -->
     <script>
-        // Supabase initialization (ensure this comes before you use 'supabase')
-        const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co'; // Your Supabase URL
-        const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Replace with your actual API key
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);  // Initialize supabase
-
-        // Ensure the DOM is fully loaded before interacting with it
+        // Ensure the script runs after the DOM is fully loaded
         document.addEventListener('DOMContentLoaded', function() {
-            // Get elements
-            const menuIcon = document.getElementById('menuIcon');
-            const sidebar = document.getElementById('sidebar');
-            const closeBtn = document.getElementById('closeBtn');
-            const productList = document.getElementById('product-list');
+            // Supabase credentials (replace these with your actual credentials)
+            const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';
+            const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
 
-            // Function to open the sidebar
-            function openSidebar() {
-                sidebar.classList.add('active');  // Add the 'active' class to show the sidebar
-            }
+            // Initialize Supabase client after the DOM is ready
+            const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
-            // Function to close the sidebar
-            function closeSidebar() {
-                sidebar.classList.remove('active');  // Remove the 'active' class to hide the sidebar
-            }
+            // Event listener for form submission
+            document.getElementById('add-product-form').addEventListener('submit', async (event) => {
+                event.preventDefault();
 
-            // Event listeners for sidebar
-            menuIcon.addEventListener('click', openSidebar);
-            closeBtn.addEventListener('click', closeSidebar);
+                const productName = document.getElementById('product-name').value;
+                const productDescription = document.getElementById('product-description').value;
+                const productPrice = document.getElementById('product-price').value;
+                const productCategory = document.getElementById('product-category').value;
+                const productImage = document.getElementById('product-image').files[0];
 
-            // Close sidebar when clicking outside of it
-            window.addEventListener('click', function(event) {
-                if (event.target === sidebar) {
-                    closeSidebar();
-                }
-            });
-
-            // Function to load products from Supabase (for your content)
-            async function loadProducts() {
-                const { data: products, error } = await supabase.from('products').select();
-                if (error) {
-                    console.error('Error loading products:', error);
-                    return;
-                }
-                productList.innerHTML = '';  // Clear the product list
-                products.forEach((product) => {
-                    const productDiv = document.createElement('div');
-                    productDiv.classList.add('product');
-                    productDiv.innerHTML = `
-                        <h2>${product.name}</h2>
-                        <p>${product.description}</p>
-                        <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
-                        <img src="${product.image_url}" alt="${product.name}">
-                    `;
-                    productDiv.addEventListener('click', () => {
-                        alert(`You clicked on ${product.name}`);
-                    });
-                    productList.appendChild(productDiv);
-                });
-            }
-
-            // Call loadProducts on page load
-            loadProducts();
-
-            // Function to handle search
-            document.getElementById('search-button').addEventListener('click', async function() {
-                const query = document.getElementById('search-input').value.toLowerCase();
-                const { data: products, error } = await supabase.from('products').select();
-
-                if (error) {
-                    console.error('Error fetching products for search:', error);
+                if (!productImage) {
+                    alert('Please select an image to upload.');
                     return;
                 }
 
-                const filteredProducts = products.filter(product => 
-                    product.name.toLowerCase().includes(query) || 
-                    product.description.toLowerCase().includes(query)
-                );
+                // Upload the image to Supabase Storage
+                try {
+                    const { data: imageData, error: imageError } = await supabase.storage
+                        .from('product-images')
+                        .upload(`images/${productImage.name}`, productImage);
 
-                productList.innerHTML = ''; // Clear product list
+                    if (imageError) {
+                        throw imageError;
+                    }
 
-                if (filteredProducts.length > 0) {
-                    filteredProducts.forEach((product) => {
-                        const productDiv = document.createElement('div');
-                        productDiv.classList.add('product');
-                        productDiv.innerHTML = `
-                            <h2>${product.name}</h2>
-                            <p>${product.description}</p>
-                            <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
-                            <img src="${product.image_url}" alt="${product.name}">
-                        `;
-                        productDiv.addEventListener('click', () => {
-                            alert(`You clicked on ${product.name}`);
-                        });
-                        productList.appendChild(productDiv);
-                    });
-                } else {
-                    productList.innerHTML = '<p>No products found matching your search criteria.</p>';
+                    const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/product-images/${imageData.path}`;
+
+                    // Insert product details into the Supabase database
+                    const { data: productData, error: productError } = await supabase
+                        .from('products')
+                        .insert([
+                            {
+                                name: productName,
+                                description: productDescription,
+                                price: parseFloat(productPrice),
+                                category: productCategory,
+                                image_url: imageUrl,
+                            },
+                        ]);
+
+                    if (productError) {
+                        throw productError;
+                    }
+
+                    alert('Product added successfully!');
+                    event.target.reset();
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
                 }
             });
         });
