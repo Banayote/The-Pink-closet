@@ -16,7 +16,7 @@
             font-size: 30px;
             cursor: pointer;
             padding: 10px;
-            z-index: 1001;
+            z-index: 1001;  /* Ensuring it stays on top */
         }
 
         .sidebar {
@@ -26,14 +26,14 @@
             width: 250px;
             height: 100%;
             box-shadow: -2px 0 5px rgba(0,0,0,0.5);
-            display: none;
+            display: none; /* Initially hidden */
             background-color: #fff;
             z-index: 1000;
             transition: 0.3s ease;
         }
 
         .sidebar.active {
-            display: block;
+            display: block; /* Show the sidebar when active */
         }
 
         .close-btn {
@@ -72,17 +72,12 @@
             max-width: 100%;
             height: auto;
         }
-
-        .error-message {
-            color: red;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
     <header>
         <div id="menuIcon" class="menu-icon">
-            &#9776;
+            &#9776; <!-- Unicode character for the hamburger icon -->
         </div>
         <h1 id="storeName">The Pink Closet</h1>
         <div class="search-bar">
@@ -92,8 +87,8 @@
     </header>
     <main>
         <section id="main-content">
+            <!-- Product sections will be dynamically populated here -->
             <div id="product-list"></div>
-            <div id="error-message" class="error-message"></div>
         </section>
     </main>
     <footer>
@@ -113,87 +108,64 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script>
+        const supabase = supabase.createClient(
+            'https://eczpdpysryifkekieloc.supabase.co', 
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
+        );
+
+        // Ensure the DOM is fully loaded before interacting with it
         document.addEventListener('DOMContentLoaded', function() {
             const menuIcon = document.getElementById('menuIcon');
             const sidebar = document.getElementById('sidebar');
             const closeBtn = document.getElementById('closeBtn');
             const productList = document.getElementById('product-list');
-            const errorMessage = document.getElementById('error-message');
 
-            // Function to open the sidebar
-            function openSidebar() {
-                console.log("Burger icon clicked, opening sidebar");
-                sidebar.classList.add('active');
-            }
+            // Sidebar open/close functionality
+            menuIcon.addEventListener('click', () => sidebar.classList.add('active'));
+            closeBtn.addEventListener('click', () => sidebar.classList.remove('active'));
 
-            // Function to close the sidebar
-            function closeSidebar() {
-                console.log("Close button clicked, closing sidebar");
-                sidebar.classList.remove('active');
-            }
-
-            // Event listeners for sidebar
-            menuIcon.addEventListener('click', openSidebar);
-            closeBtn.addEventListener('click', closeSidebar);
-
-            // Close sidebar when clicking outside of it
-            window.addEventListener('click', function(event) {
-                if (event.target === sidebar) {
-                    closeSidebar();
-                }
-            });
-
-            // Function to load products and images together
+            // Load and display products
             async function loadProducts() {
-                // Fetch products from the 'products' table
-                const { data: products, error: productError } = await supabase.from('products').select('name, description, price, category, image_id');
-
-                if (productError) {
-                    console.error('Error loading products:', productError);
-                    errorMessage.textContent = 'Error loading products. Please try again later.';
+                const { data: products, error } = await supabase.from('products').select();
+                if (error) {
+                    console.error('Error loading products:', error);
                     return;
                 }
-
-                if (products.length === 0) {
-                    errorMessage.textContent = 'No products found.';
-                    return;
-                }
-
-                // Loop through each product and fetch its corresponding image
-                for (const product of products) {
-                    const { data: imageData, error: imageError } = await supabase
-                        .from('image')
-                        .select('url')
-                        .eq('id', product.image_id)
-                        .single();
-
-                    if (imageError) {
-                        console.error('Error loading image for product', product.name, imageError);
-                        continue; // Skip this product if image not found
-                    }
-
-                    const productDiv = document.createElement('div');
-                    productDiv.classList.add('product');
-
-                    // Construct product HTML
-                    productDiv.innerHTML = `
-                        <h2>${product.name}</h2>
-                        <p>${product.description}</p>
-                        <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
-                        <img src="${imageData.url}" alt="${product.name}">
-                    `;
-
-                    // Add click event to the product div
-                    productDiv.addEventListener('click', () => {
-                        alert('You clicked on ' + product.name);
-                    });
-
-                    productList.appendChild(productDiv);
-                }
+                productList.innerHTML = '';  // Clear the product list
+                products.forEach((product) => addProductToDOM(product));
             }
 
-            // Call loadProducts on page load
-            window.onload = loadProducts;
+            // Function to add a product to the DOM
+            function addProductToDOM(product) {
+                const productDiv = document.createElement('div');
+                productDiv.classList.add('product');
+                productDiv.innerHTML = `
+                    <h2>${product.name}</h2>
+                    <p>${product.description}</p>
+                    <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
+                    <img src="${product.image_url}" alt="${product.name}">
+                `;
+                productList.appendChild(productDiv);
+            }
+
+            // Real-time updates using Supabase Realtime
+            function setupRealtime() {
+                supabase
+                    .channel('products')
+                    .on(
+                        'postgres_changes',
+                        { event: 'INSERT', schema: 'public', table: 'products' },
+                        (payload) => {
+                            console.log('New product added:', payload.new);
+                            addProductToDOM(payload.new);
+                        }
+                    )
+                    .subscribe();
+            }
+
+            // Load products and setup real-time listener
+            loadProducts();
+            setupRealtime();
         });
     </script>
 </body>
