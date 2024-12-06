@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
+
+    <!-- Load Supabase JavaScript client first -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+    
     <style>
         /* General Styles */
         body {
@@ -94,9 +97,9 @@
         </form>
     </main>
     <script>
-        const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';  // Your Supabase URL
-        const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';  // Your Supabase API key
-
+        // Supabase credentials
+        const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';
+        const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
         document.getElementById('add-product-form').addEventListener('submit', async (event) => {
@@ -108,40 +111,46 @@
             const productCategory = document.getElementById('product-category').value;
             const productImage = document.getElementById('product-image').files[0];
 
+            if (!productImage) {
+                alert('Please select an image to upload.');
+                return;
+            }
+
             // Upload the image to Supabase Storage
-            const { data: imageData, error: imageError } = await supabase.storage
-                .from('product-images')
-                .upload(`images/${productImage.name}`, productImage);
+            try {
+                const { data: imageData, error: imageError } = await supabase.storage
+                    .from('product-images')
+                    .upload(`images/${productImage.name}`, productImage);
 
-            if (imageError) {
-                console.error('Error uploading image:', imageError);
-                alert('Failed to upload image. Please try again.');
-                return;
+                if (imageError) {
+                    throw imageError;
+                }
+
+                const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/product-images/${imageData.path}`;
+
+                // Insert product details into the Supabase database
+                const { data: productData, error: productError } = await supabase
+                    .from('products')
+                    .insert([
+                        {
+                            name: productName,
+                            description: productDescription,
+                            price: parseFloat(productPrice),
+                            category: productCategory,
+                            image_url: imageUrl,
+                        },
+                    ]);
+
+                if (productError) {
+                    throw productError;
+                }
+
+                alert('Product added successfully!');
+                event.target.reset();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
             }
-
-            const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/product-images/${imageData.path}`;
-
-            // Insert product details into the Supabase database
-            const { data: productData, error: productError } = await supabase
-                .from('products')
-                .insert([
-                    {
-                        name: productName,
-                        description: productDescription,
-                        price: parseFloat(productPrice),
-                        category: productCategory,
-                        image_url: imageUrl,
-                    },
-                ]);
-
-            if (productError) {
-                console.error('Error adding product:', productError);
-                alert('Failed to add product. Please try again.');
-                return;
-            }
-
-            alert('Product added successfully!');
-            event.target.reset();
         });
     </script>
 </body>
