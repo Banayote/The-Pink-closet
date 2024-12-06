@@ -105,49 +105,90 @@
             <a href="messages.html" class="sidebar-item">Messages</a>
         </div>
     </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
+<script>
+    // Ensure the DOM is fully loaded before interacting with it
+    document.addEventListener('DOMContentLoaded', function() {
+        // Supabase initialization (put this at the top)
+        const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co'; // Your Supabase URL
+        const SUPABASE_API_KEY = 'your-supabase-api-key'; // Replace with your actual API key
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
-    <script>
-        // Ensure the DOM is fully loaded before interacting with it
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get elements
-            const menuIcon = document.getElementById('menuIcon');
-            const sidebar = document.getElementById('sidebar');
-            const closeBtn = document.getElementById('closeBtn');
-            const productList = document.getElementById('product-list');
+        // Get elements
+        const menuIcon = document.getElementById('menuIcon');
+        const sidebar = document.getElementById('sidebar');
+        const closeBtn = document.getElementById('closeBtn');
+        const productList = document.getElementById('product-list');
 
-            // Function to open the sidebar
-            function openSidebar() {
-                console.log("Burger icon clicked, opening sidebar");
-                sidebar.classList.add('active');  // Add the 'active' class to show the sidebar
+        // Function to open the sidebar
+        function openSidebar() {
+            console.log("Burger icon clicked, opening sidebar");
+            sidebar.classList.add('active');  // Add the 'active' class to show the sidebar
+        }
+
+        // Function to close the sidebar
+        function closeSidebar() {
+            console.log("Close button clicked, closing sidebar");
+            sidebar.classList.remove('active');  // Remove the 'active' class to hide the sidebar
+        }
+
+        // Event listeners for sidebar
+        menuIcon.addEventListener('click', openSidebar);
+        closeBtn.addEventListener('click', closeSidebar);
+
+        // Close sidebar when clicking outside of it
+        window.addEventListener('click', function(event) {
+            if (event.target === sidebar) {
+                closeSidebar();
             }
+        });
 
-            // Function to close the sidebar
-            function closeSidebar() {
-                console.log("Close button clicked, closing sidebar");
-                sidebar.classList.remove('active');  // Remove the 'active' class to hide the sidebar
+        // Function to load products from Supabase (for your content)
+        async function loadProducts() {
+            const { data: products, error } = await supabase.from('products').select();
+            if (error) {
+                console.error('Error loading products:', error);
+                return;
             }
-
-            // Event listeners for sidebar
-            menuIcon.addEventListener('click', openSidebar);
-            closeBtn.addEventListener('click', closeSidebar);
-
-            // Close sidebar when clicking outside of it
-            window.addEventListener('click', function(event) {
-                if (event.target === sidebar) {
-                    closeSidebar();
-                }
+            productList.innerHTML = '';  // Clear the product list
+            products.forEach((product) => {
+                const productDiv = document.createElement('div');
+                productDiv.classList.add('product');
+                productDiv.innerHTML = `
+                    <h2>${product.name}</h2>
+                    <p>${product.description}</p>
+                    <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
+                    <img src="${product.image_url}" alt="${product.name}">
+                `;
+                productDiv.addEventListener('click', () => {
+                    alert(`You clicked on ${product.name}`);
+                });
+                productList.appendChild(productDiv);
             });
+        }
 
-            // Function to load products from Supabase (for your content)
-            async function loadProducts() {
-                const { data: products, error } = await supabase.from('products').select();
-                if (error) {
-                    console.error('Error loading products:', error);
-                    return;
-                }
-                productList.innerHTML = '';  // Clear the product list
-                products.forEach((product) => {
+        // Call loadProducts on page load
+        window.onload = loadProducts;
+
+        // Function to handle search
+        document.getElementById('search-button').addEventListener('click', async function() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const { data: products, error } = await supabase.from('products').select();
+
+            if (error) {
+                console.error('Error fetching products for search:', error);
+                return;
+            }
+
+            const filteredProducts = products.filter(product => 
+                product.name.toLowerCase().includes(query) || 
+                product.description.toLowerCase().includes(query)
+            );
+
+            productList.innerHTML = ''; // Clear product list
+
+            if (filteredProducts.length > 0) {
+                filteredProducts.forEach((product) => {
                     const productDiv = document.createElement('div');
                     productDiv.classList.add('product');
                     productDiv.innerHTML = `
@@ -161,48 +202,11 @@
                     });
                     productList.appendChild(productDiv);
                 });
+            } else {
+                productList.innerHTML = '<p>No products found matching your search criteria.</p>';
             }
-
-            // Call loadProducts on page load
-            window.onload = loadProducts;
-
-            // Function to handle search
-            document.getElementById('search-button').addEventListener('click', async function() {
-                const query = document.getElementById('search-input').value.toLowerCase();
-                const { data: products, error } = await supabase.from('products').select();
-
-                if (error) {
-                    console.error('Error fetching products for search:', error);
-                    return;
-                }
-
-                const filteredProducts = products.filter(product => 
-                    product.name.toLowerCase().includes(query) || 
-                    product.description.toLowerCase().includes(query)
-                );
-
-                productList.innerHTML = ''; // Clear product list
-
-                if (filteredProducts.length > 0) {
-                    filteredProducts.forEach((product) => {
-                        const productDiv = document.createElement('div');
-                        productDiv.classList.add('product');
-                        productDiv.innerHTML = `
-                            <h2>${product.name}</h2>
-                            <p>${product.description}</p>
-                            <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
-                            <img src="${product.image_url}" alt="${product.name}">
-                        `;
-                        productDiv.addEventListener('click', () => {
-                            alert(`You clicked on ${product.name}`);
-                        });
-                        productList.appendChild(productDiv);
-                    });
-                } else {
-                    productList.innerHTML = '<p>No products found matching your search criteria.</p>';
-                }
-            });
         });
-    </script>
-</body>
-</html>
+    });
+</script>
+
+                            
