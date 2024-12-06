@@ -106,16 +106,14 @@
         </div>
     </div>
 
-    <!-- Supabase Script -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
-
     <script>
-        // Initialize Supabase client with your URL and API key
-        const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';
-        const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
-        const supabase = createClient(SUPABASE_URL, SUPABASE_API_KEY);
+        // Initialize Supabase client
+        const supabase = supabase.createClient(
+            'https://eczpdpysryifkekieloc.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
+        );
 
-        // Ensure the DOM is fully loaded before interacting with it
         document.addEventListener('DOMContentLoaded', function() {
             // Get elements
             const menuIcon = document.getElementById('menuIcon');
@@ -125,32 +123,26 @@
 
             // Function to open the sidebar
             function openSidebar() {
-                sidebar.classList.add('active');  // Add the 'active' class to show the sidebar
+                sidebar.classList.add('active');
             }
 
             // Function to close the sidebar
             function closeSidebar() {
-                sidebar.classList.remove('active');  // Remove the 'active' class to hide the sidebar
+                sidebar.classList.remove('active');
             }
 
             // Event listeners for sidebar
             menuIcon.addEventListener('click', openSidebar);
             closeBtn.addEventListener('click', closeSidebar);
 
-            // Close sidebar when clicking outside of it
-            window.addEventListener('click', function(event) {
-                if (event.target === sidebar) {
-                    closeSidebar();
-                }
-            });
-
-            // Function to load products from Supabase (for your content)
+            // Load products from Supabase
             async function loadProducts() {
                 const { data: products, error } = await supabase.from('products').select();
                 if (error) {
                     console.error('Error loading products:', error);
                     return;
                 }
+
                 productList.innerHTML = '';  // Clear the product list
                 products.forEach((product) => {
                     const productDiv = document.createElement('div');
