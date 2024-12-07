@@ -6,8 +6,8 @@
       "use": "@vercel/static"
     },
     {
-      "src": "api/products.js",   // Add this line to handle the API
-      "use": "@vercel/node"       // Use Vercel's Node.js builder for serverless functions
+      "src": "api/products.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -32,8 +32,8 @@
       "dest": "/public/$1"
     },
     {
-      "src": "/api/products",      // API route for fetching products
-      "dest": "/api/products.js"   // Maps to the products.js file
+      "src": "/api/products",
+      "dest": "/api/products.js"
     }
   ]
 }
