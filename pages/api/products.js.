@@ -1,0 +1,45 @@
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client with your Supabase project URL and anon key
+const supabase = createClient(
+    'https://eczpdpysryifkekieloc.supabase.co', // Your Supabase project URL
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'   // Your Supabase anon key
+);
+
+export default async function handler(req, res) {
+    if (req.method === 'POST') {
+        const { name, description, price, image_url } = req.body;
+
+        // Validate required fields
+        if (!name || !description || !price || !image_url) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        try {
+            // Insert product into Supabase
+            const { data, error } = await supabase.from('products').insert([
+                { name, description, price, image_url }
+            ]);
+
+            if (error) throw error;
+
+            return res.status(201).json({ message: 'Product added successfully', product: data[0] });
+        } catch (error) {
+            return res.status(500).json({ error: 'Failed to add product', details: error.message });
+        }
+    } else if (req.method === 'GET') {
+        try {
+            // Retrieve all products from Supabase
+            const { data: products, error } = await supabase.from('products').select();
+
+            if (error) throw error;
+
+            return res.status(200).json(products);
+        } catch (error) {
+            return res.status(500).json({ error: 'Failed to fetch products', details: error.message });
+        }
+    } else {
+        res.setHeader('Allow', ['GET', 'POST']);
+        res.status(405).end(`Method ${req.method} Not Allowed`);
+    }
+}
