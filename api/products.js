@@ -1,28 +1,25 @@
 // /api/products.js
-
-let products = [];
+let products = [
+  {
+    id: 1,
+    name: "Product 1",
+    description: "Description of Product 1",
+    price: 29.99,
+    imageUrl: "https://res.cloudinary.com/dnfavv3ud/image/upload/v1733579759/sy4gb9lcs0gs1mtowihg.jpg"
+  },
+  {
+    id: 2,
+    name: "Product 2",
+    description: "Description of Product 2",
+    price: 49.99,
+    imageUrl: "https://res.cloudinary.com/dnfavv3ud/image/upload/v1733579759/sy4gb9lcs0gs1mtowihg.jpg"
+  }
+];
 
 module.exports = (req, res) => {
   if (req.method === 'GET') {
-    // Return all products
     res.status(200).json(products);
-  } else if (req.method === 'POST') {
-    const { name, description, price, imageUrl } = req.body;
-    if (!name || !description || !price || !imageUrl) {
-      return res.status(400).json({ error: 'All fields are required' });
-    }
-
-    const newProduct = { 
-      id: products.length + 1, 
-      name, 
-      description, 
-      price, 
-      image_url: imageUrl  // Ensure 'image_url' is used here
-    };
-    products.push(newProduct);
-
-    res.status(201).json({ message: 'Product added!', product: newProduct });
   } else {
-    res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({ error: 'Method Not Allowed' });
   }
 };
