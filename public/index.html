@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -88,47 +89,4 @@
         <button id="closeBtn" class="close-btn">&times;</button>
         <div class="sidebar-content">
             <a href="profile.html" id="profileLink" class="sidebar-item">Profile</a>
-            <a href="store.html" class="sidebar-item">Create Store</a>
-            <a href="login.html" class="sidebar-item">Login</a>
-            <a href="messages.html" class="sidebar-item">Messages</a>
-        </div>
-    </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuIcon = document.getElementById('menuIcon');
-            const sidebar = document.getElementById('sidebar');
-            const closeBtn = document.getElementById('closeBtn');
-            const productList = document.getElementById('product-list');
-
-            menuIcon.addEventListener('click', () => sidebar.classList.add('active'));
-            closeBtn.addEventListener('click', () => sidebar.classList.remove('active'));
-            window.addEventListener('click', (event) => {
-                if (event.target === sidebar) sidebar.classList.remove('active');
-            });
-
-            async function loadProducts() {
-                try {
-                    const response = await fetch('/api/products');
-                    const products = await response.json();
-                    productList.innerHTML = ''; // Clear existing products
-
-                    products.forEach(product => {
-                        const productDiv = document.createElement('div');
-                        productDiv.className = 'product';
-                        productDiv.innerHTML = `
-                            <h2>${product.name}</h2>
-                            <p>${product.description}</p>
-                            <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
-                            <img src="${product.image_url}" alt="${product.name}">
-                        `;
-                        productList.appendChild(productDiv);
-                    });
-                } catch (error) {
-                    console.error('Error fetching products:', error);
-                }
-            }
-            loadProducts(); // Call function on page load
-        });
-    </script>
-</body>
-</html>
+                    products.forEach(product => { const productDiv = document.createElement('div'); productDiv.className = 'product'; productDiv.innerHTML = ` <h2>${product.name}</h2> <p>${product.description}</p> <p>Price: $${parseFloat(product.price).toFixed(2)}</p> <img src="${product.image_url}" alt="${product.name}"> <!-- Ensure 'image_url' is used --> `; productList.appendChild(productDiv); });
