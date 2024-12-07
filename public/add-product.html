@@ -51,55 +51,64 @@
     <script>
         const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload';
         const uploadPreset = 'BANYOTE';
+document.getElementById('add-product-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
 
-        document.getElementById('add-product-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
+    const productName = document.getElementById('product-name').value;
+    const productDescription = document.getElementById('product-description').value;
+    const productPrice = parseFloat(document.getElementById('product-price').value);
+    const productImage = document.getElementById('product-image').files[0];
 
-            const productName = document.getElementById('product-name').value;
-            const productDescription = document.getElementById('product-description').value;
-            const productPrice = parseFloat(document.getElementById('product-price').value);
-            const productImage = document.getElementById('product-image').files[0];
+    if (!productImage) return alert('Please select an image.');
 
-            if (!productImage) return alert('Please select an image.');
+    const formData = new FormData();
+    formData.append('file', productImage);
+    formData.append('upload_preset', uploadPreset);
 
-            const formData = new FormData();
-            formData.append('file', productImage);
-            formData.append('upload_preset', uploadPreset);
+    try {
+        // Upload the image to Cloudinary
+        const imageResponse = await fetch(cloudinaryUrl, { method: 'POST', body: formData });
+        const imageData = await imageResponse.json();
 
+        // Check if image upload was successful
+        if (imageData.secure_url) {
+            const productData = {
+                name: productName,
+                description: productDescription,
+                price: productPrice,
+                image_url: imageData.secure_url,
+            };
+
+            // Now send the product data to your API
+            const response = await fetch('/api/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(productData),
+            });
+
+            const responseBody = await response.text();  // Read the response body as text to debug
+            console.log('Response from API:', responseBody);  // Log the raw response body
+
+            // Try to parse JSON if it's a valid JSON response
             try {
-                const imageResponse = await fetch(cloudinaryUrl, { method: 'POST', body: formData });
-                const imageData = await imageResponse.json();
-
-                // Check if image upload was successful
-                if (imageData.secure_url) {
-                    const productData = {
-                        name: productName,
-                        description: productDescription,
-                        price: productPrice,
-                        image_url: imageData.secure_url,
-                    };
-
-                    const response = await fetch('/api/products', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(productData),
-                    });
-
-                    if (response.ok) {
-                        alert('Product added successfully!');
-                        event.target.reset();  // Reset the form
-                    } else {
-                        const errorResponse = await response.json();
-                        throw new Error(errorResponse.error || 'Failed to add product');
-                    }
+                const parsedResponse = JSON.parse(responseBody);
+                if (response.ok) {
+                    alert('Product added successfully!');
+                    event.target.reset();  // Reset the form
                 } else {
-                    throw new Error('Image upload failed: No image URL returned from Cloudinary.');
+                    throw new Error(parsedResponse.error || 'Failed to add product');
                 }
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error parsing response:', error);
                 alert('Error adding product. Please try again.');
             }
-        });
-    </script>
-</body>
-</html>
+        } else {
+            throw new Error('Image upload failed: No image URL returned from Cloudinary.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error adding product. Please try again.');
+    }
+});
+
+        
