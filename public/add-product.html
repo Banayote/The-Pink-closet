@@ -3,112 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Product</title>
+    <title>Add Product - Cloudinary</title>
     <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script>
     <style>
+        /* Basic Styling */
         body {
             font-family: Arial, sans-serif;
             background-color: #f8f8f8;
             margin: 0;
             padding: 0;
         }
+
         header {
             background-color: #ffc0cb;
             color: #fff;
             text-align: center;
             padding: 1rem;
         }
+
+        h1 {
+            margin: 0;
+        }
+
         main {
             padding: 1rem;
             max-width: 800px;
             margin: 0 auto;
         }
+
         form {
             background-color: #fff;
             border: 1px solid #ddd;
             border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             padding: 2rem;
         }
-        input, textarea, button {
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        input[type="file"] {
             width: 100%;
+            padding: 0.5rem;
             margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #ffc0cb;
+            color: #fff;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            background-color: #ffb6c1;
         }
     </style>
 </head>
 <body>
+
     <header>
         <h1>Add a New Product</h1>
     </header>
+
     <main>
         <form id="add-product-form">
-            <input type="text" id="product-name" name="name" placeholder="Product Name" required>
-            <textarea id="product-description" name="description" placeholder="Description" required></textarea>
-            <input type="number" id="product-price" name="price" placeholder="Price" step="0.01" required>
+            <label for="product-name">Product Name:</label>
+            <input type="text" id="product-name" name="name" required>
+
+            <label for="product-description">Description:</label>
+            <textarea id="product-description" name="description" required></textarea>
+
+            <label for="product-price">Price:</label>
+            <input type="number" id="product-price" name="price" step="0.01" required>
+
+            <label for="product-category">Category:</label>
+            <input type="text" id="product-category" name="category" required>
+
+            <label for="product-image">Image:</label>
             <input type="file" id="product-image" name="image" accept="image/*" required>
+
             <button type="submit">Add Product</button>
         </form>
     </main>
+
     <script>
-        const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload';
-        const uploadPreset = 'BANYOTE';
-document.getElementById('add-product-form').addEventListener('submit', async (event) => {
-    event.preventDefault();
+        // Handle the form submission and image upload to Cloudinary
+        document.getElementById('add-product-form').addEventListener('submit', async (event) => {
+            event.preventDefault();  // Prevent page reload
 
-    const productName = document.getElementById('product-name').value;
-    const productDescription = document.getElementById('product-description').value;
-    const productPrice = parseFloat(document.getElementById('product-price').value);
-    const productImage = document.getElementById('product-image').files[0];
+            const productName = document.getElementById('product-name').value;
+            const productDescription = document.getElementById('product-description').value;
+            const productPrice = document.getElementById('product-price').value;
+            const productCategory = document.getElementById('product-category').value;
+            const productImage = document.getElementById('product-image').files[0];
 
-    if (!productImage) return alert('Please select an image.');
+            // Check if an image was selected
+            if (!productImage) {
+                alert('Please select an image.');
+                return;
+            }
 
-    const formData = new FormData();
-    formData.append('file', productImage);
-    formData.append('upload_preset', uploadPreset);
+            const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload'; // Cloudinary cloud name: dnfavv3ud
+            const formData = new FormData();
+            formData.append('file', productImage);
+            formData.append('upload_preset', 'BANYOTE'); // Cloudinary upload preset: BANYOTE
 
-    try {
-        // Upload the image to Cloudinary
-        const imageResponse = await fetch(cloudinaryUrl, { method: 'POST', body: formData });
-        const imageData = await imageResponse.json();
-
-        // Check if image upload was successful
-        if (imageData.secure_url) {
-            const productData = {
-                name: productName,
-                description: productDescription,
-                price: productPrice,
-                image_url: imageData.secure_url,
-            };
-
-            // Now send the product data to your API
-            const response = await fetch('/api/products', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(productData),
-            });
-
-            const responseBody = await response.text();  // Read the response body as text to debug
-            console.log('Response from API:', responseBody);  // Log the raw response body
-
-            // Try to parse JSON if it's a valid JSON response
             try {
-                const parsedResponse = JSON.parse(responseBody);
-                if (response.ok) {
-                    alert('Product added successfully!');
-                    event.target.reset();  // Reset the form
+                // Upload image to Cloudinary
+                const imageResponse = await fetch(cloudinaryUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const imageData = await imageResponse.json();
+
+                if (imageData.secure_url) {
+                    alert('Product image uploaded successfully!');
+                    console.log('Image URL:', imageData.secure_url);
+                    // You can now send this image URL to your server or use it in your application
                 } else {
-                    throw new Error(parsedResponse.error || 'Failed to add product');
+                    console.error('Cloudinary upload failed', imageData);
+                    alert('Image upload failed. Please try again.');
                 }
             } catch (error) {
-                console.error('Error parsing response:', error);
-                alert('Error adding product. Please try again.');
+                console.error('Error uploading image:', error);
+                alert('Failed to upload image. Please try again.');
             }
-        } else {
-            throw new Error('Image upload failed: No image URL returned from Cloudinary.');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error adding product. Please try again.');
-    }
-});
+        });
+    </script>
 
-        
+</body>
+</html>
