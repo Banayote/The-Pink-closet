@@ -8,7 +8,23 @@ export default function handler(req, res) {
   if (req.method === 'GET') {
     res.status(200).json(products); // Return products
   } else if (req.method === 'POST') {
-    const newProduct = req.body;
+    const { name, description, price, image_url } = req.body;
+
+    // Validate product data
+    if (!name || !description || !price || !image_url) {
+      res.status(400).json({ message: "All fields are required" });
+      return;
+    }
+
+    // Create a new product with a unique ID
+    const newProduct = {
+      id: products.length + 1,
+      name,
+      description,
+      price: parseFloat(price),
+      image_url,
+    };
+
     products.push(newProduct); // Add the new product to the list
     res.status(201).json(newProduct); // Return the added product
   } else {
