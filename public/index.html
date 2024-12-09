@@ -108,41 +108,14 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuIcon = document.getElementById('menuIcon');
-            const sidebar = document.getElementById('sidebar');
-            const closeBtn = document.getElementById('closeBtn');
-            const productList = document.getElementById('product-list');
+    document.addEventListener('DOMContentLoaded', function() {
+        const productList = document.getElementById('product-list');
 
-            // Open sidebar
-            function openSidebar() {
-                sidebar.classList.add('active');
-            }
-
-            // Close sidebar
-            function closeSidebar() {
-                sidebar.classList.remove('active');
-            }
-
-            // Event listeners for sidebar
-            menuIcon.addEventListener('click', openSidebar);
-            closeBtn.addEventListener('click', closeSidebar);
-
-            // Close sidebar if clicked outside
-            window.addEventListener('click', function(event) {
-                if (event.target === sidebar) {
-                    closeSidebar();
-                }
-            });
-
-            // Load products from Supabase (replace with your actual endpoint if needed)
-            async function loadProducts() {
-                const { data: products, error } = await supabase.from('products').select();
-                if (error) {
-                    console.error('Error loading products:', error);
-                    return;
-                }
-
+        async function loadProducts() {
+            try {
+                const response = await fetch('https://the-pink-closet.vercel.app/api/products');
+                const products = await response.json();
+                
                 productList.innerHTML = '';  // Clear the product list
                 products.forEach((product) => {
                     const productDiv = document.createElement('div');
@@ -153,15 +126,13 @@
                         <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
                         <img src="${product.image_url}" alt="${product.name}">
                     `;
-                    productDiv.addEventListener('click', () => {
-                        alert(`You clicked on ${product.name}`);
-                    });
                     productList.appendChild(productDiv);
                 });
+            } catch (error) {
+                console.error('Error loading products:', error);
             }
+        }
 
-            window.onload = loadProducts;
-        });
-    </script>
-</body>
-</html>
+        window.onload = loadProducts;
+    });
+</script>
