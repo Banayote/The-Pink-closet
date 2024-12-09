@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
-    <link rel="stylesheet" href="add_product.css">
-    <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script>
+    <link rel="stylesheet" href="styles.css"> <!-- Make sure styles.css is available -->
+    <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script> <!-- Cloudinary upload script -->
 </head>
 <body>
     <header>
@@ -31,73 +31,72 @@
             <button type="submit">Add Product</button>
         </form>
     </main>
-<script>
-    document.getElementById('add-product-form').addEventListener('submit', async (event) => {
-        event.preventDefault();
+    <script>
+        // Event listener for the form submission
+        document.getElementById('add-product-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
 
-        const productName = document.getElementById('product-name').value;
-        const productDescription = document.getElementById('product-description').value;
-        const productPrice = document.getElementById('product-price').value;
-        const productCategory = document.getElementById('product-category').value;
-        const productImage = document.getElementById('product-image').files[0];
+            // Get form values
+            const productName = document.getElementById('product-name').value;
+            const productDescription = document.getElementById('product-description').value;
+            const productPrice = document.getElementById('product-price').value;
+            const productCategory = document.getElementById('product-category').value;
+            const productImage = document.getElementById('product-image').files[0];
 
-        if (!productImage) {
-            alert('Please select an image.');
-            return;
-        }
-
-        const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload'; // Replace with your Cloudinary URL
-        const formData = new FormData();
-        formData.append('file', productImage);
-        formData.append('upload_preset', 'BANYOTE'); // Replace with your upload preset
-
-        try {
-            // Upload image to Cloudinary
-            const imageResponse = await fetch(cloudinaryUrl, {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!imageResponse.ok) {
-                alert('Failed to upload image. Please try again.');
-                throw new Error(`Image upload failed: ${imageResponse.statusText}`);
+            // Ensure an image has been selected
+            if (!productImage) {
+                alert('Please select an image.');
+                return;
             }
 
-            const imageData = await imageResponse.json();
-            if (!imageData.secure_url) {
-                alert('Image upload failed. Invalid response from Cloudinary.');
-                throw new Error('Invalid image response.');
+            const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload'; // Cloudinary upload URL
+            const formData = new FormData();
+            formData.append('file', productImage);
+            formData.append('upload_preset', 'BANYOTE'); // Use your preset
+
+            try {
+                // Upload image to Cloudinary
+                const imageResponse = await fetch(cloudinaryUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                // If the image upload fails, show an error
+                if (!imageResponse.ok) throw new Error('Image upload failed.');
+
+                const imageData = await imageResponse.json();
+
+                // Check if Cloudinary returned a secure URL
+                if (!imageData.secure_url) throw new Error('Failed to get image URL from Cloudinary.');
+
+                const product = {
+                    name: productName,
+                    description: productDescription,
+                    price: parseFloat(productPrice), // Ensure price is a number
+                    category: productCategory,
+                    image_url: imageData.secure_url // Use the URL returned from Cloudinary
+                };
+
+                // Send product data to the API
+                const response = await fetch('https://the-pink-closet.vercel.app/api/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(product)
+                });
+
+                // If the API request fails, show an error
+                if (!response.ok) throw new Error('Failed to add product.');
+
+                // Clear form and show success message
+                event.target.reset();
+                alert('Product added successfully!');
+            } catch (error) {
+                console.error('Error adding product:', error.message);
+                alert(`Failed to add product: ${error.message}`);
             }
-
-            const product = {
-                name: productName,
-                description: productDescription,
-                price: parseFloat(productPrice),
-                category: productCategory,
-                image_url: imageData.secure_url
-            };
-
-            // Send product data to API
-            const response = await fetch('https://the-pink-closet.vercel.app/api/products', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(product)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                alert(`Failed to add product: ${errorData.message}`);
-                throw new Error(`API error: ${response.status} - ${errorData.message}`);
-            }
-
-            event.target.reset();
-            alert('Product added successfully!');
-        } catch (error) {
-            console.error('Error adding product:', error.message);
-        }
-    });
-</script>
+        });
+    </script>
 </body>
 </html>
