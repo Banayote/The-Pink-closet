@@ -58,15 +58,21 @@
                 body: formData
             });
 
-            if (!imageResponse.ok) throw new Error('Image upload failed.');
+            if (!imageResponse.ok) {
+                alert('Failed to upload image. Please try again.');
+                throw new Error(`Image upload failed: ${imageResponse.statusText}`);
+            }
 
             const imageData = await imageResponse.json();
-            if (!imageData.secure_url) throw new Error('Invalid image response.');
+            if (!imageData.secure_url) {
+                alert('Image upload failed. Invalid response from Cloudinary.');
+                throw new Error('Invalid image response.');
+            }
 
             const product = {
                 name: productName,
                 description: productDescription,
-                price: productPrice,
+                price: parseFloat(productPrice),
                 category: productCategory,
                 image_url: imageData.secure_url
             };
@@ -80,13 +86,16 @@
                 body: JSON.stringify(product)
             });
 
-            if (!response.ok) throw new Error('Failed to add product.');
+            if (!response.ok) {
+                const errorData = await response.json();
+                alert(`Failed to add product: ${errorData.message}`);
+                throw new Error(`API error: ${response.status} - ${errorData.message}`);
+            }
 
             event.target.reset();
             alert('Product added successfully!');
         } catch (error) {
             console.error('Error adding product:', error.message);
-            alert(`Failed to add product: ${error.message}`);
         }
     });
 </script>
