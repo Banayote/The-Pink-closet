@@ -6,13 +6,21 @@ const products = [
 
 export default function handler(req, res) {
   if (req.method === 'GET') {
-    res.status(200).json(products); // Return products
+    // Return the products array
+    res.status(200).json(products);
   } else if (req.method === 'POST') {
     const { name, description, price, image_url } = req.body;
 
     // Validate product data
     if (!name || !description || !price || !image_url) {
-      res.status(400).json({ message: "All fields are required" });
+      res.status(400).json({ message: "All fields are required." });
+      return;
+    }
+
+    // Check if price is a valid number
+    const parsedPrice = parseFloat(price);
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+      res.status(400).json({ message: "Price must be a valid positive number." });
       return;
     }
 
@@ -21,13 +29,19 @@ export default function handler(req, res) {
       id: products.length + 1,
       name,
       description,
-      price: parseFloat(price),
+      price: parsedPrice,
       image_url,
     };
 
-    products.push(newProduct); // Add the new product to the list
-    res.status(201).json(newProduct); // Return the added product
+    // Add the new product to the array
+    products.push(newProduct);
+
+    // Respond with the newly created product
+    res.status(201).json(newProduct);
   } else {
-    res.status(405).json({ message: "Method Not Allowed" }); // Handle unsupported methods
+    // Method not allowed
+    res.status(405).json({ message: "Method Not Allowed" });
   }
 }
+
+
