@@ -16,7 +16,7 @@
             font-size: 30px;
             cursor: pointer;
             padding: 10px;
-            z-index: 1001;  /* Ensuring it stays on top */
+            z-index: 1001;
         }
 
         .sidebar {
@@ -26,14 +26,14 @@
             width: 250px;
             height: 100%;
             box-shadow: -2px 0 5px rgba(0,0,0,0.5);
-            display: none; /* Initially hidden */
+            display: none;
             background-color: #fff;
             z-index: 1000;
             transition: 0.3s ease;
         }
 
         .sidebar.active {
-            display: block; /* Show the sidebar when active */
+            display: block;
         }
 
         .close-btn {
@@ -59,7 +59,6 @@
             background-color: #ddd;
         }
 
-        /* Product styles */
         .product {
             border: 1px solid #ccc;
             margin: 10px;
@@ -72,12 +71,19 @@
             max-width: 100%;
             height: auto;
         }
+
+        .no-products {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: gray;
+        }
     </style>
 </head>
 <body>
     <header>
         <div id="menuIcon" class="menu-icon">
-            &#9776; <!-- Unicode character for the hamburger icon -->
+            &#9776;
         </div>
         <h1 id="storeName">The Pink Closet</h1>
         <div class="search-bar">
@@ -87,7 +93,6 @@
     </header>
     <main>
         <section id="main-content">
-            <!-- Product sections will be dynamically populated here -->
             <div id="product-list"></div>
         </section>
     </main>
@@ -95,7 +100,6 @@
         <p>&copy; The Pink Closet 2024. All rights reserved.</p>
     </footer>
 
-    <!-- Sidebar -->
     <div id="sidebar" class="sidebar">
         <button id="closeBtn" class="close-btn">&times;</button>
         <div class="sidebar-content">
@@ -106,33 +110,53 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const productList = document.getElementById('product-list');
+        document.addEventListener('DOMContentLoaded', function() {
+            const productList = document.getElementById('product-list');
+            const sidebar = document.getElementById('sidebar');
+            const menuIcon = document.getElementById('menuIcon');
+            const closeBtn = document.getElementById('closeBtn');
 
-        async function loadProducts() {
-            try {
-                const response = await fetch('https://the-pink-closet.vercel.app/api/products');
-                const products = await response.json();
-                
-                productList.innerHTML = '';  // Clear the product list
-                products.forEach((product) => {
-                    const productDiv = document.createElement('div');
-                    productDiv.classList.add('product');
-                    productDiv.innerHTML = `
-                        <h2>${product.name}</h2>
-                        <p>${product.description}</p>
-                        <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
-                        <img src="${product.image_url}" alt="${product.name}">
-                    `;
-                    productList.appendChild(productDiv);
-                });
-            } catch (error) {
-                console.error('Error loading products:', error);
+            menuIcon.addEventListener('click', () => {
+                sidebar.classList.add('active');
+            });
+
+            closeBtn.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+            });
+
+            async function loadProducts() {
+                try {
+                    const response = await fetch('https://the-pink-closet.vercel.app/api/products');
+                    if (!response.ok) throw new Error('Failed to load products.');
+                    
+                    const products = await response.json();
+                    productList.innerHTML = ''; 
+
+                    if (products.length === 0) {
+                        productList.innerHTML = `<p class="no-products">No products available.</p>`;
+                        return;
+                    }
+
+                    products.forEach((product) => {
+                        const productDiv = document.createElement('div');
+                        productDiv.classList.add('product');
+                        productDiv.innerHTML = `
+                            <h2>${product.name}</h2>
+                            <p>${product.description}</p>
+                            <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
+                            <img src="${product.image_url}" alt="${product.name}">
+                        `;
+                        productList.appendChild(productDiv);
+                    });
+                } catch (error) {
+                    console.error('Error loading products:', error.message);
+                    productList.innerHTML = `<p class="no-products">Failed to load products. Please try again later.</p>`;
+                }
             }
-        }
 
-        window.onload = loadProducts;
-    });
-</script>
+            loadProducts();
+        });
+    </script>
+</body>
+</html>
