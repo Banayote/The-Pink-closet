@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Product - Cloudinary</title>
+    <title>Add Product - The Pink Closet</title>
     <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script>
     <style>
-        /* Basic Styling */
         body {
             font-family: Arial, sans-serif;
             background-color: #f8f8f8;
@@ -42,107 +41,73 @@
         label {
             display: block;
             margin-bottom: 0.5rem;
-            color: #333;
         }
 
-        input[type="text"],
-        input[type="number"],
-        textarea,
-        input[type="file"] {
+        input, textarea, button {
             width: 100%;
-            padding: 0.5rem;
             margin-bottom: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        button {
-            background-color: #ffc0cb;
-            color: #fff;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        button:hover {
-            background-color: #ffb6c1;
         }
     </style>
 </head>
 <body>
-
     <header>
         <h1>Add a New Product</h1>
     </header>
-
     <main>
         <form id="add-product-form">
-            <label for="product-name">Product Name:</label>
-            <input type="text" id="product-name" name="name" required>
+            <label for="product-name">Name:</label>
+            <input id="product-name" type="text" required>
 
             <label for="product-description">Description:</label>
-            <textarea id="product-description" name="description" required></textarea>
+            <textarea id="product-description" required></textarea>
 
             <label for="product-price">Price:</label>
-            <input type="number" id="product-price" name="price" step="0.01" required>
+            <input id="product-price" type="number" step="0.01" required>
 
             <label for="product-category">Category:</label>
-            <input type="text" id="product-category" name="category" required>
+            <input id="product-category" type="text" required>
 
             <label for="product-image">Image:</label>
-            <input type="file" id="product-image" name="image" accept="image/*" required>
+            <input id="product-image" type="file" accept="image/*" required>
 
             <button type="submit">Add Product</button>
         </form>
     </main>
-
     <script>
-        // Handle the form submission and image upload to Cloudinary
+        const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload';
+        const uploadPreset = 'BANYOTE';
+
         document.getElementById('add-product-form').addEventListener('submit', async (event) => {
-            event.preventDefault();  // Prevent page reload
+            event.preventDefault();
+            const name = document.getElementById('product-name').value;
+            const description = document.getElementById('product-description').value;
+            const price = document.getElementById('product-price').value;
+            const category = document.getElementById('product-category').value;
+            const imageFile = document.getElementById('product-image').files[0];
 
-            const productName = document.getElementById('product-name').value;
-            const productDescription = document.getElementById('product-description').value;
-            const productPrice = document.getElementById('product-price').value;
-            const productCategory = document.getElementById('product-category').value;
-            const productImage = document.getElementById('product-image').files[0];
-
-            // Check if an image was selected
-            if (!productImage) {
+            if (!imageFile) {
                 alert('Please select an image.');
                 return;
             }
 
-            const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload'; // Cloudinary cloud name: dnfavv3ud
             const formData = new FormData();
-            formData.append('file', productImage);
-            formData.append('upload_preset', 'BANYOTE'); // Cloudinary upload preset: BANYOTE
+            formData.append('file', imageFile);
+            formData.append('upload_preset', uploadPreset);
 
             try {
-                // Upload image to Cloudinary
-                const imageResponse = await fetch(cloudinaryUrl, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const imageData = await imageResponse.json();
-
+                const response = await fetch(cloudinaryUrl, { method: 'POST', body: formData });
+                const imageData = await response.json();
                 if (imageData.secure_url) {
-                    alert('Product image uploaded successfully!');
-                    console.log('Image URL:', imageData.secure_url);
-                    // You can now send this image URL to your server or use it in your application
+                    const productData = { name, description, price, category, image_url: imageData.secure_url };
+                    alert(`Product added successfully: ${JSON.stringify(productData)}`);
                 } else {
-                    console.error('Cloudinary upload failed', imageData);
-                    alert('Image upload failed. Please try again.');
+                    throw new Error('Image upload failed');
                 }
             } catch (error) {
-                console.error('Error uploading image:', error);
-                alert('Failed to upload image. Please try again.');
+                console.error('Error:', error);
+                alert('An error occurred.');
             }
         });
     </script>
-
 </body>
 </html>
