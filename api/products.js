@@ -1,47 +1,24 @@
-// Example products array
-const products = [
-  { id: 1, name: "Product 1", description: "Description for product 1", price: 19.99, image_url: "image_url_1" },
-  { id: 2, name: "Product 2", description: "Description for product 2", price: 29.99, image_url: "image_url_2" },
-];
+// api/products.js
+
+import fs from 'fs';
+import path from 'path';
 
 export default function handler(req, res) {
-  if (req.method === 'GET') {
-    // Return the products array
-    res.status(200).json(products);
-  } else if (req.method === 'POST') {
-    const { name, description, price, image_url } = req.body;
+    if (req.method === 'GET') {
+        // Path to the JSON file that contains your products
+        const filePath = path.join(process.cwd(), 'api', 'products.json');
+        
+        // Read the contents of the products.json file
+        const fileData = fs.readFileSync(filePath, 'utf-8');
+        
+        // Parse the file data as JSON
+        const products = JSON.parse(fileData);
 
-    // Validate product data
-    if (!name || !description || !price || !image_url) {
-      res.status(400).json({ message: "All fields are required." });
-      return;
+        // Send back the products as a JSON response
+        res.status(200).json(products);
+    } else {
+        // If the method is not GET, return Method Not Allowed
+        res.status(405).json({ message: 'Method Not Allowed' });
     }
-
-    // Check if price is a valid number
-    const parsedPrice = parseFloat(price);
-    if (isNaN(parsedPrice) || parsedPrice <= 0) {
-      res.status(400).json({ message: "Price must be a valid positive number." });
-      return;
-    }
-
-    // Create a new product with a unique ID
-    const newProduct = {
-      id: products.length + 1,
-      name,
-      description,
-      price: parsedPrice,
-      image_url,
-    };
-
-    // Add the new product to the array
-    products.push(newProduct);
-
-    // Respond with the newly created product
-    res.status(201).json(newProduct);
-  } else {
-    // Method not allowed
-    res.status(405).json({ message: "Method Not Allowed" });
-  }
 }
-
 
