@@ -1,24 +1,23 @@
-// api/products.js
-
 import fs from 'fs';
 import path from 'path';
 
+const filePath = path.join(process.cwd(), 'data', 'products.json');
+
 export default function handler(req, res) {
     if (req.method === 'GET') {
-        // Path to the JSON file that contains your products
-        const filePath = path.join(process.cwd(), 'api', 'products.json');
-        
-        // Read the contents of the products.json file
-        const fileData = fs.readFileSync(filePath, 'utf-8');
-        
-        // Parse the file data as JSON
+        const fileData = fs.readFileSync(filePath, 'utf8');
+        const products = JSON.parse(fileData);
+        res.status(200).json(products);
+    } else if (req.method === 'POST') {
+        const fileData = fs.readFileSync(filePath, 'utf8');
         const products = JSON.parse(fileData);
 
-        // Send back the products as a JSON response
-        res.status(200).json(products);
+        const newProduct = req.body;
+        products.push(newProduct);
+
+        fs.writeFileSync(filePath, JSON.stringify(products, null, 2));
+        res.status(201).json(newProduct);
     } else {
-        // If the method is not GET, return Method Not Allowed
         res.status(405).json({ message: 'Method Not Allowed' });
     }
 }
-
