@@ -1,1 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Pink Closet</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .product {
+            border: 1px solid #ccc;
+            margin: 10px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .product img {
+            max-width: 100%;
+            height: auto;
+        }
+        #product-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>The Pink Closet</h1>
+</header>
+
+<main>
+    <section id="main-content">
+        <div id="product-list"></div>
+    </section>
+</main>
+
+<footer>
+    <p>&copy; The Pink Closet 2024. All rights reserved.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const productList = document.getElementById('product-list');
+
+        // Function to load products from Supabase
+        async function loadProducts() {
+            const { data: products, error } = await supabase.from('products').select();
+            if (error) {
+                console.error('Error loading products:', error);
+                return;
+            }
+
+            productList.innerHTML = '';  // Clear existing products
+
+            products.forEach((product) => {
+                const productDiv = document.createElement('div');
+                productDiv.classList.add('product');
+                productDiv.innerHTML = `
+                    <h2>${product.name}</h2>
+                    <p>${product.description}</p>
+                    <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
+                    <img src="${product.image_url}" alt="${product.name}">
+                `;
+                productList.appendChild(productDiv);
+            });
+        }
+
+        // Call loadProducts on page load
+        window.onload = loadProducts;
+    });
+</script>
+
+</body>
+</html>
 
