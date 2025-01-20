@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
 
-    <!-- Load Supabase script BEFORE using it -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
+    <!-- Cloudinary Script -->
+    <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script>
 
-    <!-- Load Cloudinary script (try different URL if 404 continues) -->
-    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+    <!-- Supabase Script -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
 
     <style>
         /* General Styles */
@@ -114,13 +114,12 @@
     </main>
 
     <script>
-        // Initialize Supabase client BEFORE using it
+        // Initialize Supabase client (this must be done first before use)
         const supabase = supabase.createClient(
             'https://eczpdpysryifkekieloc.supabase.co', 
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
         );
 
-        // Add event listener to form
         document.getElementById('add-product-form').addEventListener('submit', async (event) => {
             event.preventDefault();  // Prevent page reload
 
@@ -169,7 +168,6 @@
                     } else {
                         alert('Product added successfully!');
                         event.target.reset();  // Reset form after successful submission
-                        // Optionally redirect or perform additional actions here
                     }
                 } else {
                     console.error('Cloudinary upload failed', imageData);
