@@ -4,15 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
-
-    <!-- Correct Cloudinary Script URL -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
 
-    <!-- Supabase Script -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
-
     <style>
-        /* General Styles */
         body {
             font-family: Arial, sans-serif;
             background-color: #f8f8f8;
@@ -41,14 +36,12 @@
             background-color: #fff;
             border: 1px solid #ddd;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             padding: 2rem;
         }
 
         label {
             display: block;
             margin-bottom: 0.5rem;
-            color: #333;
         }
 
         input[type="text"],
@@ -79,13 +72,6 @@
         button:hover {
             background-color: #ffb6c1;
         }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            form {
-                padding: 1rem;
-            }
-        }
     </style>
 </head>
 <body>
@@ -114,10 +100,10 @@
     </main>
 
     <script>
-        // Initialize Supabase client
+        // Initialize Supabase client with your provided credentials
         const supabase = supabase.createClient(
-            'https://eczpdpysryifkekieloc.supabase.co', 
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
+            'https://fjlqkjwnelkamealhtyr.supabase.co', 
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'
         );
 
         document.getElementById('add-product-form').addEventListener('submit', async (event) => {
@@ -155,9 +141,9 @@
                     const product = {
                         name: productName,
                         description: productDescription,
-                        price: parseFloat(productPrice), // Ensure price is a number
+                        price: parseFloat(productPrice),
                         category: productCategory,
-                        image_url: imageData.secure_url // Cloudinary image URL
+                        image_url: imageData.secure_url
                     };
 
                     // Insert product data into Supabase
