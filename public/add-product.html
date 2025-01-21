@@ -7,7 +7,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script>
     <style>
-        /* General Styles */
         body {
             font-family: Arial, sans-serif;
             background-color: #f8f8f8;
@@ -95,8 +94,9 @@
             'your-supabase-anon-key'
         );
 
+        // Handle form submission
         document.getElementById('add-product-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
+            event.preventDefault(); // Prevent page reload on form submission
 
             const productName = document.getElementById('product-name').value;
             const productDescription = document.getElementById('product-description').value;
@@ -104,18 +104,20 @@
             const productCategory = document.getElementById('product-category').value;
             const productImage = document.getElementById('product-image').files[0];
 
+            // Validate image selection
             if (!productImage) {
                 alert('Please select an image.');
                 return;
             }
 
-            // Prepare Cloudinary upload
+            // Prepare the form data for Cloudinary upload
             const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload';
             const formData = new FormData();
             formData.append('file', productImage);
             formData.append('upload_preset', 'BANYOTE');
 
             try {
+                // Upload image to Cloudinary
                 const imageResponse = await fetch(cloudinaryUrl, { method: 'POST', body: formData });
                 const imageData = await imageResponse.json();
 
@@ -128,10 +130,15 @@
                         image_url: imageData.secure_url
                     };
 
+                    // Log to check what we are sending to Supabase
+                    console.log('Product to be added:', product);
+
+                    // Insert product into Supabase
                     const { data, error } = await supabase.from('products').insert([product]);
+
                     if (error) {
                         console.error('Error adding product:', error);
-                        alert('Failed to add product. Please try again.');
+                        alert('Failed to add product. Please check your database permissions or try again.');
                     } else {
                         alert('Product added successfully!');
                         event.target.reset();
@@ -141,8 +148,8 @@
                     alert('Image upload failed. Please try again.');
                 }
             } catch (error) {
-                console.error('Error uploading image:', error);
-                alert('Failed to upload image. Please try again.');
+                console.error('Error uploading image or inserting product:', error);
+                alert('Error. Please try again.');
             }
         });
     </script>
