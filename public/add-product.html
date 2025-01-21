@@ -3,157 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Product</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
-    <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script>
-
+    <title>Add Product - The Pink Closet</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f8f8f8;
             margin: 0;
             padding: 0;
         }
-        header {
-            background-color: #ffc0cb;
-            color: #fff;
-            text-align: center;
-            padding: 1rem;
-        }
-        h1 {
-            margin: 0;
-        }
-        main {
-            padding: 1rem;
-            max-width: 800px;
+
+        .form-container {
+            max-width: 600px;
             margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
         }
-        form {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
+
+        .form-container h2 {
+            text-align: center;
         }
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #333;
+
+        .form-container label {
+            font-weight: bold;
         }
-        input[type="text"],
-        input[type="number"],
-        textarea,
-        input[type="file"] {
+
+        .form-container input, .form-container textarea {
             width: 100%;
-            padding: 0.5rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
             border-radius: 4px;
         }
-        button {
-            background-color: #ffc0cb;
-            color: #fff;
+
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
             border: none;
-            padding: 0.75rem 1.5rem;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 1rem;
         }
-        button:hover {
-            background-color: #ffb6c1;
+
+        .form-container button:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Add a New Product</h1>
-    </header>
-    <main>
+    <div class="form-container">
+        <h2>Add Product</h2>
         <form id="add-product-form">
-            <label for="product-name">Product Name:</label>
-            <input type="text" id="product-name" name="name" required>
+            <label for="name">Product Name</label>
+            <input type="text" id="name" name="name" required>
 
-            <label for="product-description">Description:</label>
-            <textarea id="product-description" name="description" required></textarea>
+            <label for="description">Product Description</label>
+            <textarea id="description" name="description" required></textarea>
 
-            <label for="product-price">Price:</label>
-            <input type="number" id="product-price" name="price" step="0.01" required>
+            <label for="price">Product Price</label>
+            <input type="number" id="price" name="price" step="0.01" required>
 
-            <label for="product-category">Category:</label>
-            <input type="text" id="product-category" name="category" required>
+            <label for="category">Category</label>
+            <input type="text" id="category" name="category" required>
 
-            <label for="product-image">Image:</label>
-            <input type="file" id="product-image" name="image" accept="image/*" required>
+            <label for="image_url">Image URL</label>
+            <input type="url" id="image_url" name="image_url" required>
 
             <button type="submit">Add Product</button>
         </form>
-    </main>
+    </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script>
-        // Initialize Supabase client
+        // Initialize the Supabase client with your Supabase URL and API key
         const supabase = supabase.createClient(
-            'https://fjlqkjwnelkamealhtyr.supabase.co', 
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'
+            'https://fjlqkjwnelkamealhtyr.supabase.co',  // Replace with your Supabase URL
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'  // Replace with your Supabase API Key
         );
 
+        // Handle form submission
         document.getElementById('add-product-form').addEventListener('submit', async (event) => {
-            event.preventDefault();  // Prevent page reload
+            event.preventDefault();  // Prevent the form from submitting normally
+            
+            // Get form values
+            const name = document.getElementById('name').value;
+            const description = document.getElementById('description').value;
+            const price = parseFloat(document.getElementById('price').value);
+            const category = document.getElementById('category').value;
+            const imageUrl = document.getElementById('image_url').value;
 
-            // Get form data
-            const productName = document.getElementById('product-name').value;
-            const productDescription = document.getElementById('product-description').value;
-            const productPrice = document.getElementById('product-price').value;
-            const productCategory = document.getElementById('product-category').value;
-            const productImage = document.getElementById('product-image').files[0];
+            // Prepare the data to insert
+            const productData = {
+                name: name,
+                description: description,
+                price: price,
+                category: category,
+                image_url: imageUrl
+            };
 
-            // Check if image is selected
-            if (!productImage) {
-                alert('Please select an image.');
-                return;
-            }
+            // Insert the data into the Supabase 'products' table
+            const { data, error } = await supabase
+                .from('products')
+                .insert([productData]);
 
-            // Prepare the Cloudinary upload
-            const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload';
-            const formData = new FormData();
-            formData.append('file', productImage);
-            formData.append('upload_preset', 'BANYOTE'); // Cloudinary upload preset
-
-            try {
-                // Upload image to Cloudinary
-                const imageResponse = await fetch(cloudinaryUrl, {
-                    method: 'POST',
-                    body: formData
-                });
-                const imageData = await imageResponse.json();
-
-                if (imageData.secure_url) {
-                    console.log('Cloudinary Image URL:', imageData.secure_url); // Debugging image URL
-
-                    // Prepare product data for Supabase
-                    const product = {
-                        name: productName,
-                        description: productDescription,
-                        price: parseFloat(productPrice), // Ensure price is a number
-                        category: productCategory,
-                        image_url: imageData.secure_url // Cloudinary image URL
-                    };
-
-                    // Insert product data into Supabase
-                    const { data, error } = await supabase.from('products').insert([product]);
-                    if (error) {
-                        console.error('Error adding product:', error);
-                        alert('Failed to add product. Please try again.');
-                    } else {
-                        alert('Product added successfully!');
-                        event.target.reset();  // Reset form after successful submission
-                    }
-                } else {
-                    console.error('Cloudinary upload failed', imageData);
-                    alert('Image upload failed. Please try again.');
-                }
-            } catch (error) {
-                console.error('Error uploading image:', error);
-                alert('Failed to upload image. Please try again.');
+            // Check for errors
+            if (error) {
+                console.error('Error adding product:', error.message);
+                alert('There was an error adding the product. Please try again.');
+            } else {
+                console.log('Product added:', data);
+                alert('Product added successfully!');
+                // Optionally, reset the form
+                document.getElementById('add-product-form').reset();
             }
         });
     </script>
