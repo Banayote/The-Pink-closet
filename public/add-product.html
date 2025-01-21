@@ -114,47 +114,52 @@
                 return;
             }
 
-            // Upload image to Supabase Storage
-            const fileName = `${Date.now()}_${imageFile.name}`;
-            const { data: imageData, error: uploadError } = await supabase
-                .storage
-                .from('products')
-                .upload(fileName, imageFile);
+            try {
+                // Upload image to Supabase Storage
+                const fileName = `${Date.now()}_${imageFile.name}`;
+                const { data: imageData, error: uploadError } = await supabase
+                    .storage
+                    .from('products')
+                    .upload(fileName, imageFile);
 
-            if (uploadError) {
-                errorMessage.textContent = `Error uploading image: ${uploadError.message}`;
-                return;
-            }
-
-            // Get the URL of the uploaded image
-            const { publicURL, error: publicUrlError } = supabase
-                .storage
-                .from('products')
-                .getPublicUrl(fileName);
-
-            if (publicUrlError) {
-                errorMessage.textContent = `Error fetching image URL: ${publicUrlError.message}`;
-                return;
-            }
-
-            // Insert product data into the database
-            const { data, error } = await supabase.from('products').insert([
-                {
-                    name: name,
-                    description: description,
-                    price: price,
-                    category: category,
-                    image_url: publicURL
+                if (uploadError) {
+                    throw new Error(`Error uploading image: ${uploadError.message}`);
                 }
-            ]);
 
-            if (error) {
-                errorMessage.textContent = `Error adding product: ${error.message}`;
-            } else {
-                errorMessage.textContent = '';  // Clear error message
+                // Get the URL of the uploaded image
+                const { publicURL, error: publicUrlError } = supabase
+                    .storage
+                    .from('products')
+                    .getPublicUrl(fileName);
+
+                if (publicUrlError) {
+                    throw new Error(`Error fetching image URL: ${publicUrlError.message}`);
+                }
+
+                // Insert product data into the database
+                const { data, error } = await supabase.from('products').insert([
+                    {
+                        name: name,
+                        description: description,
+                        price: price,
+                        category: category,
+                        image_url: publicURL
+                    }
+                ]);
+
+                if (error) {
+                    throw new Error(`Error adding product: ${error.message}`);
+                }
+
+                // Success
                 alert('Product added successfully!');
                 form.reset();  // Reset form fields
+                imagePreview.innerHTML = '';  // Clear image preview
                 window.location.href = "index.html";  // Redirect back to the main page after success
+
+            } catch (error) {
+                console.error(error);
+                errorMessage.textContent = error.message;  // Display error message
             }
         });
     </script>
