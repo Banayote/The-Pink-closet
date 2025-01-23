@@ -130,13 +130,13 @@
         </div>
     </div>
 
-    <!-- Supabase Script -->
+    <!-- Supabase Script (should be loaded before your custom script) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
     
     <!-- Your Custom Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Initialize Supabase client (move it here to ensure proper initialization order)
+            // Initialize Supabase client here, after the script has been loaded
             const supabase = supabase.createClient(
                 'https://fjlqkjwnelkamealhtyr.supabase.co',
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'
@@ -206,7 +206,7 @@
             }
 
             // Call loadProducts on page load
-            window.onload = loadProducts;
+            loadProducts(); // Directly call loadProducts without window.onload
         });
     </script>
 </body>
