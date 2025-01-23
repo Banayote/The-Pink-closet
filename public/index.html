@@ -130,61 +130,39 @@
         </div>
     </div>
 
-    <!-- Supabase Script (should be loaded before your custom script) -->
+    <!-- Load Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
     
     <!-- Your Custom Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Initialize Supabase client here, after the script has been loaded
-            const supabase = supabase.createClient(
+            // Ensure Supabase is initialized inside DOMContentLoaded
+            const supabase = window.supabase.createClient(
                 'https://fjlqkjwnelkamealhtyr.supabase.co',
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'
             );
 
-            // Get elements
-            const menuIcon = document.getElementById('menuIcon');
-            const sidebar = document.getElementById('sidebar');
-            const closeBtn = document.getElementById('closeBtn');
+            // DOM Elements
             const productList = document.getElementById('product-list');
 
-            // Function to open the sidebar
-            function openSidebar() {
-                sidebar.classList.add('active');
-            }
-
-            // Function to close the sidebar
-            function closeSidebar() {
-                sidebar.classList.remove('active');
-            }
-
-            // Event listeners for sidebar
-            menuIcon.addEventListener('click', openSidebar);
-            closeBtn.addEventListener('click', closeSidebar);
-            window.addEventListener('click', function (event) {
-                if (event.target === sidebar) {
-                    closeSidebar();
-                }
-            });
-
-            // Function to load products from Supabase
+            // Load Products from Supabase
             async function loadProducts() {
-                const { data: products, error } = await supabase.from('products').select();
+                try {
+                    const { data: products, error } = await supabase.from('products').select();
 
-                if (error) {
-                    console.error('Error loading products:', error);
-                    productList.innerHTML = '<p>Failed to load products. Please try again later.</p>';
-                    return;
-                }
+                    if (error) {
+                        throw error;
+                    }
 
-                productList.innerHTML = ''; // Clear the product list
+                    productList.innerHTML = ''; // Clear existing content
 
-                if (products.length === 0) {
-                    productList.innerHTML = '<p>No products available.</p>';
-                } else {
-                    // Loop through products and display them
+                    if (products.length === 0) {
+                        productList.innerHTML = '<p>No products available.</p>';
+                        return;
+                    }
+
                     products.forEach((product) => {
-                        const imageUrl = product.image_url || 'https://via.placeholder.com/150'; // Fallback image URL if no image exists
+                        const imageUrl = product.image_url || 'https://via.placeholder.com/150';
 
                         const productDiv = document.createElement('div');
                         productDiv.classList.add('product');
@@ -195,18 +173,20 @@
                             <img src="${imageUrl}" alt="${product.name}">
                         `;
 
-                        // Redirect to product detail page when clicked
                         productDiv.addEventListener('click', () => {
-                            window.location.href = `/product-detail.html?id=${product.id}`; // Redirect to product detail page (you need to create this)
+                            window.location.href = `/product-detail.html?id=${product.id}`;
                         });
 
                         productList.appendChild(productDiv);
                     });
+                } catch (err) {
+                    console.error('Error loading products:', err.message);
+                    productList.innerHTML = '<p>Error loading products. Try again later.</p>';
                 }
             }
 
             // Call loadProducts on page load
-            loadProducts(); // Directly call loadProducts without window.onload
+            loadProducts();
         });
     </script>
 </body>
