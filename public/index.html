@@ -63,7 +63,7 @@
         // Initialize Supabase client
         const supabase = supabase.createClient(
             'https://fjlqkjwnelkamealhtyr.supabase.co', 
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'
+            'YOUR_NEW_SUPABASE_API_KEY' // Replace with a new API key
         );
 
         // Function to load products from Supabase
@@ -87,7 +87,7 @@
                     productDiv.classList.add('product');
 
                     productDiv.innerHTML = `
-                        <img src="${product.image_url}" alt="${product.name}">
+                        <img src="${product.image_url}" alt="${product.name}" onerror="this.src='default-image.jpg';">
                         <h2 class="product-name">${product.name}</h2>
                         <p class="product-description">${product.description}</p>
                         <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
