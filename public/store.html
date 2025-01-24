@@ -7,7 +7,6 @@
     <title>Create Your Store</title>
     <link rel="stylesheet" href="store.css">
     <style>
-        /* Inline styles for simplicity */
         body {
             background-color: pink;
             font-family: Arial, sans-serif;
@@ -72,7 +71,7 @@
 
 <body>
     <div class="form-container">
-        <div class="exit-icon" id="exitIcon">&#x2B05;</div> <!-- Exit Icon -->
+        <div class="exit-icon" id="exitIcon">&#x2B05;</div>
         <h1>Create Your Store</h1>
         <form id="storeForm">
             <input type="text" name="firstName" placeholder="First Name" required>
@@ -84,13 +83,14 @@
         </form>
     </div>
 
+    <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const exitIcon = document.getElementById('exitIcon');
             const storeForm = document.getElementById('storeForm');
 
-            // Replace with your Supabase credentials
+            // Supabase credentials
             const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
             const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
             const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
@@ -114,10 +114,11 @@
                     email: formData.get('email'),
                     phone_number: formData.get('phoneNumber'),
                     password: formData.get('password'),
+                    created_at: new Date().toISOString() // add a created_at timestamp
                 };
 
                 try {
-                    // Send data to Supabase (this assumes you have a users table in Supabase)
+                    // Send data to Supabase
                     const { data, error } = await supabase
                         .from('users')
                         .insert([payload]);
