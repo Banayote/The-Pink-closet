@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -68,6 +69,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="form-container">
         <div class="exit-icon" id="exitIcon">&#x2B05;</div> <!-- Exit Icon -->
@@ -82,10 +84,16 @@
         </form>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const exitIcon = document.getElementById('exitIcon');
             const storeForm = document.getElementById('storeForm');
+
+            // Replace with your Supabase credentials
+            const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
+            const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+            const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
             // Exit icon functionality
             exitIcon.addEventListener('click', () => {
@@ -98,11 +106,6 @@
             storeForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
 
-                // Replace these with your actual Supabase credentials
-                const SUPABASE_URL = 'https://eczpdpysryifkekieloc.supabase.co';
-                const SUPABASE_API_KEY =
-                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
-
                 // Gather form data
                 const formData = new FormData(storeForm);
                 const payload = {
@@ -114,28 +117,18 @@
                 };
 
                 try {
-                    // Send data to Supabase
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            apikey: SUPABASE_API_KEY,
-                            Authorization: `Bearer ${SUPABASE_API_KEY}`,
-                        },
-                        body: JSON.stringify(payload),
-                    });
+                    // Send data to Supabase (this assumes you have a users table in Supabase)
+                    const { data, error } = await supabase
+                        .from('users')
+                        .insert([payload]);
 
-                    const result = await response.text(); // Get the raw response body
-
-                    if (response.ok) {
-                        alert('User successfully created!');
-                        console.log('Response:', result); // Log raw response for debugging
-                        storeForm.reset(); // Clear the form after successful submission
+                    if (error) {
+                        console.error('Error:', error.message);
+                        alert('Failed to create user. Please try again.');
                     } else {
-                        console.error('Error:', result);
-                        alert(
-                            `Failed to create user: ${result || 'Unknown error.'}`
-                        );
+                        alert('Store created successfully!');
+                        console.log('Response:', data);
+                        storeForm.reset(); // Clear the form after successful submission
                     }
                 } catch (error) {
                     console.error('Error:', error.message);
@@ -145,4 +138,5 @@
         });
     </script>
 </body>
+
 </html>
