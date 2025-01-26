@@ -87,19 +87,19 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const exitIcon = document.getElementById('exitIcon');
-            const storeForm = document.getElementById('storeForm');
-
             // Supabase credentials
             const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
             const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+            
+            // Initialize Supabase client
             const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
-            // Exit icon functionality
+            const exitIcon = document.getElementById('exitIcon');
+            const storeForm = document.getElementById('storeForm');
+
+            // Exit icon functionality to go back to the previous page
             exitIcon.addEventListener('click', () => {
-                if (confirm('Are you sure you want to exit?')) {
-                    window.location.href = 'index.html'; // Redirect to the main page
-                }
+                window.history.back(); // Goes back to the previous page
             });
 
             // Handle form submission
