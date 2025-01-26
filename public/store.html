@@ -87,10 +87,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 
     <script>
+        // Wait until DOM content is loaded before executing the script
         document.addEventListener('DOMContentLoaded', () => {
-            // Initialize Supabase after the script is loaded
+            // Initialize Supabase after the SDK is loaded
             const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
             const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+            
+            // Initialize Supabase client
             const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
             const exitIcon = document.getElementById('exitIcon');
