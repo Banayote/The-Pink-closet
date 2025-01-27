@@ -83,28 +83,26 @@
         </form>
     </div>
 
-    <!-- Move the Supabase SDK script to the bottom of the body for proper loading -->
+    <!-- Load Supabase SDK at the end of the body -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 
     <script>
-        // Ensure the DOM is fully loaded before initializing Supabase
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initialize Supabase only after the SDK is loaded
+        window.onload = () => {
+            // Supabase credentials
             const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
             const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
-            
-            // Initialize the supabase client only once the SDK is loaded
+
+            // Initialize supabase client
             const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
+            // Exit icon functionality
             const exitIcon = document.getElementById('exitIcon');
-            const storeForm = document.getElementById('storeForm');
-
-            // Exit icon functionality to go back to the previous page
             exitIcon.addEventListener('click', () => {
                 window.history.back(); // Goes back to the previous page
             });
 
             // Handle form submission
+            const storeForm = document.getElementById('storeForm');
             storeForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
 
@@ -116,7 +114,7 @@
                     email: formData.get('email'),
                     phone_number: formData.get('phoneNumber'),
                     password: formData.get('password'),
-                    created_at: new Date().toISOString() // Add a created_at timestamp
+                    created_at: new Date().toISOString()
                 };
 
                 try {
@@ -138,7 +136,7 @@
                     alert('An unexpected error occurred. Please try again.');
                 }
             });
-        });
+        };
     </script>
 </body>
 
