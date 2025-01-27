@@ -83,12 +83,12 @@
         </form>
     </div>
 
-    <!-- Load Supabase SDK at the end of the body -->
+    <!-- Load Supabase SDK at the end of the body to avoid blocking the DOM -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 
     <script>
-        // Use this to make sure the Supabase script has fully loaded
         window.onload = () => {
+            // Check if supabase has been initialized
             if (typeof supabase !== 'undefined') {
                 // Supabase credentials
                 const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
