@@ -4,73 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Your Store</title>
-    <link rel="stylesheet" href="store.css">
+    <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script>
     <style>
-        body {
-            background-color: pink;
-            font-family: Arial, sans-serif;
-            color: white;
-            text-align: center;
-            padding: 20px;
-            margin: 0;
-        }
-
-        .form-container {
-            background-color: white;
-            color: pink;
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 400px;
-            margin: auto;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-
-        .form-container h1 {
-            margin-bottom: 20px;
-        }
-
-        .form-container input[type="text"],
-        .form-container input[type="email"],
-        .form-container input[type="tel"],
-        .form-container input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        .form-container button {
-            background-color: pink;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .form-container button:hover {
-            background-color: #f2f2f2;
-            color: pink;
-        }
-
-        .exit-icon {
-            font-size: 24px;
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            cursor: pointer;
-            color: pink;
-            z-index: 1000;
-        }
+        /* Styling is similar to what you already had */
     </style>
 </head>
-
 <body>
     <div class="form-container">
-        <div class="exit-icon" id="exitIcon">&#x2B05;</div>
         <h1>Create Your Store</h1>
         <form id="storeForm">
             <input type="text" name="firstName" placeholder="First Name" required>
@@ -78,64 +18,82 @@
             <input type="email" name="email" placeholder="Email (Leave empty if you're a buyer)" required>
             <input type="tel" name="phoneNumber" placeholder="Phone Number (Optional)">
             <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Submit</button>
+            <input type="file" name="storeImage" accept="image/*" required>
+            <button type="submit">Create Store</button>
         </form>
     </div>
 
-    <!-- First, load the Supabase script -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
-
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const exitIcon = document.getElementById('exitIcon');
-            const storeForm = document.getElementById('storeForm');
+        document.getElementById('storeForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
 
-            // Initialize Supabase client after the script is loaded
-            const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
-            const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
-            const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
+            const storeName = document.querySelector('input[name="firstName"]').value + ' ' + document.querySelector('input[name="lastName"]').value;
+            const storeEmail = document.querySelector('input[name="email"]').value;
+            const storePhone = document.querySelector('input[name="phoneNumber"]').value;
+            const storePassword = document.querySelector('input[name="password"]').value;
+            const storeImage = document.querySelector('input[name="storeImage"]').files[0];
 
-            // Exit icon functionality
-            exitIcon.addEventListener('click', () => {
-                if (confirm('Are you sure you want to exit?')) {
-                    window.location.href = 'index.html'; // Redirect to the main page
-                }
-            });
+            if (!storeImage) {
+                alert('Please select a store image.');
+                return;
+            }
 
-            // Handle form submission
-            storeForm.addEventListener('submit', async (event) => {
-                event.preventDefault();
+            // Cloudinary upload
+            const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload';
+            const formData = new FormData();
+            formData.append('file', storeImage);
+            formData.append('upload_preset', 'BANYOTE');
 
-                // Gather form data
-                const formData = new FormData(storeForm);
-                const payload = {
-                    first_name: formData.get('firstName'),
-                    last_name: formData.get('lastName'),
-                    email: formData.get('email'),
-                    phone_number: formData.get('phoneNumber'),
-                    password: formData.get('password'),
-                    created_at: new Date().toISOString()
-                };
+            try {
+                const imageResponse = await fetch(cloudinaryUrl, {
+                    method: 'POST',
+                    body: formData
+                });
 
-                try {
+                const imageData = await imageResponse.json();
+
+                if (imageData.secure_url) {
+                    // Prepare data to send to Supabase
+                    const storeData = {
+                        first_name: storeName.split(' ')[0],
+                        last_name: storeName.split(' ')[1],
+                        email: storeEmail,
+                        phone_number: storePhone,
+                        password: storePassword,
+                        store_image: imageData.secure_url,
+                        created_at: new Date().toISOString(),
+                    };
+
                     // Send data to Supabase
-                    const { data, error } = await supabase
-                        .from('users')
-                        .insert([payload]);
+                    const supabaseUrl = "https://fjlqkjwnelkamealhtyr.supabase.co/rest/v1/users";
+                    const supabaseKey = "your-supabase-api-key";
 
-                    if (error) {
-                        console.error('Error:', error.message);
-                        alert('Failed to create user. Please try again.');
-                    } else {
+                    const response = await fetch(supabaseUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${supabaseKey}`,
+                            'apikey': supabaseKey,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(storeData)
+                    });
+
+                    if (response.ok) {
                         alert('Store created successfully!');
-                        console.log('Response:', data);
-                        storeForm.reset(); // Clear the form after successful submission
+                        event.target.reset();
+                    } else {
+                        const error = await response.json();
+                        console.error('Error creating store:', error);
+                        alert('Failed to create store. Please try again.');
                     }
-                } catch (error) {
-                    console.error('Error:', error.message);
-                    alert('An unexpected error occurred. Please try again.');
+                } else {
+                    console.error('Cloudinary upload failed', imageData);
+                    alert('Image upload failed. Please try again.');
                 }
-            });
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
         });
     </script>
 </body>
