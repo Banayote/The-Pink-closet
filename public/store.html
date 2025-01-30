@@ -82,16 +82,24 @@
         </form>
     </div>
 
-    <!-- First, load the Supabase script -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
+    <!-- Load Supabase script first -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // Initialize Supabase client outside of event listeners to ensure it loads properly
-        const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
-        const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
+        // Wait for the Supabase script to load before initializing the Supabase client
+        window.addEventListener('load', () => {
+            if (typeof supabase === 'undefined') {
+                console.error("Supabase failed to load.");
+                alert("Error: Supabase library not loaded properly. Please refresh the page.");
+                return;
+            }
 
-        document.addEventListener('DOMContentLoaded', () => {
+            // Now initialize the Supabase client after confirming the library is loaded
+            const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
+            const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
+
+            // Now you can safely use `supabaseClient`
             const exitIcon = document.getElementById('exitIcon');
             const storeForm = document.getElementById('storeForm');
 
@@ -119,7 +127,7 @@
 
                 try {
                     // Send data to Supabase
-                    const { data, error } = await supabase
+                    const { data, error } = await supabaseClient
                         .from('users')
                         .insert([payload]);
 
