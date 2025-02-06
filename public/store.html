@@ -14,7 +14,6 @@
             padding: 20px;
             margin: 0;
         }
-
         .form-container {
             background-color: white;
             color: pink;
@@ -25,22 +24,16 @@
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
             position: relative;
         }
-
         .form-container h1 {
             margin-bottom: 20px;
         }
-
-        .form-container input[type="text"],
-        .form-container input[type="email"],
-        .form-container input[type="tel"],
-        .form-container input[type="password"] {
+        .form-container input {
             width: 100%;
             padding: 10px;
             margin-bottom: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-
         .form-container button {
             background-color: pink;
             color: white;
@@ -50,12 +43,10 @@
             cursor: pointer;
             margin-top: 10px;
         }
-
         .form-container button:hover {
             background-color: #f2f2f2;
             color: pink;
         }
-
         .exit-icon {
             font-size: 24px;
             position: absolute;
@@ -67,8 +58,8 @@
         }
     </style>
 </head>
-
 <body>
+
     <div class="form-container">
         <div class="exit-icon" id="exitIcon">&#x2B05;</div>
         <h1>Create Your Store</h1>
@@ -82,31 +73,22 @@
         </form>
     </div>
 
-    <!-- Load Supabase script first -->
+    <!-- Load Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <script>
-        // Wait for the Supabase script to load before initializing the Supabase client
-        window.addEventListener('load', () => {
-            if (typeof supabase === 'undefined') {
-                console.error("Supabase failed to load.");
-                alert("Error: Supabase library not loaded properly. Please refresh the page.");
-                return;
-            }
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
+        const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
-            // Now initialize the Supabase client after confirming the library is loaded
-            const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
-            const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
-            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
-
-            // Now you can safely use `supabaseClient`
+        document.addEventListener('DOMContentLoaded', () => {
             const exitIcon = document.getElementById('exitIcon');
             const storeForm = document.getElementById('storeForm');
 
-            // Exit icon functionality
+            // Exit button functionality
             exitIcon.addEventListener('click', () => {
                 if (confirm('Are you sure you want to exit?')) {
-                    window.location.href = 'index.html'; // Redirect to the main page
+                    window.location.href = 'index.html'; // Redirect to main page
                 }
             });
 
@@ -126,21 +108,22 @@
                 };
 
                 try {
-                    // Send data to Supabase
+                    // Insert user into Supabase
                     const { data, error } = await supabaseClient
                         .from('users')
-                        .insert([payload]);
+                        .insert([payload])
+                        .select(); // Fetch inserted data
 
                     if (error) {
                         console.error('Error:', error.message);
-                        alert('Failed to create user. Please try again.');
-                    } else {
-                        alert('Store created successfully!');
-                        console.log('Response:', data);
-                        storeForm.reset(); // Clear the form after successful submission
+                        alert('Failed to create store. Please try again.');
+                    } else if (data && data.length > 0) {
+                        const userId = data[0].id; // Get the new user ID
+                        alert('Store created successfully! Redirecting...');
+                        window.location.href = `profile.html?user_id=${userId}`; // Redirect to profile.html with user ID
                     }
                 } catch (error) {
-                    console.error('Error:', error.message);
+                    console.error('Unexpected error:', error.message);
                     alert('An unexpected error occurred. Please try again.');
                 }
             });
