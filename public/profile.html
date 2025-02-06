@@ -1,119 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile</title>
-    <link rel="stylesheet" href="profile.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile</title>
+  <link rel="stylesheet" href="profile.css">
 </head>
 <body>
-    <div class="profile-container">
-        <!-- Exit Icon with redirection to index.html -->
-        <div class="exit-icon">
-            <a href="#" id="exitIcon"><span>&larr;</span></a>
-        </div>
-        <div class="banner">
-            <div id="banner-images" class="banner-images">
-                <img id="banner-img-1" src="image1.jpg" alt="Banner Image 1" class="banner-img">
-                <img id="banner-img-2" src="image2.jpg" alt="Banner Image 2" class="banner-img">
-                <img id="banner-img-3" src="image3.jpg" alt="Banner Image 3" class="banner-img">
-            </div>
-        </div>
-        <div class="profile-picture">
-            <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture">
-        </div>
-        <div class="profile-info">
-            <h1 id="username">Username</h1>
-            <p>Banayote</p>
-            <div class="profile-actions">
-                <button id="message"><span class="icon">✉️</span> Message</button>
-                <button id="add-product"><span class="icon">➕</span> Add Product</button>
-                <button id="edit"><span class="icon">🔧</span> Edit</button>
-                <button id="copy-link"><span class="icon">🔗</span> Link</button>
-            </div>
-        </div>
-        <div class="profile-dashboard">
-            <div class="stats">
-                <div class="stat">
-                    <h2>Sales</h2>
-                    <p id="sales-count"></p>
-                </div>
-                <div class="stat">
-                    <h2>Visitors</h2>
-                    <p id="visitors-count"></p>
-                </div>
-            </div>
-        </div>
-        <div class="product-list-button">
-            <button>View Product List</button>
-        </div>
-        <div class="user-products">
-            <!-- User's posted products will be displayed here -->
-        </div>
+  <div class="profile-container">
+    <!-- Exit Icon with redirection to index.html -->
+    <div class="exit-icon">
+      <a href="#" id="exitIcon"><span>&larr;</span></a>
     </div>
-
-    <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
-    <input type="file" id="banner-upload" accept="image/*" multiple style="display:none;">
-    
-    <div id="image-modal" class="modal">
-        <span class="close">&times;</span>
-        <img class="modal-content" id="modal-img">
+    <div class="banner">
+      <div id="banner-images" class="banner-images">
+        <img id="banner-img-1" src="image1.jpg" alt="Banner Image 1" class="banner-img">
+        <img id="banner-img-2" src="image2.jpg" alt="Banner Image 2" class="banner-img">
+        <img id="banner-img-3" src="image3.jpg" alt="Banner Image 3" class="banner-img">
+      </div>
     </div>
+    <div class="profile-picture">
+      <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture">
+    </div>
+    <div class="profile-info">
+      <h1 id="username">Username</h1>
+      <p>Banayote</p>
+      <div class="profile-actions">
+        <button id="message"><span class="icon">✉️</span> Message</button>
+        <button id="add-product"><span class="icon">➕</span> Add Product</button>
+        <button id="edit"><span class="icon">🔧</span> Edit</button>
+        <button id="copy-link"><span class="icon">🔗</span> Link</button>
+      </div>
+    </div>
+    <div class="profile-dashboard">
+      <div class="stats">
+        <div class="stat">
+          <h2>Sales</h2>
+          <p id="sales-count"></p>
+        </div>
+        <div class="stat">
+          <h2>Visitors</h2>
+          <p id="visitors-count"></p>
+        </div>
+      </div>
+    </div>
+    <div class="product-list-button">
+      <button>View Product List</button>
+    </div>
+    <div class="user-products">
+      <!-- User's posted products will be displayed here -->
+    </div>
+  </div>
 
-    <!-- Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
+  <!-- Hidden file inputs -->
+  <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
+  <input type="file" id="banner-upload" accept="image/*" multiple style="display:none;">
+  
+  <!-- Modal for displaying images -->
+  <div id="image-modal" class="modal">
+    <span class="close">&times;</span>
+    <img class="modal-content" id="modal-img">
+  </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co'; // Your Supabase URL
-            const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'; // Your Supabase API Key
-            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Your Supabase credentials
+      const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
+      const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+      const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
-            const exitIcon = document.getElementById('exitIcon');
-            const profileImg = document.getElementById('profile-img');
-            const bannerImages = document.querySelectorAll('.banner-images img');
-            const usernameElem = document.getElementById('username');
-            const addProductButton = document.getElementById('add-product');
+      const exitIcon = document.getElementById('exitIcon');
+      const profileImg = document.getElementById('profile-img');
+      const bannerImages = document.querySelectorAll('.banner-images img');
+      const usernameElem = document.getElementById('username');
+      const addProductButton = document.getElementById('add-product');
 
-            const userId = new URLSearchParams(window.location.search).get('user_id'); // Get the user_id from URL
+      // Get the user_id from the URL (e.g., profile.html?user_id=123)
+      const userId = new URLSearchParams(window.location.search).get('user_id');
 
-            if (!userId) {
-                alert("User not found.");
-                window.location.href = 'index.html'; // Redirect to index if no user_id is found
-                return;
-            }
+      if (!userId) {
+        alert("User not found.");
+        window.location.href = 'index.html'; // Redirect if no user_id found
+        return;
+      }
 
-            // Fetch user data from Supabase
-            const { data, error } = await supabaseClient
-                .from('users')
-                .select('first_name, last_name, profile_img, banner_img_1, banner_img_2, banner_img_3')
-                .eq('id', userId)
-                .single();
+      // Fetch user data from Supabase's 'users' table
+      const { data, error } = await supabaseClient
+        .from('users')
+        .select('first_name, last_name, profile_img, banner_img_1, banner_img_2, banner_img_3')
+        .eq('id', userId)
+        .single();
 
-            if (error) {
-                console.error("Error fetching user data:", error.message);
-                alert("Failed to load user profile.");
-                return;
-            }
+      if (error) {
+        console.error("Error fetching user data:", error.message);
+        alert("Failed to load user profile.");
+        return;
+      }
 
-            // Set the profile data
-            usernameElem.textContent = `${data.first_name} ${data.last_name}`;
-            if (data.profile_img) profileImg.src = data.profile_img;
-            bannerImages[0].src = data.banner_img_1 || 'image1.jpg';
-            bannerImages[1].src = data.banner_img_2 || 'image2.jpg';
-            bannerImages[2].src = data.banner_img_3 || 'image3.jpg';
+      // Set the profile data on the page
+      usernameElem.textContent = `${data.first_name} ${data.last_name}`;
+      if (data.profile_img) {
+        profileImg.src = data.profile_img;
+      }
+      bannerImages[0].src = data.banner_img_1 || 'image1.jpg';
+      bannerImages[1].src = data.banner_img_2 || 'image2.jpg';
+      bannerImages[2].src = data.banner_img_3 || 'image3.jpg';
 
-            // Exit icon functionality
-            exitIcon.addEventListener('click', (event) => {
-                event.preventDefault();
-                window.location.href = 'index.html';
-            });
+      // Exit icon functionality: redirect to index.html
+      exitIcon.addEventListener('click', (event) => {
+        event.preventDefault();
+        window.location.href = 'index.html';
+      });
 
-            // Redirect to add-product.html when "Add Product" button is clicked
-            addProductButton.addEventListener('click', () => {
-                window.location.href = `add-product.html?user_id=${userId}`;
-            });
-        });
-    </script>
+      // When "Add Product" is clicked, redirect to add-product.html with the user_id
+      addProductButton.addEventListener('click', () => {
+        window.location.href = `add-product.html?user_id=${userId}`;
+      });
+    });
+  </script>
 </body>
 </html>
