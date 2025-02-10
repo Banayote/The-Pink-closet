@@ -1,194 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Pink Closet</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Product Details</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
-        }
-
-        .menu-icon {
-            font-size: 30px;
-            cursor: pointer;
-            padding: 10px;
-            z-index: 1001;
-        }
-
-        .sidebar {
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 250px;
-            height: 100%;
-            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
-            display: none;
-            background-color: #fff;
-            z-index: 1000;
-            transition: 0.3s ease;
-        }
-
-        .sidebar.active {
-            display: block;
-        }
-
-        .close-btn {
-            font-size: 30px;
-            cursor: pointer;
-            padding: 10px;
-            background: none;
-            border: none;
-        }
-
-        .sidebar-content {
             padding: 20px;
+            background-color: #f8f8f8;
         }
-
-        .sidebar-item {
-            display: block;
-            padding: 10px;
-            color: black;
-            text-decoration: none;
-        }
-
-        .sidebar-item:hover {
-            background-color: #ddd;
-        }
-
-        /* Product styles */
-        .product {
-            border: 1px solid #ccc;
-            margin: 10px;
-            padding: 10px;
-            text-align: center;
-            cursor: pointer;
-            background-color: #fff;
+        .product-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+            text-align: center;
         }
-
-        .product img {
+        img {
             max-width: 100%;
-            height: auto;
+            border-radius: 8px;
         }
-
-        .product-name {
-            font-size: 1.2rem;
-            font-weight: bold;
+        .visit-store {
+            display: block;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #ffc0cb;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
         }
-
-        .product-description {
-            color: #666;
-        }
-
-        .product-price {
-            font-size: 1.1rem;
-            color: #ff6347;
-        }
-
-        /* Placeholder for products */
-        #product-list {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
+        .visit-store:hover {
+            background-color: #ffb6c1;
         }
     </style>
 </head>
-
 <body>
-    <header>
-        <div id="menuIcon" class="menu-icon">&#9776;</div>
-        <h1 id="storeName">The Pink Closet</h1>
-        <div class="search-bar">
-            <input type="text" id="search-input" placeholder="Search products...">
-            <button id="search-button">Search</button>
-        </div>
-    </header>
 
-    <main>
-        <section id="main-content">
-            <div id="product-list"></div> <!-- This is where products will be displayed -->
-        </section>
-    </main>
-
-    <footer>
-        <p>&copy; The Pink Closet 2024. All rights reserved.</p>
-    </footer>
-
-    <!-- Sidebar -->
-    <div id="sidebar" class="sidebar">
-        <button id="closeBtn" class="close-btn">&times;</button>
-        <div class="sidebar-content">
-            <a href="profile.html" class="sidebar-item">Profile</a>
-            <a href="store.html" class="sidebar-item">Create Store</a>
-            <a href="login.html" class="sidebar-item">Login</a>
-            <a href="messages.html" class="sidebar-item">Messages</a>
-        </div>
+    <div class="product-container">
+        <h2 id="product-name"></h2>
+        <img id="product-image" src="" alt="Product Image">
+        <p id="product-description"></p>
+        <p id="product-price"></p>
+        <a id="visit-store" class="visit-store" href="#">Visit Store</a>
     </div>
 
-    <!-- Load Supabase Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
-    
-    <!-- Your Custom Script -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Ensure Supabase is initialized inside DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', async function () {
             const supabase = window.supabase.createClient(
                 'https://fjlqkjwnelkamealhtyr.supabase.co',
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'
             );
 
-            // DOM Elements
-            const productList = document.getElementById('product-list');
+            // Get product ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
 
-            // Load Products from Supabase
-            async function loadProducts() {
-                try {
-                    const { data: products, error } = await supabase.from('products').select();
-
-                    if (error) {
-                        throw error;
-                    }
-
-                    productList.innerHTML = ''; // Clear existing content
-
-                    if (products.length === 0) {
-                        productList.innerHTML = '<p>No products available.</p>';
-                        return;
-                    }
-
-                    products.forEach((product) => {
-                        const imageUrl = product.image_url || 'https://via.placeholder.com/150';
-
-                        const productDiv = document.createElement('div');
-                        productDiv.classList.add('product');
-                        productDiv.innerHTML = `
-                            <h2 class="product-name">${product.name}</h2>
-                            <p class="product-description">${product.description}</p>
-                            <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
-                            <img src="${imageUrl}" alt="${product.name}">
-                        `;
-
-                        productDiv.addEventListener('click', () => {
-                            window.location.href = `/product-detail.html?id=${product.id}`;
-                        });
-
-                        productList.appendChild(productDiv);
-                    });
-                } catch (err) {
-                    console.error('Error loading products:', err.message);
-                    productList.innerHTML = '<p>Error loading products. Try again later.</p>';
-                }
+            if (!productId) {
+                document.body.innerHTML = "<p>Product not found.</p>";
+                return;
             }
 
-            // Call loadProducts on page load
-            loadProducts();
+            // Fetch product details from Supabase
+            const { data: product, error } = await supabase
+                .from('products')
+                .select('*')
+                .eq('id', productId)
+                .single();
+
+            if (error || !product) {
+                document.body.innerHTML = "<p>Failed to load product details.</p>";
+                return;
+            }
+
+            // Populate product details
+            document.getElementById('product-name').innerText = product.name;
+            document.getElementById('product-description').innerText = product.description;
+            document.getElementById('product-price').innerText = `$${product.price}`;
+            document.getElementById('product-image').src = product.image_url;
+            
+            // Set "Visit Store" button link to profile.html
+            document.getElementById('visit-store').href = `profile.html?id=${product.store_id}`;
         });
     </script>
-</body>
 
+</body>
 </html>
