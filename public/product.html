@@ -310,9 +310,7 @@
 
     <div class="product-container">
         <div class="image-carousel" id="imageCarousel">
-            <img src="image1.jpg" alt="Product Image 1">
-            <img src="image2.jpg" alt="Product Image 2">
-            <img src="image3.jpg" alt="Product Image 3">
+            <!-- Images will be dynamically added here -->
         </div>
 
         <div class="product-details">
@@ -353,216 +351,52 @@
     </div>
 
     <button class="add-to-closet" id="addToCloset">Add to Closet</button>
-    
 
-<script>
-    // Existing code (carousel, closet, etc.)
+    <script>
+        // Supabase code to fetch and display product
+        const supabaseUrl = 'https://fjlqkjwnelkamealhtyr.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    // Sample data for products
-    const moreProductsData = [
-        'image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg', 'image5.jpg', 'image6.jpg',
-        'image7.jpg', 'image8.jpg', 'image9.jpg', 'image10.jpg', 'image11.jpg', 'image12.jpg',
-        'image13.jpg', 'image14.jpg', 'image15.jpg', 'image16.jpg', 'image17.jpg', 'image18.jpg',
-        'image19.jpg', 'image20.jpg', 'image21.jpg', 'image22.jpg', 'image23.jpg', 'image24.jpg',
-        'image25.jpg', 'image26.jpg', 'image27.jpg', 'image28.jpg', 'image29.jpg', 'image30.jpg'
-    ];
+        // Get product ID from URL query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
 
-    const otherProductsData = Array.from({ length: 30 }, (_, rowIndex) => 
-        Array.from({ length: 39 }, (_, colIndex) => `images/image${(rowIndex * 39 + colIndex) % moreProductsData.length + 1}.jpg`)
-    );
+        async function fetchProduct() {
+            const { data, error } = await supabase
+                .from('products') // Your Supabase table name
+                .select('*')
+                .eq('id', productId)
+                .single();
 
-    const moreProducts = document.getElementById('moreProducts');
-    const moreIndicator = document.getElementById('moreIndicator');
+            if (error) {
+                console.error("Error fetching product:", error);
+                return;
+            }
 
-    moreProductsData.forEach((imgSrc, index) => {
-        let aElement = document.createElement('a');
-        aElement.href = `product${index + 1}.html`; // Adjust URL pattern
-        let imgElement = document.createElement('img');
-        imgElement.src = imgSrc;
-        aElement.appendChild(imgElement);
-        moreProducts.appendChild(aElement);
-    });
+            // Populate product details
+            document.querySelector('.product-title').textContent = data.name;
+            document.querySelector('.product-price').textContent = `$${data.price}`;
+            document.querySelector('.product-description p').textContent = data.description;
 
-    moreProducts.addEventListener('scroll', () => {
-        if (moreProducts.scrollLeft + moreProducts.offsetWidth >= moreProducts.scrollWidth) {
-            moreIndicator.style.display = 'block';
-        } else {
-            moreIndicator.style.display = 'none';
-        }
-    });
+            const imageCarousel = document.getElementById('imageCarousel');
+            imageCarousel.innerHTML = ''; // Clear existing images
 
-    const otherProducts = document.getElementById('otherProducts');
-    otherProductsData.forEach((rowData) => {
-        const rowDiv = document.createElement('div');
-        rowDiv.classList.add('product-row');
-        rowData.forEach((imgSrc, index) => {
-            let aElement = document.createElement('a');
-            aElement.href = `product${index + 31}.html`; // Adjust URL pattern
-            let imgElement = document.createElement('img');
-            imgElement.src = imgSrc;
-            aElement.appendChild(imgElement);
-            rowDiv.appendChild(aElement);
-        });
-        otherProducts.appendChild(rowDiv);
-    });
+            data.images.forEach((image, index) => {
+                const img = document.createElement('img');
+                img.src = image.url;
+                img.alt = `Product image ${index + 1}`;
+                imageCarousel.appendChild(img);
+            });
 
-    // Image carousel logic
-    const imageCarousel = document.getElementById('imageCarousel');
-    const images = imageCarousel.querySelectorAll('img');
-    let currentIndex = 0;
-
-    function showImage(index) {
-        images.forEach((img, i) => {
-            img.style.opacity = i === index ? '1' : '0';
-        });
-    }
-
-    function nextImage() {
-        currentIndex = (currentIndex + 1) % images.length;
-        showImage(currentIndex);
-    }
-
-    function previousImage() {
-        currentIndex = (currentIndex - 1 + images.length) % images.length;
-        showImage(currentIndex);
-    }
-
-    let startX = 0;
-
-    imageCarousel.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-    });
-
-    imageCarousel.addEventListener('touchend', (e) => {
-        let endX = e.changedTouches[0].clientX;
-        if (startX > endX + 30) {
-            nextImage();
-        } else if (startX < endX - 30) {
-            previousImage();
-        }
-    });
-
-    showImage(currentIndex);
-
-    // Add to Closet functionality
-    document.getElementById('addToCloset').addEventListener('click', () => {
-        const closetIcon = document.getElementById('closetIcon');
-        const closetCounter = document.getElementById('closetCounter');
-
-        const animation = document.createElement('div');
-        animation.style.position = 'absolute';
-        animation.style.bottom = '570px';
-        animation.style.left = '20px';
-        animation.style.width = '50px';
-        animation.style.height = '50px';
-        animation.style.background = 'pink';
-        animation.style.borderRadius = '50%';
-        animation.style.zIndex = '2000';
-        animation.style.pointerEvents = 'none';
-        animation.style.animation = 'flyToCloset 1s forwards';
-        document.body.appendChild(animation);
-
-        setTimeout(() => {
-            document.body.removeChild(animation);
-        }, 1000);
-
-        const productTitle = document.querySelector('.product-title').textContent;
-        const productPrice = document.querySelector('.product-price').textContent;
-        const productDescription = document.querySelector('.product-description p').textContent;
-        const productDetails = {
-            title: productTitle,
-            price: productPrice,
-            description: productDescription
-        };
-
-        let closet = JSON.parse(localStorage.getItem('closet')) || [];
-        closet.push(productDetails);
-        localStorage.setItem('closet', JSON.stringify(closet));
-
-        const counterValue = closet.length;
-        closetCounter.textContent = counterValue;
-        closetCounter.style.display = counterValue > 0 ? 'flex' : 'none';
-    });
-
-    // Redirect to closet page on closet icon click
-    document.getElementById('closetIcon').addEventListener('click', () => {
-        window.location.href = 'closet.html';
-    });
-
-    // Handle Leave a Review button click
-    document.getElementById('leaveReviewButton').addEventListener('click', () => {
-        window.location.href = 'reviews.html'; // Change 'reviews.html' to the URL where reviews are managed
-    });
-
-    // Review submission handling
-    document.getElementById('submitReviewButton').addEventListener('click', () => {
-        const reviewText = document.getElementById('reviewText').value;
-        const reviewImages = []; // Add logic to collect images
-        const reviewGifs = []; // Add logic to collect GIFs
-        const reviewVoice = ''; // Add logic to collect voice recordings
-
-        const reviewDetails = {
-            text: reviewText,
-            images: reviewImages,
-            gifs: reviewGifs,
-            voice: reviewVoice,
-            timestamp: new Date().toISOString()
-        };
-
-        let reviews = JSON.parse(localStorage.getItem('reviews')) || [];
-        reviews.push(reviewDetails);
-        localStorage.setItem('reviews', JSON.stringify(reviews));
-
-        alert('Review submitted successfully!'); // You can replace this with your own notification logic
-        document.getElementById('reviewText').value = ''; // Clear the input after submission
-    });
-
-    // -----------------------------
-    // Supabase code starts here
-
-    // Initialize Supabase
-    const supabaseUrl = 'https://fjlqkjwnelkamealhtyr.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-    // Get product ID from URL query parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    const productId = urlParams.get('id');
-
-    // Fetch product details from Supabase
-    async function fetchProduct() {
-        const { data, error } = await supabase
-            .from('products')  // Your table name in Supabase
-            .select('*')
-            .eq('id', productId)
-            .single();  // Assuming only one product matches
-
-        if (error) {
-            console.error("Error fetching product data:", error);
-            return;
+            const visitStoreButton = document.querySelector('.visit-store');
+            visitStoreButton.addEventListener('click', () => {
+                window.location.href = `/store-profile.html?id=${data.store_id}`; // Modify as needed
+            });
         }
 
-        // Populate product details on the page
-        document.querySelector('.product-title').textContent = data.name;
-        document.querySelector('.product-price').textContent = `$${data.price}`;
-        document.querySelector('.product-description p').textContent = data.description;
-
-        // Set product images (assuming 'images' is an array of image URLs)
-        const imageCarousel = document.getElementById('imageCarousel');
-        imageCarousel.innerHTML = '';  // Clear existing images
-        data.images.forEach(imageUrl => {
-            const imgElement = document.createElement('img');
-            imgElement.src = imageUrl;
-            imageCarousel.appendChild(imgElement);
-        });
-    }
-
-    // Handle Visit Store button click to redirect to profile.html
-    document.querySelector('.visit-store').addEventListener('click', () => {
-        window.location.href = 'profile.html'; // Redirect to profile page
-    });
-
-    // Load the product data when the page loads
-    window.onload = fetchProduct;
-
-</script>
+        // Fetch product details on load
+        fetchProduct();
+    </script>
+</body>
+</html>
