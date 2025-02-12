@@ -77,6 +77,8 @@
       const bannerImages = document.querySelectorAll('.banner-images img');
       const usernameElem = document.getElementById('username');
       const addProductButton = document.getElementById('add-product');
+      const messageButton = document.getElementById('message');
+      const copyLinkButton = document.getElementById('copy-link');
 
       // Get user_id from URL
       const userId = new URLSearchParams(window.location.search).get('user_id');
@@ -121,6 +123,22 @@
         const redirectUrl = `add-product.html?user_id=${userId}`;
         console.log("Redirecting to:", redirectUrl); // Debugging log to verify URL redirection
         window.location.href = redirectUrl; // Redirect to add-product.html with user_id as query parameter
+      });
+
+      // Message button event
+      messageButton.addEventListener('click', () => {
+        alert("Message functionality is not implemented yet.");
+      });
+
+      // Link button event
+      copyLinkButton.addEventListener('click', () => {
+        const profileUrl = window.location.href;
+        navigator.clipboard.writeText(profileUrl).then(() => {
+          alert("Profile link copied to clipboard!");
+        }).catch(err => {
+          console.error("Failed to copy link: ", err);
+          alert("Failed to copy link.");
+        });
       });
     });
   </script>
