@@ -100,6 +100,7 @@
         document.getElementById('add-product-form').addEventListener('submit', async (event) => {
             event.preventDefault();
 
+            // Get product details
             const productName = document.getElementById('product-name').value;
             const productDescription = document.getElementById('product-description').value;
             const productPrice = document.getElementById('product-price').value;
@@ -111,12 +112,20 @@
                 return;
             }
 
+            // Get user_id from URL (assuming it's passed in the URL as ?user_id=xxx)
+            const userId = new URLSearchParams(window.location.search).get('user_id');
+            if (!userId) {
+                alert("User ID not found.");
+                return;
+            }
+
             const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload';
             const formData = new FormData();
             formData.append('file', productImage);
             formData.append('upload_preset', 'BANYOTE');
 
             try {
+                // Upload image to Cloudinary
                 const imageResponse = await fetch(cloudinaryUrl, {
                     method: 'POST',
                     body: formData
@@ -130,7 +139,8 @@
                         description: productDescription,
                         price: parseFloat(productPrice),
                         category: productCategory,
-                        image_url: imageData.secure_url
+                        image_url: imageData.secure_url,
+                        user_id: userId  // Link the product to the user
                     };
 
                     const supabaseUrl = "https://fjlqkjwnelkamealhtyr.supabase.co/rest/v1/products";
