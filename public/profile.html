@@ -80,7 +80,7 @@
 
       // Get user_id from URL
       const userId = new URLSearchParams(window.location.search).get('user_id');
-      console.log("User ID:", userId); // Debugging log
+      console.log("User ID:", userId); // Debugging log to verify user_id is present
 
       if (!userId) {
         alert("User not found.");
@@ -117,8 +117,10 @@
 
       // Add Product button event
       addProductButton.addEventListener('click', (event) => {
-        event.preventDefault(); // Prevent default action of the button
-        window.location.href = `add-product.html?user_id=${userId}`; // Correct URL redirection
+        event.preventDefault(); // Ensure default button behavior doesn't cause issues
+        const redirectUrl = `add-product.html?user_id=${userId}`;
+        console.log("Redirecting to:", redirectUrl); // Debugging log to verify URL redirection
+        window.location.href = redirectUrl; // Redirect to add-product.html with user_id as query parameter
       });
     });
   </script>
