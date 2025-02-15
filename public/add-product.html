@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
-    <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -81,6 +80,7 @@
         </form>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0-beta.1"></script>
     <script>
         document.getElementById('add-product-form').addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -105,18 +105,11 @@
             }
 
             try {
-                // Upload image to Cloudinary
-                const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload';
-                const formData = new FormData();
-                formData.append('file', productImage);
-                formData.append('upload_preset', 'BANYOTE');
-
-                const imageResponse = await fetch(cloudinaryUrl, { method: 'POST', body: formData });
-                const imageData = await imageResponse.json();
-
-                if (!imageData.secure_url) {
-                    throw new Error('Cloudinary upload failed');
-                }
+                // Initialize Supabase client
+                const supabase = window.supabase.createClient(
+                    'https://fjlqkjwnelkamealhtyr.supabase.co', 
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'
+                );
 
                 // Construct product object
                 const product = {
@@ -124,33 +117,23 @@
                     description: productDescription,
                     price: productPrice,
                     category: productCategory,
-                    image_url: imageData.secure_url,
-                    user_id: userId
+                    user_id: userId,
                 };
 
-                // Supabase API Request - Added your URL and API key
-                const supabaseUrl = "https://fjlqkjwnelkamealhtyr.supabase.co/rest/v1/products";
-                const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";  // Your actual key
+                // Make POST request to Supabase
+                const { data, error } = await supabase
+                    .from('products')
+                    .insert([product]);
 
-                const response = await fetch(supabaseUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${supabaseKey}`,
-                        'apikey': supabaseKey,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(product)
-                });
-
-                const responseData = await response.json();
-
-                if (response.ok) {
-                    alert('Product added successfully!');
-                    event.target.reset();
-                } else {
-                    console.error('Error adding product:', responseData);
-                    alert(`Failed to add product: ${responseData.message || 'Unknown error'}`);
+                if (error) {
+                    console.error('Error adding product:', error);
+                    alert(`Failed to add product: ${error.message || 'Unknown error'}`);
+                    return;
                 }
+
+                console.log('Product added successfully:', data);
+                alert('Product added successfully!');
+                event.target.reset();
 
             } catch (error) {
                 console.error('Error:', error);
