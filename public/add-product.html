@@ -80,88 +80,92 @@
         </form>
     </main>
 
-    <!-- Supabase JavaScript library -->
+    <!-- Load Supabase JavaScript library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0-beta.1/dist/umd/supabase.js"></script>
 
     <script>
-        // Initialize the Supabase client
-        const supabase = supabase.createClient(
-            'https://fjlqkjwnelkamealhtyr.supabase.co',  // Replace with your Supabase URL
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'  // Replace with your Supabase public API key
-        );
+        // Wait until Supabase is fully loaded
+        window.onload = () => {
+            // Initialize the Supabase client after the window is fully loaded
+            const supabase = supabase.createClient(
+                'https://fjlqkjwnelkamealhtyr.supabase.co',  // Your Supabase URL
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'  // Replace with your API key
+            );
 
-        document.getElementById('add-product-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
+            // Form submission event
+            document.getElementById('add-product-form').addEventListener('submit', async (event) => {
+                event.preventDefault();
 
-            // Collect form data
-            const productName = document.getElementById('product-name').value.trim();
-            const productDescription = document.getElementById('product-description').value.trim();
-            const productPrice = parseFloat(document.getElementById('product-price').value);
-            const productCategory = document.getElementById('product-category').value.trim();
-            const productImage = document.getElementById('product-image').files[0];
+                // Collect form data
+                const productName = document.getElementById('product-name').value.trim();
+                const productDescription = document.getElementById('product-description').value.trim();
+                const productPrice = parseFloat(document.getElementById('product-price').value);
+                const productCategory = document.getElementById('product-category').value.trim();
+                const productImage = document.getElementById('product-image').files[0];
 
-            // Basic validation
-            if (!productImage) {
-                alert('Please select an image.');
-                return;
-            }
-
-            const userId = new URLSearchParams(window.location.search).get('user_id');
-            if (!userId) {
-                alert("User ID not found.");
-                return;
-            }
-
-            try {
-                // Upload Image to Supabase Storage
-                const { data: imageData, error: imageError } = await supabase
-                    .storage
-                    .from('product-images')  // Replace with your storage bucket name
-                    .upload(`products/${Date.now()}_${productImage.name}`, productImage, {
-                        cacheControl: '3600',
-                        upsert: false
-                    });
-
-                if (imageError) {
-                    console.error('Image upload error:', imageError);
-                    alert('Failed to upload image.');
+                // Basic validation
+                if (!productImage) {
+                    alert('Please select an image.');
                     return;
                 }
 
-                // Construct image URL
-                const imageUrl = `https://fjlqkjwnelkamealhtyr.supabase.co/storage/v1/object/public/product-images/${imageData.path}`;
-
-                // Construct product object
-                const product = {
-                    name: productName,
-                    description: productDescription,
-                    price: productPrice,
-                    category: productCategory,
-                    user_id: userId,
-                    images: imageUrl, // Save the image URL
-                    image_url: imageUrl // Save the same URL if needed
-                };
-
-                // Insert product into Supabase
-                const { data, error } = await supabase
-                    .from('products')
-                    .insert([product]);
-
-                if (error) {
-                    console.error('Error adding product:', error);
-                    alert(`Failed to add product: ${error.message || 'Unknown error'}`);
+                const userId = new URLSearchParams(window.location.search).get('user_id');
+                if (!userId) {
+                    alert("User ID not found.");
                     return;
                 }
 
-                console.log('Product added successfully:', data);
-                alert('Product added successfully!');
-                event.target.reset();
+                try {
+                    // Upload Image to Supabase Storage
+                    const { data: imageData, error: imageError } = await supabase
+                        .storage
+                        .from('product-images')  // Replace with your storage bucket name
+                        .upload(`products/${Date.now()}_${productImage.name}`, productImage, {
+                            cacheControl: '3600',
+                            upsert: false
+                        });
 
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred. Please check the console for details.');
-            }
-        });
+                    if (imageError) {
+                        console.error('Image upload error:', imageError);
+                        alert('Failed to upload image.');
+                        return;
+                    }
+
+                    // Construct image URL
+                    const imageUrl = `https://fjlqkjwnelkamealhtyr.supabase.co/storage/v1/object/public/product-images/${imageData.path}`;
+
+                    // Construct product object
+                    const product = {
+                        name: productName,
+                        description: productDescription,
+                        price: productPrice,
+                        category: productCategory,
+                        user_id: userId,
+                        images: imageUrl, // Save the image URL
+                        image_url: imageUrl // Save the same URL if needed
+                    };
+
+                    // Insert product into Supabase
+                    const { data, error } = await supabase
+                        .from('products')
+                        .insert([product]);
+
+                    if (error) {
+                        console.error('Error adding product:', error);
+                        alert(`Failed to add product: ${error.message || 'Unknown error'}`);
+                        return;
+                    }
+
+                    console.log('Product added successfully:', data);
+                    alert('Product added successfully!');
+                    event.target.reset();
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please check the console for details.');
+                }
+            });
+        };
     </script>
 </body>
 </html>
