@@ -53,6 +53,10 @@
         button:hover {
             background-color: #ffb6c1;
         }
+        .loading {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -76,7 +80,7 @@
             <label for="product-image">Image:</label>
             <input type="file" id="product-image" name="image" accept="image/*" required>
 
-            <button type="submit">Add Product</button>
+            <button type="submit" id="submit-button">Add Product</button>
         </form>
     </main>
 
@@ -96,6 +100,12 @@
             document.getElementById('add-product-form').addEventListener('submit', async (event) => {
                 event.preventDefault();
 
+                // Disable submit button to prevent multiple submissions
+                const submitButton = document.getElementById('submit-button');
+                submitButton.disabled = true;
+                submitButton.classList.add('loading');
+                submitButton.textContent = 'Adding Product...';
+
                 // Collect form data
                 const productName = document.getElementById('product-name').value.trim();
                 const productDescription = document.getElementById('product-description').value.trim();
@@ -104,8 +114,30 @@
                 const productImage = document.getElementById('product-image').files[0];
 
                 // Basic validation for image file
+                const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+                const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
+
                 if (!productImage) {
                     alert('Please select an image.');
+                    submitButton.disabled = false;
+                    submitButton.classList.remove('loading');
+                    submitButton.textContent = 'Add Product';
+                    return;
+                }
+
+                if (!ALLOWED_FILE_TYPES.includes(productImage.type)) {
+                    alert('Only JPEG, PNG, and GIF images are allowed.');
+                    submitButton.disabled = false;
+                    submitButton.classList.remove('loading');
+                    submitButton.textContent = 'Add Product';
+                    return;
+                }
+
+                if (productImage.size > MAX_FILE_SIZE) {
+                    alert('Image size must be less than 5MB.');
+                    submitButton.disabled = false;
+                    submitButton.classList.remove('loading');
+                    submitButton.textContent = 'Add Product';
                     return;
                 }
 
@@ -113,6 +145,9 @@
                 const userId = new URLSearchParams(window.location.search).get('user_id');
                 if (!userId) {
                     alert("User ID not found.");
+                    submitButton.disabled = false;
+                    submitButton.classList.remove('loading');
+                    submitButton.textContent = 'Add Product';
                     return;
                 }
 
@@ -129,6 +164,9 @@
                     if (imageError) {
                         console.error('Image upload error:', imageError);
                         alert('Failed to upload image.');
+                        submitButton.disabled = false;
+                        submitButton.classList.remove('loading');
+                        submitButton.textContent = 'Add Product';
                         return;
                     }
 
@@ -142,8 +180,7 @@
                         price: productPrice,
                         category: productCategory,
                         user_id: userId,
-                        images: imageUrl,  // Save the image URL
-                        image_url: imageUrl // If needed for extra column
+                        image_url: imageUrl // Save the image URL
                     };
 
                     // Insert product data into Supabase 'products' table
@@ -154,6 +191,9 @@
                     if (error) {
                         console.error('Error adding product:', error);
                         alert(`Failed to add product: ${error.message || 'Unknown error'}`);
+                        submitButton.disabled = false;
+                        submitButton.classList.remove('loading');
+                        submitButton.textContent = 'Add Product';
                         return;
                     }
 
@@ -161,9 +201,17 @@
                     alert('Product added successfully!');
                     event.target.reset();
 
+                    // Redirect to profile page after successful submission
+                    window.location.href = `profile.html?user_id=${userId}`;
+
                 } catch (error) {
                     console.error('Error:', error);
                     alert('An error occurred. Please check the console for details.');
+                } finally {
+                    // Re-enable submit button
+                    submitButton.disabled = false;
+                    submitButton.classList.remove('loading');
+                    submitButton.textContent = 'Add Product';
                 }
             });
         };
