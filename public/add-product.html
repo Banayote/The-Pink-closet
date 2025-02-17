@@ -84,15 +84,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0-beta.1/dist/umd/supabase.js"></script>
 
     <script>
-        // Wait until Supabase is fully loaded
+        // Initialize the Supabase client after the window is loaded
         window.onload = () => {
-            // Initialize the Supabase client after the window is fully loaded
+            // Initialize Supabase client with your Supabase URL and API key
             const supabase = supabase.createClient(
-                'https://fjlqkjwnelkamealhtyr.supabase.co',  // Your Supabase URL
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'  // Replace with your API key
+                'https://fjlqkjwnelkamealhtyr.supabase.co',  // Replace with your Supabase URL
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'  // Replace with your Supabase public API key
             );
 
-            // Form submission event
+            // Form submission event handler
             document.getElementById('add-product-form').addEventListener('submit', async (event) => {
                 event.preventDefault();
 
@@ -103,12 +103,13 @@
                 const productCategory = document.getElementById('product-category').value.trim();
                 const productImage = document.getElementById('product-image').files[0];
 
-                // Basic validation
+                // Basic validation for image file
                 if (!productImage) {
                     alert('Please select an image.');
                     return;
                 }
 
+                // Get user ID from query parameters (ensure this is being passed)
                 const userId = new URLSearchParams(window.location.search).get('user_id');
                 if (!userId) {
                     alert("User ID not found.");
@@ -116,7 +117,7 @@
                 }
 
                 try {
-                    // Upload Image to Supabase Storage
+                    // Upload Image to Supabase Storage (Assume 'product-images' is your storage bucket)
                     const { data: imageData, error: imageError } = await supabase
                         .storage
                         .from('product-images')  // Replace with your storage bucket name
@@ -131,21 +132,21 @@
                         return;
                     }
 
-                    // Construct image URL
+                    // Construct image URL from the storage
                     const imageUrl = `https://fjlqkjwnelkamealhtyr.supabase.co/storage/v1/object/public/product-images/${imageData.path}`;
 
-                    // Construct product object
+                    // Construct product object to insert into Supabase
                     const product = {
                         name: productName,
                         description: productDescription,
                         price: productPrice,
                         category: productCategory,
                         user_id: userId,
-                        images: imageUrl, // Save the image URL
-                        image_url: imageUrl // Save the same URL if needed
+                        images: imageUrl,  // Save the image URL
+                        image_url: imageUrl // If needed for extra column
                     };
 
-                    // Insert product into Supabase
+                    // Insert product data into Supabase 'products' table
                     const { data, error } = await supabase
                         .from('products')
                         .insert([product]);
