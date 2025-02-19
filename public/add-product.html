@@ -80,18 +80,18 @@
         </form>
     </main>
 
-    <!-- Supabase JavaScript Library (Ensure this URL is correct and reachable) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0-beta.1/dist/umd/supabase.js"></script>
+    <!-- Supabase JavaScript Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 
     <script>
-        // Make sure the window.onload is used to ensure that all resources are loaded properly.
+        // Ensure script only runs after the page is fully loaded
         window.onload = () => {
-            // Initialize Supabase client once the window is loaded
-            const supabaseUrl = 'https://fjlqkjwnelkamealhtyr.supabase.co';  // Replace with your Supabase URL
-            const supabaseKey = 'your-api-key'; // Replace with your Supabase API key
+            // Initialize Supabase client
+            const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co';  // Your Supabase URL
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';  // Your Supabase public anon key
             const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-            // Form submission event
+            // Handle form submission
             document.getElementById('add-product-form').addEventListener('submit', async (event) => {
                 event.preventDefault();
 
@@ -131,7 +131,7 @@
                     }
 
                     // Construct image URL from the storage bucket
-                    const imageUrl = `https://fjlqkjwnelkamealhtyr.supabase.co/storage/v1/object/public/product-images/${imageData.path}`;
+                    const imageUrl = `https://eczpdpysryifkekieloc.supabase.co/storage/v1/object/public/product-images/${imageData.path}`;
 
                     // Construct product object
                     const product = {
