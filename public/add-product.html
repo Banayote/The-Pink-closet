@@ -84,25 +84,21 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 
     <script>
-        // Ensure this script runs after the library is loaded
-        window.onload = function() {
-            // Initialize Supabase client after the script is fully loaded
-            const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co';  // Your Supabase URL
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';  // Your Supabase API key
-            const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        // Initialize Supabase globally
+        const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co';
+        const supabaseKey = 'YOUR_SUPABASE_KEY_HERE';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-            // Handle form submission
+        window.onload = function() {
             document.getElementById('add-product-form').addEventListener('submit', async (event) => {
                 event.preventDefault();
 
-                // Collect form data
                 const productName = document.getElementById('product-name').value.trim();
                 const productDescription = document.getElementById('product-description').value.trim();
                 const productPrice = parseFloat(document.getElementById('product-price').value);
                 const productCategory = document.getElementById('product-category').value.trim();
                 const productImage = document.getElementById('product-image').files[0];
 
-                // Basic validation for image
                 if (!productImage) {
                     alert('Please select an image.');
                     return;
@@ -115,10 +111,9 @@
                 }
 
                 try {
-                    // Upload the image to Supabase storage
                     const { data: imageData, error: imageError } = await supabase
                         .storage
-                        .from('product-images')  // Ensure this matches your Supabase Storage bucket name
+                        .from('product-images')
                         .upload(`products/${Date.now()}_${productImage.name}`, productImage, {
                             cacheControl: '3600',
                             upsert: false
@@ -130,21 +125,18 @@
                         return;
                     }
 
-                    // Construct image URL from the storage bucket
                     const imageUrl = `https://eczpdpysryifkekieloc.supabase.co/storage/v1/object/public/product-images/${imageData.path}`;
 
-                    // Construct product object
                     const product = {
                         name: productName,
                         description: productDescription,
                         price: productPrice,
                         category: productCategory,
                         user_id: userId,
-                        images: imageUrl,  // Save image URL to the product
-                        image_url: imageUrl // Optional: Add another column if needed
+                        images: imageUrl,
+                        image_url: imageUrl
                     };
 
-                    // Insert product into the 'products' table in Supabase
                     const { data, error } = await supabase
                         .from('products')
                         .insert([product]);
