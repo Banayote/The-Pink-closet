@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -53,12 +54,18 @@
         button:hover {
             background-color: #ffb6c1;
         }
+        .loading {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
+
 <body>
     <header>
         <h1>Add a New Product</h1>
     </header>
+
     <main>
         <form id="add-product-form">
             <label for="product-name">Product Name:</label>
@@ -76,24 +83,34 @@
             <label for="product-image">Image:</label>
             <input type="file" id="product-image" name="image" accept="image/*" required>
 
-            <button type="submit">Add Product</button>
+            <button type="submit" id="submit-button">Add Product</button>
         </form>
     </main>
 
-    <!-- Supabase JavaScript Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
+    <!-- Load Supabase JavaScript library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0-beta.1/dist/umd/supabase.js" async></script>
 
     <script>
-        // Ensure script only runs after the page is fully loaded
-        window.onload = () => {
-            // Initialize Supabase client
-            const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co';  // Your Supabase URL
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';  // Your Supabase public anon key
-            const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        // Ensure that Supabase is initialized after the script loads
+        window.onload = function() {
+            if (typeof supabase === 'undefined') {
+                console.error('Supabase has not been initialized!');
+                return;
+            }
 
-            // Handle form submission
+            const supabaseUrl = 'https://fjlqkjwnelkamealhtyr.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+            const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+            // Form submission event handler
             document.getElementById('add-product-form').addEventListener('submit', async (event) => {
                 event.preventDefault();
+
+                // Disable submit button to prevent multiple submissions
+                const submitButton = document.getElementById('submit-button');
+                submitButton.disabled = true;
+                submitButton.classList.add('loading');
+                submitButton.textContent = 'Adding Product...';
 
                 // Collect form data
                 const productName = document.getElementById('product-name').value.trim();
@@ -102,23 +119,23 @@
                 const productCategory = document.getElementById('product-category').value.trim();
                 const productImage = document.getElementById('product-image').files[0];
 
-                // Basic validation for image
+                // Validate image
                 if (!productImage) {
                     alert('Please select an image.');
-                    return;
+                    return resetButton(submitButton);
                 }
 
                 const userId = new URLSearchParams(window.location.search).get('user_id');
                 if (!userId) {
                     alert("User ID not found.");
-                    return;
+                    return resetButton(submitButton);
                 }
 
                 try {
-                    // Upload the image to Supabase storage
+                    // Upload image to Supabase Storage
                     const { data: imageData, error: imageError } = await supabase
                         .storage
-                        .from('product-images')  // Ensure this matches your Supabase Storage bucket name
+                        .from('product-images')
                         .upload(`products/${Date.now()}_${productImage.name}`, productImage, {
                             cacheControl: '3600',
                             upsert: false
@@ -127,44 +144,43 @@
                     if (imageError) {
                         console.error('Image upload error:', imageError);
                         alert('Failed to upload image.');
-                        return;
+                        return resetButton(submitButton);
                     }
 
-                    // Construct image URL from the storage bucket
-                    const imageUrl = `https://eczpdpysryifkekieloc.supabase.co/storage/v1/object/public/product-images/${imageData.path}`;
+                    // Construct image URL
+                    const imageUrl = `https://fjlqkjwnelkamealhtyr.supabase.co/storage/v1/object/public/product-images/${imageData.path}`;
 
-                    // Construct product object
-                    const product = {
-                        name: productName,
-                        description: productDescription,
-                        price: productPrice,
-                        category: productCategory,
-                        user_id: userId,
-                        images: imageUrl,  // Save image URL to the product
-                        image_url: imageUrl // Optional: Add another column if needed
-                    };
-
-                    // Insert product into the 'products' table in Supabase
+                    // Insert product data
                     const { data, error } = await supabase
                         .from('products')
-                        .insert([product]);
+                        .insert([{ name: productName, description: productDescription, price: productPrice, category: productCategory, user_id: userId, image_url: imageUrl }]);
 
                     if (error) {
                         console.error('Error adding product:', error);
                         alert(`Failed to add product: ${error.message || 'Unknown error'}`);
-                        return;
+                        return resetButton(submitButton);
                     }
 
-                    console.log('Product added successfully:', data);
                     alert('Product added successfully!');
                     event.target.reset();
+                    window.location.href = `profile.html?user_id=${userId}`;
 
                 } catch (error) {
                     console.error('Error:', error);
                     alert('An error occurred. Please check the console for details.');
+                } finally {
+                    resetButton(submitButton);
                 }
             });
+
+            // Reset button state
+            function resetButton(button) {
+                button.disabled = false;
+                button.classList.remove('loading');
+                button.textContent = 'Add Product';
+            }
         };
     </script>
 </body>
+
 </html>
