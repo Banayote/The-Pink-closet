@@ -87,12 +87,29 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       try {
-        const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
-        console.log("Using Supabase URL:", supabaseUrl);
-        // Initialize Supabase
-        window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        const supabaseUrl = "https://eczpdpysryifkekieloc.supabase.co";  // Ensure this URL is correct
+        const supabaseKey = "YOUR_SUPABASE_ANON_KEY";  // Replace with your actual anon key
 
+        console.log("Using Supabase URL:", supabaseUrl);
+
+        // Initialize Supabase
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Test connection to Supabase
+        async function testSupabaseConnection() {
+          try {
+            const { data, error } = await supabase.from("products").select("*").limit(1);
+            if (error) throw error;
+            console.log("Supabase connected successfully:", data);
+          } catch (err) {
+            console.error("Error connecting to Supabase:", err);
+            alert("Error connecting to Supabase. Check the console for details.");
+          }
+        }
+
+        testSupabaseConnection();  // Run the test to check if Supabase is reachable
+
+        // Form submit event listener
         document.getElementById("add-product-form").addEventListener("submit", async (event) => {
           event.preventDefault();
 
@@ -119,7 +136,7 @@
               .from("product-images")
               .upload(`products/${Date.now()}_${productImage.name}`, productImage, {
                 cacheControl: "3600",
-                upsert: false
+                upsert: false,
               });
 
             if (imageError) {
@@ -138,10 +155,10 @@
               price: productPrice,
               category: productCategory,
               user_id: userId,
-              image_url: imageUrl
+              image_url: imageUrl,
             };
 
-            // Insert product into database
+            // Insert product into the database
             const { data, error } = await supabase.from("products").insert([product]);
 
             if (error) {
@@ -160,6 +177,7 @@
         });
       } catch (e) {
         console.error("Error initializing Supabase:", e);
+        alert("Error initializing Supabase. Check the console for details.");
       }
     });
   </script>
