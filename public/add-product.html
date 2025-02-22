@@ -32,16 +32,17 @@
   </main>
 
   <script>
-    // ✅ Move Supabase initialization outside event listener
-    const supabaseUrl = "https://eczpdpysryifkekieloc.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4";
+    // Initialize Supabase first (this has to be done before using it anywhere)
+    const supabaseUrl = "https://eczpdpysryifkekieloc.supabase.co";  // Replace with your Supabase URL
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4";  // Replace with your Supabase key
 
-    console.log("Using Supabase URL:", supabaseUrl);
-    
+    // Initialize the Supabase client outside of the event listener
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-    console.log("Supabase initialized successfully.");
+    console.log("Supabase initialized successfully:", supabase);
 
+    // Wait for the DOM to load before adding event listeners
     document.addEventListener("DOMContentLoaded", () => {
+      // Add form submit event listener
       document.getElementById("add-product-form").addEventListener("submit", async (event) => {
         event.preventDefault();
 
