@@ -1,159 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Product</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f8f8;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #ffc0cb;
-            color: #fff;
-            text-align: center;
-            padding: 1rem;
-        }
-        main {
-            padding: 1rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        form {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 2rem;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #333;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 0.5rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #ffc0cb;
-            color: #fff;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-        button:hover {
-            background-color: #ffb6c1;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Product</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f8f8;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #ffc0cb;
+      color: #fff;
+      text-align: center;
+      padding: 1rem;
+    }
+    main {
+      padding: 1rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    form {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 2rem;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #333;
+    }
+    input,
+    textarea {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #ffc0cb;
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    button:hover {
+      background-color: #ffb6c1;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Add a New Product</h1>
-    </header>
-    <main>
-        <form id="add-product-form">
-            <label for="product-name">Product Name:</label>
-            <input type="text" id="product-name" name="name" required>
+  <header>
+    <h1>Add a New Product</h1>
+  </header>
+  <main>
+    <form id="add-product-form">
+      <label for="product-name">Product Name:</label>
+      <input type="text" id="product-name" name="name" required />
 
-            <label for="product-description">Description:</label>
-            <textarea id="product-description" name="description" required></textarea>
+      <label for="product-description">Description:</label>
+      <textarea id="product-description" name="description" required></textarea>
 
-            <label for="product-price">Price:</label>
-            <input type="number" id="product-price" name="price" step="0.01" required>
+      <label for="product-price">Price:</label>
+      <input type="number" id="product-price" name="price" step="0.01" required />
 
-            <label for="product-category">Category:</label>
-            <input type="text" id="product-category" name="category" required>
+      <label for="product-category">Category:</label>
+      <input type="text" id="product-category" name="category" required />
 
-            <label for="product-image">Image:</label>
-            <input type="file" id="product-image" name="image" accept="image/*" required>
+      <label for="product-image">Image:</label>
+      <input type="file" id="product-image" name="image" accept="image/*" required />
 
-            <button type="submit">Add Product</button>
-        </form>
-    </main>
+      <button type="submit">Add Product</button>
+    </form>
+  </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
+  <!-- Supabase JavaScript Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            try {
-                const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co';
-                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
-                window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      try {
+        const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
+        console.log("Using Supabase URL:", supabaseUrl);
+        // Initialize Supabase
+        window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-                document.getElementById('add-product-form').addEventListener('submit', async (event) => {
-                    event.preventDefault();
+        document.getElementById("add-product-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
 
-                    const productName = document.getElementById('product-name').value.trim();
-                    const productDescription = document.getElementById('product-description').value.trim();
-                    const productPrice = parseFloat(document.getElementById('product-price').value);
-                    const productCategory = document.getElementById('product-category').value.trim();
-                    const productImage = document.getElementById('product-image').files[0];
+          const productName = document.getElementById("product-name").value.trim();
+          const productDescription = document.getElementById("product-description").value.trim();
+          const productPrice = parseFloat(document.getElementById("product-price").value);
+          const productCategory = document.getElementById("product-category").value.trim();
+          const productImage = document.getElementById("product-image").files[0];
 
-                    if (!productImage) {
-                        alert('Please select an image.');
-                        return;
-                    }
+          if (!productImage) {
+            alert("Please select an image.");
+            return;
+          }
 
-                    const userId = new URLSearchParams(window.location.search).get('user_id');
-                    if (!userId) {
-                        alert("User ID not found.");
-                        return;
-                    }
+          const userId = new URLSearchParams(window.location.search).get("user_id");
+          if (!userId) {
+            alert("User ID not found.");
+            return;
+          }
 
-                    try {
-                        const { data: imageData, error: imageError } = await supabase.storage.from('product-images')
-                            .upload(`products/${Date.now()}_${productImage.name}`, productImage, {
-                                cacheControl: '3600',
-                                upsert: false
-                            });
+          try {
+            // Upload image to Supabase Storage
+            const { data: imageData, error: imageError } = await supabase.storage
+              .from("product-images")
+              .upload(`products/${Date.now()}_${productImage.name}`, productImage, {
+                cacheControl: "3600",
+                upsert: false
+              });
 
-                        if (imageError) {
-                            console.error('Image upload error:', imageError);
-                            alert('Failed to upload image.');
-                            return;
-                        }
-
-                        const imageUrl = `${supabaseUrl}/storage/v1/object/public/product-images/${imageData.path}`;
-
-                        const product = {
-                            name: productName,
-                            description: productDescription,
-                            price: productPrice,
-                            category: productCategory,
-                            user_id: userId,
-                            image_url: imageUrl
-                        };
-
-                        const { data, error } = await supabase.from('products').insert([product]);
-
-                        if (error) {
-                            console.error('Error adding product:', error);
-                            alert(`Failed to add product: ${error.message || 'Unknown error'}`);
-                            return;
-                        }
-
-                        console.log('Product added successfully:', data);
-                        alert('Product added successfully!');
-                        event.target.reset();
-
-                    } catch (error) {
-                        console.error('Error:', error);
-                        alert('An error occurred. Please check the console for details.');
-                    }
-                });
-            } catch (e) {
-                console.error("Error initializing Supabase:", e);
+            if (imageError) {
+              console.error("Image upload error:", imageError);
+              alert("Failed to upload image.");
+              return;
             }
+
+            // Construct the public URL for the uploaded image
+            const imageUrl = `${supabaseUrl}/storage/v1/object/public/product-images/${imageData.path}`;
+            console.log("Image URL:", imageUrl);
+
+            const product = {
+              name: productName,
+              description: productDescription,
+              price: productPrice,
+              category: productCategory,
+              user_id: userId,
+              image_url: imageUrl
+            };
+
+            // Insert product into database
+            const { data, error } = await supabase.from("products").insert([product]);
+
+            if (error) {
+              console.error("Error adding product:", error);
+              alert(`Failed to add product: ${error.message || "Unknown error"}`);
+              return;
+            }
+
+            console.log("Product added successfully:", data);
+            alert("Product added successfully!");
+            event.target.reset();
+          } catch (error) {
+            console.error("Error:", error);
+            alert("An error occurred. Please check the console for details.");
+          }
         });
-    </script>
+      } catch (e) {
+        console.error("Error initializing Supabase:", e);
+      }
+    });
+  </script>
 </body>
 </html>
