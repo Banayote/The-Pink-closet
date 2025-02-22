@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Add Product</title>
+  <!-- Supabase JavaScript Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 </head>
 <body>
@@ -32,17 +33,17 @@
   </main>
 
   <script>
-    // Initialize Supabase outside the event listener
+    // Initialize Supabase first (this must happen before using it anywhere)
     const supabaseUrl = "https://eczpdpysryifkekieloc.supabase.co";  // Replace with your Supabase URL
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4";  // Replace with your Supabase key
 
-    // Initialize the Supabase client
+    // Initialize Supabase client here
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
     console.log("Supabase initialized successfully");
 
-    // Wait for DOM to be fully loaded before adding event listeners
+    // Wait until the DOM is fully loaded before adding event listeners
     document.addEventListener("DOMContentLoaded", () => {
-      // Add form submit event listener after Supabase initialization
+      // Add form submit event listener after Supabase has been initialized
       document.getElementById("add-product-form").addEventListener("submit", async (event) => {
         event.preventDefault();
 
@@ -64,6 +65,7 @@
         }
 
         try {
+          // Image upload to Supabase storage
           const { data: imageData, error: imageError } = await supabase.storage
             .from("product-images")
             .upload(`products/${Date.now()}_${productImage.name}`, productImage);
@@ -74,9 +76,11 @@
             return;
           }
 
+          // Construct the image URL
           const imageUrl = `${supabaseUrl}/storage/v1/object/public/product-images/${imageData.path}`;
           console.log("Image uploaded successfully:", imageUrl);
 
+          // Prepare product data
           const product = {
             name: productName,
             description: productDescription,
@@ -86,6 +90,7 @@
             image_url: imageUrl,
           };
 
+          // Insert the product data into Supabase
           const { data, error } = await supabase.from("products").insert([product]);
 
           if (error) {
