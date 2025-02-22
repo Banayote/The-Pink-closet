@@ -85,17 +85,17 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 
   <script>
+    // Ensure Supabase initialization is done within a DOMContentLoaded event listener
     document.addEventListener("DOMContentLoaded", () => {
       try {
-        const supabaseUrl = "https://eczpdpysryifkekieloc.supabase.co";  // Ensure this URL is correct
-        const supabaseKey = "YOUR_SUPABASE_ANON_KEY";  // Replace with your actual anon key
-
+        const supabaseUrl = "https://eczpdpysryifkekieloc.supabase.co";  // Supabase URL
+        const supabaseKey = "YOUR_SUPABASE_ANON_KEY";  // Replace with your Supabase anon key
         console.log("Using Supabase URL:", supabaseUrl);
 
-        // Initialize Supabase
+        // Initialize Supabase here
         const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // Test connection to Supabase
+        // Test Supabase connection (optional, for debugging purposes)
         async function testSupabaseConnection() {
           try {
             const { data, error } = await supabase.from("products").select("*").limit(1);
