@@ -5,61 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f8f8;
-            margin: 0;
-            padding: 0;
-        }
-
-        header {
-            background-color: #ffc0cb;
-            color: #fff;
-            text-align: center;
-            padding: 1rem;
-        }
-
-        main {
-            padding: 1rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        form {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 2rem;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #333;
-        }
-
-        input, textarea {
-            width: 100%;
-            padding: 0.5rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        button {
-            background-color: #ffc0cb;
-            color: #fff;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        button:hover {
-            background-color: #ffb6c1;
-        }
+        /* Your existing styles */
     </style>
 </head>
 <body>
@@ -92,10 +38,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Supabase URL and key (update this with your own key)
             const supabase = window.supabase.createClient(
-                'https://fjlqkjwnelkamealhtyr.supabase.co',  // Replace with your Supabase URL
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4' // Replace with your anon key
+                'https://fjlqkjwnelkamealhtyr.supabase.co',  // Your Supabase URL
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4' // Your anon key
             );
 
             const form = document.getElementById('add-product-form');
@@ -124,7 +69,9 @@
                         });
 
                     if (imageError) {
-                        throw imageError;
+                        console.error('Image upload failed:', imageError);
+                        alert(`Image upload failed: ${imageError.message || imageError.details}`);
+                        return;
                     }
 
                     // Construct the public image URL
@@ -142,15 +89,17 @@
                     ]);
 
                     if (productError) {
-                        throw productError;
+                        console.error('Product insert failed:', productError);
+                        alert(`Failed to add product: ${productError.message || productError.details}`);
+                        return;
                     }
 
                     // Notify user and reset the form
                     alert('Product added successfully!');
-                    form.reset(); // Reset the form
+                    form.reset();
                 } catch (error) {
                     console.error('Error:', error);
-                    alert(`Failed to add product: ${error.message || 'Unknown error'}`);
+                    alert(`An error occurred: ${error.message || error.details}`);
                 }
             });
         });
