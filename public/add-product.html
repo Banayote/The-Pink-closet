@@ -85,101 +85,74 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 
   <script>
-    // Ensure Supabase initialization is done within a DOMContentLoaded event listener
+    // Initialize Supabase when the DOM is ready
     document.addEventListener("DOMContentLoaded", () => {
-      try {
-        const supabaseUrl = "https://eczpdpysryifkekieloc.supabase.co";  // Supabase URL (verify the URL is correct)
-        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4";  // Supabase anon key
-        console.log("Using Supabase URL:", supabaseUrl);
+      const supabaseUrl = "https://eczpdpysryifkekieloc.supabase.co";  // Your Supabase URL
+      const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4";  // **Replace this with your actual Supabase anon key**
 
-        // Initialize Supabase client
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+      // Initialize the Supabase client
+      const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        // Test Supabase connection
-        async function testSupabaseConnection() {
-          try {
-            const { data, error } = await supabase.from("products").select("*").limit(1);
-            if (error) throw error;
-            console.log("Supabase connected successfully:", data);
-          } catch (err) {
-            console.error("Error connecting to Supabase:", err);
-            alert("Error connecting to Supabase. Check the console for details.");
-          }
+      // Form submit event listener
+      document.getElementById("add-product-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const productName = document.getElementById("product-name").value.trim();
+        const productDescription = document.getElementById("product-description").value.trim();
+        const productPrice = parseFloat(document.getElementById("product-price").value);
+        const productCategory = document.getElementById("product-category").value.trim();
+        const productImage = document.getElementById("product-image").files[0];
+
+        if (!productImage) {
+          alert("Please select an image.");
+          return;
         }
 
-        // Test connection immediately
-        testSupabaseConnection();
+        try {
+          // Upload the image to Supabase Storage
+          const { data: imageData, error: imageError } = await supabase.storage
+            .from("product-images")
+            .upload(`products/${Date.now()}_${productImage.name}`, productImage, {
+              cacheControl: "3600",
+              upsert: false,
+            });
 
-        // Form submit event listener
-        document.getElementById("add-product-form").addEventListener("submit", async (event) => {
-          event.preventDefault();
-
-          const productName = document.getElementById("product-name").value.trim();
-          const productDescription = document.getElementById("product-description").value.trim();
-          const productPrice = parseFloat(document.getElementById("product-price").value);
-          const productCategory = document.getElementById("product-category").value.trim();
-          const productImage = document.getElementById("product-image").files[0];
-
-          if (!productImage) {
-            alert("Please select an image.");
+          if (imageError) {
+            console.error("Image upload error:", imageError);
+            alert("Failed to upload image.");
             return;
           }
 
-          const userId = new URLSearchParams(window.location.search).get("user_id");
-          if (!userId) {
-            alert("User ID not found.");
+          // Construct the public URL for the uploaded image
+          const imageUrl = `${supabaseUrl}/storage/v1/object/public/product-images/${imageData.path}`;
+          console.log("Image URL:", imageUrl);
+
+          // Create the product object
+          const product = {
+            name: productName,
+            description: productDescription,
+            price: productPrice,
+            category: productCategory,
+            image_url: imageUrl, // Add the image URL
+          };
+
+          // Insert the product into the 'products' table in Supabase
+          const { data, error } = await supabase.from("products").insert([product]);
+
+          if (error) {
+            console.error("Error adding product:", error);
+            alert(`Failed to add product: ${error.message}`);
             return;
           }
 
-          try {
-            // Upload image to Supabase Storage
-            const { data: imageData, error: imageError } = await supabase.storage
-              .from("product-images")
-              .upload(`products/${Date.now()}_${productImage.name}`, productImage, {
-                cacheControl: "3600",
-                upsert: false,
-              });
-
-            if (imageError) {
-              console.error("Image upload error:", imageError);
-              alert("Failed to upload image.");
-              return;
-            }
-
-            // Construct the public URL for the uploaded image
-            const imageUrl = `${supabaseUrl}/storage/v1/object/public/product-images/${imageData.path}`;
-            console.log("Image URL:", imageUrl);
-
-            const product = {
-              name: productName,
-              description: productDescription,
-              price: productPrice,
-              category: productCategory,
-              user_id: userId,
-              image_url: imageUrl,
-            };
-
-            // Insert product into the database
-            const { data, error } = await supabase.from("products").insert([product]);
-
-            if (error) {
-              console.error("Error adding product:", error);
-              alert(`Failed to add product: ${error.message || "Unknown error"}`);
-              return;
-            }
-
-            console.log("Product added successfully:", data);
-            alert("Product added successfully!");
-            event.target.reset();
-          } catch (error) {
-            console.error("Error:", error);
-            alert("An error occurred. Please check the console for details.");
-          }
-        });
-      } catch (e) {
-        console.error("Error initializing Supabase:", e);
-        alert("Error initializing Supabase. Check the console for details.");
-      }
+          console.log("Product added successfully:", data);
+          alert("Product added successfully!");
+          event.target.reset(); // Reset the form fields
+        } catch (error) {
+          console.error("Error:", error);
+          alert("An error occurred. Please check the console for details.");
+        }
+      });
     });
   </script>
 </body>
