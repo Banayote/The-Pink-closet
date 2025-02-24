@@ -5,54 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f8f8;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #ffc0cb;
-            color: #fff;
-            text-align: center;
-            padding: 1rem;
-        }
-        main {
-            padding: 1rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        form {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 2rem;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #333;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 0.5rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #ffc0cb;
-            color: #fff;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-        button:hover {
-            background-color: #ffb6c1;
-        }
+        /* Your existing styles */
     </style>
 </head>
 <body>
@@ -80,24 +33,22 @@
         </form>
     </main>
 
-    <!-- Supabase JavaScript Library -->
+    <!-- Load Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 
     <script>
-        // Wait until DOM is fully loaded before initializing Supabase
-        document.addEventListener('DOMContentLoaded', function () {
-            const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co'; // Your Supabase URL
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Your Supabase Anon Key
+        document.addEventListener('DOMContentLoaded', () => {
+            // Your Supabase URL and Anon Key
+            const supabase = window.supabase.createClient(
+                'https://eczpdpysryifkekieloc.supabase.co',  // Supabase URL
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'  // Your Supabase Anon key
+            );
 
-            // Correct initialization of supabase client
-            const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-            // Form submission handling
             const form = document.getElementById('add-product-form');
+
             form.addEventListener('submit', async (event) => {
                 event.preventDefault();
 
-                // Get form input values
                 const productName = document.getElementById('product-name').value;
                 const productDescription = document.getElementById('product-description').value;
                 const productPrice = parseFloat(document.getElementById('product-price').value);
@@ -105,27 +56,29 @@
                 const productImage = document.getElementById('product-image').files[0];
 
                 if (!productImage) {
-                    alert('Please select an image.');
+                    alert('Please select an image for the product.');
                     return;
                 }
 
                 try {
                     // Upload the image to Supabase Storage
                     const { data: imageData, error: imageError } = await supabase.storage
-                        .from('product-images') // Storage bucket name
+                        .from('product-images')
                         .upload(`products/${Date.now()}_${productImage.name}`, productImage, {
                             cacheControl: '3600',
                             upsert: false
                         });
 
                     if (imageError) {
-                        throw new Error('Error uploading image: ' + imageError.message);
+                        console.error('Image upload failed:', imageError);
+                        alert(`Image upload failed: ${imageError.message || imageError.details}`);
+                        return;
                     }
 
-                    // Get the public URL of the uploaded image
-                    const imageUrl = `${supabaseUrl}/storage/v1/object/public/product-images/${imageData.path}`;
+                    // Construct the public image URL
+                    const imageUrl = `${supabase.storageUrl}/v1/object/public/product-images/${imageData.path}`;
 
-                    // Insert product data into the 'products' table
+                    // Insert the product into the database
                     const { data: productData, error: productError } = await supabase.from('products').insert([
                         {
                             name: productName,
@@ -137,16 +90,16 @@
                     ]);
 
                     if (productError) {
-                        throw new Error('Error adding product: ' + productError.message);
+                        console.error('Error adding product:', productError);
+                        alert(`Failed to add product: ${productError.message}`);
+                        return;
                     }
 
-                    // Show success message and reset form
                     alert('Product added successfully!');
-                    form.reset(); // Reset form fields after submission
-
+                    form.reset(); // Reset the form after successful submission
                 } catch (error) {
-                    console.error('Unexpected error:', error);
-                    alert('An error occurred while adding the product. Please try again.');
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
                 }
             });
         });
