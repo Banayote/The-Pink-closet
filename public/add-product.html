@@ -38,10 +38,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Your Supabase URL and Anon Key
             const supabase = window.supabase.createClient(
-                'https://eczpdpysryifkekieloc.supabase.co',  // Supabase URL
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'  // Your Supabase Anon key
+                'https://fjlqkjwnelkamealhtyr.supabase.co',  // Your Supabase URL
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4' // Your anon key
             );
 
             const form = document.getElementById('add-product-form');
@@ -90,16 +89,17 @@
                     ]);
 
                     if (productError) {
-                        console.error('Error adding product:', productError);
-                        alert(`Failed to add product: ${productError.message}`);
+                        console.error('Product insert failed:', productError);
+                        alert(`Failed to add product: ${productError.message || productError.details}`);
                         return;
                     }
 
+                    // Notify user and reset the form
                     alert('Product added successfully!');
-                    form.reset(); // Reset the form after successful submission
+                    form.reset();
                 } catch (error) {
                     console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
+                    alert(`An error occurred: ${error.message || error.details}`);
                 }
             });
         });
