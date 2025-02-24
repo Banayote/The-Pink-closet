@@ -84,11 +84,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 
     <script>
+        // Wait until DOM is fully loaded before initializing Supabase
         document.addEventListener('DOMContentLoaded', function () {
-            // Supabase initialization should happen *after* DOM content has loaded
             const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co'; // Your Supabase URL
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Your Supabase Anon Key
-            const supabase = supabase.createClient(supabaseUrl, supabaseKey); // Initialize Supabase client
+
+            // Correct initialization of supabase client
+            const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
             // Form submission handling
             const form = document.getElementById('add-product-form');
