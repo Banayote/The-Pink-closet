@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
     <style>
-        /* Styles for the form */
         body {
             font-family: Arial, sans-serif;
             background-color: #f8f8f8;
@@ -86,24 +85,23 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Initialize the Supabase client properly
-            const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Your Supabase anon key
-            const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+            // Supabase initialization should happen *after* DOM content has loaded
+            const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co'; // Your Supabase URL
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'; // Your Supabase Anon Key
+            const supabase = supabase.createClient(supabaseUrl, supabaseKey); // Initialize Supabase client
 
-            // Handle form submission
+            // Form submission handling
             const form = document.getElementById('add-product-form');
             form.addEventListener('submit', async (event) => {
                 event.preventDefault();
 
-                // Get the product data from the form
+                // Get form input values
                 const productName = document.getElementById('product-name').value;
                 const productDescription = document.getElementById('product-description').value;
                 const productPrice = parseFloat(document.getElementById('product-price').value);
                 const productCategory = document.getElementById('product-category').value;
                 const productImage = document.getElementById('product-image').files[0];
 
-                // Ensure image is selected
                 if (!productImage) {
                     alert('Please select an image.');
                     return;
@@ -112,7 +110,7 @@
                 try {
                     // Upload the image to Supabase Storage
                     const { data: imageData, error: imageError } = await supabase.storage
-                        .from('product-images') // The name of your storage bucket
+                        .from('product-images') // Storage bucket name
                         .upload(`products/${Date.now()}_${productImage.name}`, productImage, {
                             cacheControl: '3600',
                             upsert: false
@@ -125,7 +123,7 @@
                     // Get the public URL of the uploaded image
                     const imageUrl = `${supabaseUrl}/storage/v1/object/public/product-images/${imageData.path}`;
 
-                    // Insert the product into the products table
+                    // Insert product data into the 'products' table
                     const { data: productData, error: productError } = await supabase.from('products').insert([
                         {
                             name: productName,
@@ -142,7 +140,7 @@
 
                     // Show success message and reset form
                     alert('Product added successfully!');
-                    form.reset(); // Reset the form fields
+                    form.reset(); // Reset form fields after submission
 
                 } catch (error) {
                     console.error('Unexpected error:', error);
