@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
 
-    <!-- Ensure Supabase Script is Loaded First -->
+    <!-- Supabase Script -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
-
-    <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script>
 
     <style>
         /* General Styles */
@@ -52,8 +50,7 @@
 
         input[type="text"],
         input[type="number"],
-        textarea,
-        input[type="file"] {
+        textarea {
             width: 100%;
             padding: 0.5rem;
             margin-bottom: 1rem;
@@ -105,64 +102,37 @@
             <label for="product-category">Category:</label>
             <input type="text" id="product-category" name="category" required>
 
-            <label for="product-image">Image:</label>
-            <input type="file" id="product-image" name="image" accept="image/*" required>
-
             <button type="submit">Add Product</button>
         </form>
     </main>
 
     <script>
-    // Initialize Supabase client after the script is loaded
-    window.onload = function() {
-        const supabase = supabase.createClient(
-            'https://eczpdpysryifkekieloc.supabase.co', 
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
-        );
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Supabase client
+            const supabase = supabase.createClient(
+                'https://eczpdpysryifkekieloc.supabase.co', 
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
+            );
 
-        document.getElementById('add-product-form').addEventListener('submit', async (event) => {
-            event.preventDefault();  // Prevent page reload
+            // Add form submission event listener
+            document.getElementById('add-product-form').addEventListener('submit', async (event) => {
+                event.preventDefault();  // Prevent page reload
 
-            // Get form data
-            const productName = document.getElementById('product-name').value;
-            const productDescription = document.getElementById('product-description').value;
-            const productPrice = document.getElementById('product-price').value;
-            const productCategory = document.getElementById('product-category').value;
-            const productImage = document.getElementById('product-image').files[0];
+                // Get form data
+                const productName = document.getElementById('product-name').value;
+                const productDescription = document.getElementById('product-description').value;
+                const productPrice = document.getElementById('product-price').value;
+                const productCategory = document.getElementById('product-category').value;
 
-            // Check if image is selected
-            if (!productImage) {
-                alert('Please select an image.');
-                return;
-            }
+                // Prepare product data for Supabase
+                const product = {
+                    name: productName,
+                    description: productDescription,
+                    price: parseFloat(productPrice), // Ensure price is a number
+                    category: productCategory
+                };
 
-            // Prepare the Cloudinary upload
-            const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfavv3ud/upload'; // Cloudinary URL
-            const formData = new FormData();
-            formData.append('file', productImage);
-            formData.append('upload_preset', 'BANYOTE'); // Cloudinary upload preset
-
-            try {
-                // Upload image to Cloudinary
-                const imageResponse = await fetch(cloudinaryUrl, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const imageData = await imageResponse.json();
-
-                console.log("Cloudinary Upload Response: ", imageData);  // Log the response for debugging
-
-                if (imageData.secure_url) {
-                    // Prepare product data for Supabase
-                    const product = {
-                        name: productName,
-                        description: productDescription,
-                        price: parseFloat(productPrice), // Ensure price is a number
-                        category: productCategory,
-                        image_url: imageData.secure_url // Cloudinary image URL
-                    };
-
+                try {
                     // Insert product data into Supabase
                     const { data, error } = await supabase.from('products').insert([product]);
 
@@ -173,16 +143,12 @@
                         alert('Product added successfully!');
                         event.target.reset();  // Reset form after successful submission
                     }
-                } else {
-                    console.error('Cloudinary upload failed', imageData);
-                    alert('Image upload failed. Please try again.');
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
                 }
-            } catch (error) {
-                console.error('Error uploading image:', error);
-                alert('Failed to upload image. Please try again.');
-            }
+            });
         });
-    };
     </script>
 </body>
 </html>
