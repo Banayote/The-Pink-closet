@@ -50,7 +50,8 @@
 
         input[type="text"],
         input[type="number"],
-        textarea {
+        textarea,
+        input[type="file"] {
             width: 100%;
             padding: 0.5rem;
             margin-bottom: 1rem;
@@ -102,17 +103,20 @@
             <label for="product-category">Category:</label>
             <input type="text" id="product-category" name="category" required>
 
+            <label for="product-image">Image:</label>
+            <input type="file" id="product-image" name="image" accept="image/*" required>
+
             <button type="submit">Add Product</button>
         </form>
     </main>
 
     <script>
+        // Wait for the DOM to load
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize Supabase client
-            const supabase = supabase.createClient(
-                'https://eczpdpysryifkekieloc.supabase.co', 
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
-            );
+            const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';
+            const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
             // Add form submission event listener
             document.getElementById('add-product-form').addEventListener('submit', async (event) => {
@@ -123,16 +127,43 @@
                 const productDescription = document.getElementById('product-description').value;
                 const productPrice = document.getElementById('product-price').value;
                 const productCategory = document.getElementById('product-category').value;
+                const productImage = document.getElementById('product-image').files[0];
 
-                // Prepare product data for Supabase
-                const product = {
-                    name: productName,
-                    description: productDescription,
-                    price: parseFloat(productPrice), // Ensure price is a number
-                    category: productCategory
-                };
+                // Check if image is selected
+                if (!productImage) {
+                    alert('Please select an image.');
+                    return;
+                }
 
                 try {
+                    // Upload image to Supabase Storage
+                    const imageName = `${Date.now()}-${productImage.name}`; // Unique filename
+                    const { data: imageData, error: imageError } = await supabase
+                        .storage
+                        .from('product-images') // Replace with your bucket name
+                        .upload(imageName, productImage);
+
+                    if (imageError) {
+                        console.error('Error uploading image:', imageError);
+                        alert('Failed to upload image. Please try again.');
+                        return;
+                    }
+
+                    // Get the public URL of the uploaded image
+                    const { data: imageUrl } = supabase
+                        .storage
+                        .from('product-images')
+                        .getPublicUrl(imageName);
+
+                    // Prepare product data for Supabase
+                    const product = {
+                        name: productName,
+                        description: productDescription,
+                        price: parseFloat(productPrice), // Ensure price is a number
+                        category: productCategory,
+                        image_url: imageUrl.publicUrl // Supabase Storage image URL
+                    };
+
                     // Insert product data into Supabase
                     const { data, error } = await supabase.from('products').insert([product]);
 
