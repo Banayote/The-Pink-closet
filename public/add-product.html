@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
+
+    <!-- Ensure Supabase Script is Loaded First -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
+
     <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script>
 
     <style>
@@ -110,7 +113,7 @@
     </main>
 
     <script>
-    // Initialize Supabase client
+    // Initialize Supabase client after the script is fully loaded
     const supabase = supabase.createClient(
         'https://eczpdpysryifkekieloc.supabase.co', 
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
@@ -144,7 +147,10 @@
                 method: 'POST',
                 body: formData
             });
+
             const imageData = await imageResponse.json();
+
+            console.log("Cloudinary Upload Response: ", imageData);  // Log the response for debugging
 
             if (imageData.secure_url) {
                 // Prepare product data for Supabase
@@ -165,7 +171,6 @@
                 } else {
                     alert('Product added successfully!');
                     event.target.reset();  // Reset form after successful submission
-                    // Optionally redirect or perform additional actions here
                 }
             } else {
                 console.error('Cloudinary upload failed', imageData);
