@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script> <!-- Ensure this is loaded first -->
+    <!-- Load Supabase SDK before your custom script -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script> 
     <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script>
 
     <style>
@@ -109,15 +110,17 @@
         </form>
     </main>
 
-    <!-- Move your custom JavaScript to the bottom to ensure all other scripts are loaded first -->
+    <!-- Custom Script that interacts with Supabase -->
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Initialize Supabase client
+        // Ensure the DOM is fully loaded before running the code
+        document.addEventListener("DOMContentLoaded", function() {
+            // Initialize Supabase client after the Supabase script is loaded
             const supabase = supabase.createClient(
                 'https://eczpdpysryifkekieloc.supabase.co', 
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
             );
 
+            // Handle form submission
             document.getElementById('add-product-form').addEventListener('submit', async (event) => {
                 event.preventDefault();  // Prevent page reload
 
@@ -158,14 +161,11 @@
                             image_url: imageData.secure_url // Cloudinary image URL
                         };
 
-                        console.log('Inserting:', product); // Debugging
-
                         // Insert product data into Supabase
                         const { data, error } = await supabase.from('products').insert([product]);
-
                         if (error) {
-                            console.error('Supabase Error:', error);
-                            alert('Failed to add product: ' + error.message);
+                            console.error('Error adding product:', error);
+                            alert('Failed to add product. Please try again.');
                         } else {
                             alert('Product added successfully!');
                             event.target.reset();  // Reset form after successful submission
