@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
     
-    <!-- Load Supabase before any custom JavaScript -->
+    <!-- Load Supabase before your custom code -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
     <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script>
 
@@ -45,13 +45,16 @@
     </main>
 
     <script>
-        // ✅ Ensure Supabase is initialized globally before any other code runs
-        const supabase = window.supabase.createClient(
-            'https://eczpdpysryifkekieloc.supabase.co', 
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
-        );
-
+        // Wait for DOMContentLoaded event
         document.addEventListener("DOMContentLoaded", function () {
+
+            // Initialize Supabase client inside the event listener
+            const supabase = window.supabase.createClient(
+                'https://eczpdpysryifkekieloc.supabase.co', 
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
+            );
+
+            // Handle form submission
             document.getElementById('add-product-form').addEventListener('submit', async (event) => {
                 event.preventDefault();  // Prevent form from refreshing
 
