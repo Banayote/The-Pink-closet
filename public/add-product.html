@@ -5,20 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
     
-    <!-- Load Supabase before your custom code -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
+    <!-- Load Supabase before your script -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script>
 
     <style>
         body { font-family: Arial, sans-serif; background-color: #f8f8f8; margin: 0; padding: 0; }
         header { background-color: #ffc0cb; color: #fff; text-align: center; padding: 1rem; }
-        h1 { margin: 0; }
         main { padding: 1rem; max-width: 800px; margin: 0 auto; }
-        form { background-color: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 2rem; }
-        label { display: block; margin-bottom: 0.5rem; color: #333; }
-        input, textarea { width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 4px; }
-        button { background-color: #ffc0cb; color: #fff; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; }
-        button:hover { background-color: #ffb6c1; }
+        form { background-color: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
+        label, input, textarea, button { display: block; width: 100%; margin-bottom: 1rem; }
+        button { background-color: #ffc0cb; color: white; padding: 0.75rem; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -45,20 +42,23 @@
     </main>
 
     <script>
-        // Wait for DOMContentLoaded event
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", async function () {
+            if (!window.supabase) {
+                console.error("Supabase library failed to load.");
+                alert("Error loading Supabase. Please check your internet connection.");
+                return;
+            }
 
-            // Initialize Supabase client inside the event listener
-            const supabase = window.supabase.createClient(
+            // Initialize Supabase Client
+            const { createClient } = window.supabase;
+            const supabase = createClient(
                 'https://eczpdpysryifkekieloc.supabase.co', 
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4'
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9....' // Your Supabase API Key
             );
 
-            // Handle form submission
             document.getElementById('add-product-form').addEventListener('submit', async (event) => {
-                event.preventDefault();  // Prevent form from refreshing
+                event.preventDefault();
 
-                // Get form data
                 const productName = document.getElementById('product-name').value;
                 const productDescription = document.getElementById('product-description').value;
                 const productPrice = document.getElementById('product-price').value;
@@ -76,12 +76,9 @@
                 formData.append('upload_preset', 'BANYOTE');
 
                 try {
-                    const imageResponse = await fetch(cloudinaryUrl, {
-                        method: 'POST',
-                        body: formData
-                    });
-
+                    const imageResponse = await fetch(cloudinaryUrl, { method: 'POST', body: formData });
                     const imageData = await imageResponse.json();
+
                     if (!imageData.secure_url) {
                         throw new Error('Image upload failed');
                     }
