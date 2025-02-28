@@ -1,578 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Display</title>
+    <title>Product Details</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: white;
             margin: 0;
             padding: 0;
+            background-color: #f9f9f9;
         }
 
-        .fixed-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background-color: white;
-            padding: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        }
-
-        .fixed-header .logo {
-            margin: auto;
-        }
-
-        .logo h1 {
-            color: pink;
-            margin: 0;
-            text-align: center;
-        }
-
-        .closet-icon {
-            width: 30px;
-            height: 30px;
-            fill: none;
-            stroke: pink;
-        }
-
-        .back-button {
-            background-color: white;
-            color: pink;
-            border: none;
-            font-size: 1.5rem;
+        header {
+            background-color: #ff6347;
+            color: white;
             padding: 10px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .back-button:hover {
-            background-color: white;
+            text-align: center;
         }
 
         .product-container {
-            max-width: 300px;
-            margin: auto;
-            background-color: white;
-            padding: 40px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            color: #333;
             display: flex;
             flex-direction: column;
-            position: relative;
-            margin-top: 80px; /* Adjust to ensure content is not hidden behind fixed header */
+            align-items: center;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+            border-radius: 8px;
+            max-width: 600px;
+            margin: 20px auto;
         }
 
-        .image-carousel {
-            width: 100%;
-            height: 400px;
-            overflow: hidden;
-            border: 2px solid pink;
-            border-radius: 10px;
-            position: relative;
-        }
-
-        .image-carousel img {
-            width: 100%;
-            height: 400px;
-            object-fit: cover;
-            border-radius: 10px;
-            position: absolute;
-            transition: opacity 0.5s ease;
+        .product-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
         }
 
         .product-details {
-            display: flex;
-            flex-direction: column;
-            text-align: left;
-            padding: 20px 0;
-        }
-
-        .product-title {
-            font-size: 1.5rem;
-            margin-bottom: 0px;
-            color: black;
-        }
-
-        .product-price {
-            font-size: 1.25rem;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .product-description {
-            margin-bottom: 20px;
-        }
-
-        .size-options-container {
-            display: flex;
-            margin-bottom: 20px;
-            margin-left: 0px;
-        }
-
-        .size-options {
-            display: flex;
-            gap: 10px;
-        }
-
-        .size-options button {
-            border: 1px solid #ccc;
-            padding: 10px;
-            cursor: pointer;
-            background-color: white;
-            color: pink;
-            border-radius: 50px;
-        }
-
-        .size-options button:hover {
-            background-color: pink;
-            color: white;
-        }
-
-        .buy-button {
-            background-color: white;
-            color: pink;
-            padding: 15px;
-            border: 1px solid pink;
-            cursor: pointer;
-            width: 100%;
-            font-size: 1.25rem;
-            border-radius: 5px;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .buy-button:hover {
-            background-color: pink;
-            color: white;
-        }
-
-        .visit-store {
-            background-color: white;
-            color: pink;
-            padding: 10px;
-            border: 1px solid pink;
-            cursor: pointer;
-            border-radius: 5px;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .visit-store:hover {
-            background-color: pink;
-            color: white;
-        }
-
-        .add-to-closet {
-            background-color: pink;
-            color: white;
-            padding: 15px;
-            border: none;
-            cursor: pointer;
-            width: 100%;
-            font-size: 1.25rem;
-            border-radius: 5px;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            margin: 0;
-            box-sizing: border-box;
-        }
-
-        .add-to-closet:hover {
-            background-color: #pink;
-        }
-
-        .review-button {
-            background-color: white;
-            color: pink;
-            padding: 10px 15px;
-            border: 1px solid pink;
-            cursor: pointer;
-            border-radius: 5px;
-            display: block;
-            margin: 0 auto;
-        }
-
-        .review-button:hover {
-            background-color: pink;
-            color: white;
-        }
-
-        .review-section {
             margin-top: 20px;
             text-align: center;
         }
 
-        .more-products-container, .other-products-container {
-            margin: 20px 0;
+        .product-name {
+            font-size: 2rem;
+            font-weight: bold;
         }
 
-        .more-products {
-            display: flex;
-            overflow-x: auto;
-            white-space: nowrap;
-            gap: 10px;
-            padding: 10px 0;
-        }
-
-        .more-products img {
-            width: 150px;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 10px;
-        }
-
-        .more-indicator {
-            text-align: center;
-            font-size: 1rem;
-            color: pink;
+        .product-description {
+            color: #555;
             margin-top: 10px;
         }
 
-        .other-products {
-            display: flex;
-            flex-direction: column;
-            gap: 0px;
-            overflow-y: auto;
-            max-height: 6000px; /* Adjust as needed */
+        .product-price {
+            color: #ff6347;
+            font-size: 1.5rem;
+            margin-top: 15px;
         }
 
-        .product-row {
-            display: flex;
-            overflow-x: auto;
-            white-space: nowrap;
-            gap: 10px;
-        }
-
-        .product-row img {
-            width: 150px; /* Adjust as needed */
-            height: 150px; /* Adjust as needed */
-            object-fit: cover;
-            border-radius: 10px;
-        }
-
-        @keyframes flyToCloset {
-            from {
-                transform: scale(1) translateX(0) translateY(0);
-                opacity: 1;
-            }
-            to {
-                transform: scale(0.5) translateX(calc(100vw - 60px)) translateY(10px);
-                opacity: 0;
-            }
-        }
-
-        .closet-icon-wrapper {
-            position: relative;
-        }
-
-        .closet-counter {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background-color: red;
+        .visit-store-btn {
+            background-color: #ff6347;
             color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            display: none; /* Initially hidden */
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .visit-store-btn:hover {
+            background-color: #e5533b;
         }
     </style>
 </head>
+
 <body>
-    <div class="fixed-header">
-        <button class="back-button">&lt;</button>
-        <div class="logo">
-            <h1>Pink Closet</h1>
+    <header>
+        <h1>Product Details</h1>
+    </header>
+
+    <main>
+        <div id="product-container" class="product-container">
+            <!-- Product details will be injected here -->
         </div>
-        <div class="closet-icon-wrapper">
-            <svg id="closetIcon" class="closet-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="pink" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
-                <line x1="12" y1="2" x2="12" y2="22"/>
-                <circle cx="9" cy="12" r="1"/>
-                <circle cx="15" cy="12" r="1"/>
-            </svg>
-            <div id="closetCounter" class="closet-counter">1</div>
-        </div>
-    </div>
+    </main>
 
-    <div class="product-container">
-        <div class="image-carousel" id="imageCarousel">
-            <img src="image1.jpg" alt="Product Image 1">
-            <img src="image2.jpg" alt="Product Image 2">
-            <img src="image3.jpg" alt="Product Image 3">
-        </div>
+    <footer>
+        <p>&copy; The Pink Closet 2024. All rights reserved.</p>
+    </footer>
 
-        <div class="product-details">
-            <h2 class="product-title">Product Name</h2>
-            <p class="product-price">$13.00</p>
+    <!-- Load Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 
-            <div class="product-description">
-                <p>This is a beautiful puff sleeve blouse made of high-quality materials. Perfect for casual and formal wear. Available in multiple sizes.</p>
-            </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const supabase = window.supabase.createClient(
+                'https://fjlqkjwnelkamealhtyr.supabase.co', // Your Supabase URL
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4' // Your Supabase Anon Key
+            );
 
-            <div class="size-options-container">
-                <div class="size-options">
-                    <button>XS</button>
-                    <button>S</button>
-                    <button>M</button>
-                    <button>L</button>
-                    <button>XL</button>
-                </div>
-            </div>
+            // Get product ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+            
+            if (!productId) {
+                alert('Product ID is missing.');
+                return;
+            }
 
-            <button class="buy-button">Buy Now</button>
-            <button class="visit-store">Visit Store</button>
-            <button class="review-button" id="leaveReviewButton">Leave a Review</button>
-        </div>
-    </div>
+            try {
+                // Fetch product details from Supabase based on the product ID
+                const { data: product, error } = await supabase
+                    .from('products')
+                    .select()
+                    .eq('id', productId)
+                    .single();  // single() is used because we're fetching a single record
 
-    <div class="more-products-container">
-        <div class="section-title">More Products</div>
-        <div class="more-products" id="moreProducts">
-        </div>
-        <div class="more-indicator" id="moreIndicator" style="display: none;">More ></div>
-    </div>
+                if (error) {
+                    throw error;
+                }
 
-    <div class="other-products-container">
-        <div class="section-title">Other Products from Stores</div>
-        <div class="other-products" id="otherProducts">
-        </div>
-    </div>
+                // Check if the product exists
+                if (!product) {
+                    document.getElementById('product-container').innerHTML = '<p>Product not found.</p>';
+                    return;
+                }
 
-    <button class="add-to-closet" id="addToCloset">Add to Closet</button>
-    
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script>
-    // ✅ Initialize Supabase client
-    const supabase = createClient(
-        "https://fjlqkjwnelkamealhtyr.supabase.co",  // Your Supabase URL
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4"  // Your Supabase API Key
-    );
-
-    // ✅ Fetch Product Data from Supabase
-    async function fetchProduct() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const productId = urlParams.get("id"); // Get the product ID from the URL
-        
-        if (!productId) {
-            console.error("No product ID found in URL");
-            return;
-        }
-
-        // Fetch product details from Supabase
-        const { data, error } = await supabase
-            .from("products")  // Replace with your actual table name
-            .select("*")
-            .eq("id", productId)
-            .single();
-
-        if (error) {
-            console.error("Error fetching product:", error.message);
-            return;
-        }
-
-        // ✅ Update Product Info in HTML
-        document.querySelector(".product-title").textContent = data.name;
-        document.querySelector(".product-price").textContent = `$${data.price}`;
-        document.querySelector(".product-description p").textContent = data.description;
-
-        // ✅ Update Product Images
-        const imageContainer = document.getElementById("imageCarousel");
-        imageContainer.innerHTML = ""; // Clear existing images
-        
-        // Assuming `data.images` is an array of image URLs
-        data.images.forEach((imageUrl, index) => {
-            let img = document.createElement("img");
-            img.src = imageUrl;
-            img.alt = `Product Image ${index + 1}`;
-            img.style.opacity = index === 0 ? "1" : "0"; // Show first image by default
-            imageContainer.appendChild(img);
+                // Display product details
+                const productContainer = document.getElementById('product-container');
+                productContainer.innerHTML = `
+                    <img src="${product.image_url || 'https://via.placeholder.com/150'}" alt="${product.name}">
+                    <div class="product-details">
+                        <h2 class="product-name">${product.name}</h2>
+                        <p class="product-description">${product.description}</p>
+                        <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
+                        <a href="profile.html" class="visit-store-btn">Visit Store</a>
+                    </div>
+                `;
+            } catch (err) {
+                console.error('Error fetching product details:', err.message);
+                document.getElementById('product-container').innerHTML = '<p>Error loading product details. Try again later.</p>';
+            }
         });
+    </script>
+</body>
 
-        // ✅ Make "Visit Store" button go to the correct store profile
-        document.querySelector(".visit-store").addEventListener("click", () => {
-            window.location.href = `profile.html?id=${data.store_id}`; // Adjust to store page logic
-        });
-
-        showImage(0); // Ensure first image is visible
-    }
-
-    // Fetch product data when page loads
-    document.addEventListener("DOMContentLoaded", fetchProduct);
-</script>
-
-   <script>
-    // Sample data for products
-    const moreProductsData = [
-        'image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg', 'image5.jpg', 'image6.jpg',
-        'image7.jpg', 'image8.jpg', 'image9.jpg', 'image10.jpg', 'image11.jpg', 'image12.jpg',
-        'image13.jpg', 'image14.jpg', 'image15.jpg', 'image16.jpg', 'image17.jpg', 'image18.jpg',
-        'image19.jpg', 'image20.jpg', 'image21.jpg', 'image22.jpg', 'image23.jpg', 'image24.jpg',
-        'image25.jpg', 'image26.jpg', 'image27.jpg', 'image28.jpg', 'image29.jpg', 'image30.jpg'
-    ];
-
-    const otherProductsData = Array.from({ length: 30 }, (_, rowIndex) => 
-        Array.from({ length: 39 }, (_, colIndex) => `images/image${(rowIndex * 39 + colIndex) % moreProductsData.length + 1}.jpg`)
-    );
-
-    const moreProducts = document.getElementById('moreProducts');
-    const moreIndicator = document.getElementById('moreIndicator');
-
-    moreProductsData.forEach((imgSrc, index) => {
-        let aElement = document.createElement('a');
-        aElement.href = `product${index + 1}.html`; // Adjust URL pattern
-        let imgElement = document.createElement('img');
-        imgElement.src = imgSrc;
-        aElement.appendChild(imgElement);
-        moreProducts.appendChild(aElement);
-    });
-
-    moreProducts.addEventListener('scroll', () => {
-        if (moreProducts.scrollLeft + moreProducts.offsetWidth >= moreProducts.scrollWidth) {
-            moreIndicator.style.display = 'block';
-        } else {
-            moreIndicator.style.display = 'none';
-        }
-    });
-
-    const otherProducts = document.getElementById('otherProducts');
-
-    otherProductsData.forEach((rowData) => {
-        const rowDiv = document.createElement('div');
-        rowDiv.classList.add('product-row');
-        rowData.forEach((imgSrc, index) => {
-            let aElement = document.createElement('a');
-            aElement.href = `product${index + 31}.html`; // Adjust URL pattern
-            let imgElement = document.createElement('img');
-            imgElement.src = imgSrc;
-            aElement.appendChild(imgElement);
-            rowDiv.appendChild(aElement);
-        });
-        otherProducts.appendChild(rowDiv);
-    });
-
-    const imageCarousel = document.getElementById('imageCarousel');
-    const images = imageCarousel.querySelectorAll('img');
-    let currentIndex = 0;
-
-    function showImage(index) {
-        images.forEach((img, i) => {
-            img.style.opacity = i === index ? '1' : '0';
-        });
-    }
-
-    function nextImage() {
-        currentIndex = (currentIndex + 1) % images.length;
-        showImage(currentIndex);
-    }
-
-    function previousImage() {
-        currentIndex = (currentIndex - 1 + images.length) % images.length;
-        showImage(currentIndex);
-    }
-
-    let startX = 0;
-
-    imageCarousel.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-    });
-
-    imageCarousel.addEventListener('touchend', (e) => {
-        let endX = e.changedTouches[0].clientX;
-        if (startX > endX + 30) {
-            nextImage();
-        } else if (startX < endX - 30) {
-            previousImage();
-        }
-    });
-
-    showImage(currentIndex);
-
-    // Add to Closet functionality
-    document.getElementById('addToCloset').addEventListener('click', () => {
-        const closetIcon = document.getElementById('closetIcon');
-        const closetCounter = document.getElementById('closetCounter');
-
-        // Add animation
-        const animation = document.createElement('div');
-        animation.style.position = 'absolute';
-        animation.style.bottom = '570px';
-        animation.style.left = '20px';
-        animation.style.width = '50px';
-        animation.style.height = '50px';
-        animation.style.background = 'pink';
-        animation.style.borderRadius = '50%';
-        animation.style.zIndex = '2000';
-        animation.style.pointerEvents = 'none';
-        animation.style.animation = 'flyToCloset 1s forwards';
-        document.body.appendChild(animation);
-
-        setTimeout(() => {
-            document.body.removeChild(animation);
-        }, 1000);
-
-        const productTitle = document.querySelector('.product-title').textContent;
-        const productPrice = document.querySelector('.product-price').textContent;
-        const productDescription = document.querySelector('.product-description p').textContent;
-        const productDetails = {
-            title: productTitle,
-            price: productPrice,
-            description: productDescription
-        };
-
-        let closet = JSON.parse(localStorage.getItem('closet')) || [];
-        closet.push(productDetails);
-        localStorage.setItem('closet', JSON.stringify(closet));
-
-        // Update counter
-        const counterValue = closet.length;
-        closetCounter.textContent = counterValue;
-        closetCounter.style.display = counterValue > 0 ? 'flex' : 'none';
-    });
-
-    // Redirect to closet page on closet icon click
-    document.getElementById('closetIcon').addEventListener('click', () => {
-        window.location.href = 'closet.html';
-    });
-
-    // Handle Leave a Review button click
-    document.getElementById('leaveReviewButton').addEventListener('click', () => {
-        window.location.href = 'reviews.html'; // Change 'reviews.html' to the URL where reviews are managed
-    });
-
-    // Review submission handling
-    document.getElementById('submitReviewButton').addEventListener('click', () => {
-        const reviewText = document.getElementById('reviewText').value;
-        const reviewImages = []; // Add logic to collect images
-        const reviewGifs = []; // Add logic to collect GIFs
-        const reviewVoice = ''; // Add logic to collect voice recordings
-
-        const reviewDetails = {
-            text: reviewText,
-            images: reviewImages,
-            gifs: reviewGifs,
-            voice: reviewVoice,
-            timestamp: new Date().toISOString()
-        };
-
-        let reviews = JSON.parse(localStorage.getItem('reviews')) || [];
-        reviews.push(reviewDetails);
-        localStorage.setItem('reviews', JSON.stringify(reviews));
-
-        alert('Review submitted successfully!'); // You can replace this with your own notification logic
-        document.getElementById('reviewText').value = ''; // Clear the input after submission
-    });
-</script>
+</html>
