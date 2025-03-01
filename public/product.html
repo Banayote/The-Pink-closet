@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details</title>
-
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -79,9 +77,7 @@
         }
     </style>
 </head>
-
 <body>
-
     <header>
         <h1>Product Details</h1>
     </header>
@@ -139,7 +135,7 @@
                         <p class="product-description">${product.description}</p>
                         <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
                         <a href="profile.html?id=${product.seller_id}" class="visit-store-btn">Visit Store</a>
-                        <button class="buy-btn" onclick="startConversation(${product.id}, ${product.seller_id})">Buy</button>
+                        <button class="buy-btn" onclick="startConversation(${product.id}, '${product.seller_id}')">Buy</button>
                     </div>
                 `;
             } catch (err) {
@@ -148,26 +144,18 @@
             }
         });
 
+        // Function to start a conversation between buyer and seller
         async function startConversation(productId, sellerId) {
             const supabase = window.supabase.createClient(
-                'https://fjlqkjwnelkamealhtyr.supabase.co',
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'
+                'https://fjlqkjwnelkamealhtyr.supabase.co', // Your Supabase URL
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4' // Your Supabase Anon Key
             );
-
-            // Create a temporary anonymous buyer ID for the session
-            let buyerId = sessionStorage.getItem("buyerId");
-
-            if (!buyerId) {
-                // If no buyer ID exists, create a new one
-                buyerId = Date.now().toString(); // Simple unique ID based on the current timestamp
-                sessionStorage.setItem("buyerId", buyerId);
-            }
 
             // Create a new conversation in Supabase
             const { data, error } = await supabase
                 .from('messages')
                 .insert([
-                    { buyer_id: buyerId, seller_id: sellerId, product_id: productId, message: "Hi, I'm interested in this product!" }
+                    { buyer_id: 'guest', seller_id: sellerId, product_id: productId, message: "Hi, I'm interested in this product!" }
                 ])
                 .select()
                 .single();
@@ -178,11 +166,9 @@
                 return;
             }
 
-            // Redirect to messages.html with conversation ID
+            // Redirect to messages page with conversation ID
             window.location.href = `messages.html?conversation_id=${data.id}`;
         }
     </script>
-
 </body>
 </html>
-  
