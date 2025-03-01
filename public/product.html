@@ -142,7 +142,6 @@
                         <button class="buy-btn" onclick="startConversation(${product.id}, ${product.seller_id})">Buy</button>
                     </div>
                 `;
-
             } catch (err) {
                 console.error('Error fetching product details:', err.message);
                 document.getElementById('product-container').innerHTML = '<p>Error loading product details. Try again later.</p>';
@@ -155,11 +154,13 @@
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'
             );
 
-            // Assume the current user is logged in and their ID is stored in local storage
-            const buyerId = localStorage.getItem("userId");
+            // Create a temporary anonymous buyer ID for the session
+            let buyerId = sessionStorage.getItem("buyerId");
+
             if (!buyerId) {
-                alert("You need to log in first.");
-                return;
+                // If no buyer ID exists, create a new one
+                buyerId = Date.now().toString(); // Simple unique ID based on the current timestamp
+                sessionStorage.setItem("buyerId", buyerId);
             }
 
             // Create a new conversation in Supabase
