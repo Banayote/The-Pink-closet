@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #chatBox { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: auto; }
+        #messageInput { width: 80%; padding: 10px; }
+        #sendButton { padding: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h2>Chat</h2>
+    <div id="chatBox"></div>
+    <input type="text" id="messageInput" placeholder="Type your message">
+    <button id="sendButton">Send</button>
+
+    <script>
+        // ✅ Initialize Supabase
+        const supabase = createClient(
+            "https://fjlqkjwnelkamealhtyr.supabase.co",  // Your Supabase URL
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4"
+        );
+
+        // ✅ Get conversation ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const conversationId = urlParams.get("conversation_id");
+
+        if (!conversationId) {
+            alert("No conversation found!");
+        }
+
+        // ✅ Fetch and display messages
+        async function fetchMessages() {
+            let { data: messages, error } = await supabase
+                .from("messages")
+                .select("*")
+                .eq("conversation_id", conversationId)
+                .order("created_at", { ascending: true });
+
+            if (error) {
+                console.error("Error fetching messages:", error.message);
+                return;
+            }
+
+            // ✅ Display messages
+            const chatBox = document.getElementById("chatBox");
+            chatBox.innerHTML = ""; 
+            messages.forEach(msg => {
+                const msgDiv = document.createElement("div");
+                msgDiv.textContent = msg.sender_id + ": " + msg.message;
+                chatBox.appendChild(msgDiv);
+            });
+        }
+
+        // ✅ Listen for new messages (real-time updates)
+        supabase
+            .channel(`messages:${conversationId}`)
+            .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, fetchMessages)
+            .subscribe();
+
+        // ✅ Send a message
+        document.getElementById("sendButton").addEventListener("click", async () => {
+            const messageInput = document.getElementById("messageInput");
+            const messageText = messageInput.value;
+            const senderId = "USER_ID_HERE";  // Replace with logged-in user ID
+
+            if (!messageText) return;
+
+            let { error } = await supabase
+                .from("messages")
+                .insert([{ conversation_id: conversationId, sender_id: senderId, message: messageText }]);
+
+            if (error) {
+                console.error("Error sending message:", error.message);
+            } else {
+                messageInput.value = ""; // Clear input after sending
+            }
+        });
+
+        // ✅ Fetch messages on load
+        fetchMessages();
+    </script>
+
+</body>
+</html>
