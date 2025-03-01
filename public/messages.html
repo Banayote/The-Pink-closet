@@ -4,86 +4,132 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messages</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <style>
-        body { font-family: Arial, sans-serif; }
-        #chatBox { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: auto; }
-        #messageInput { width: 80%; padding: 10px; }
-        #sendButton { padding: 10px; cursor: pointer; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: pink;
+            padding: 10px;
+            color: white;
+            text-align: center;
+        }
+        .message-container {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 10px;
+        }
+        .message {
+            background-color: white;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .message-sender {
+            font-weight: bold;
+            color: pink;
+        }
+        .message-content {
+            margin-top: 5px;
+        }
+        .message-input-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            padding: 10px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+        }
+        .message-input {
+            width: 85%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .send-button {
+            background-color: pink;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin-left: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .send-button:hover {
+            background-color: #e60073;
+        }
     </style>
 </head>
 <body>
 
-    <h2>Chat</h2>
-    <div id="chatBox"></div>
-    <input type="text" id="messageInput" placeholder="Type your message">
-    <button id="sendButton">Send</button>
+    <!-- Header -->
+    <div class="header">
+        <h1>Messages</h1>
+    </div>
+
+    <!-- Messages Section -->
+    <div class="message-container" id="messageContainer">
+        <!-- Messages will appear here -->
+    </div>
+
+    <!-- Message Input Section -->
+    <div class="message-input-container">
+        <input type="text" id="messageInput" class="message-input" placeholder="Type your message...">
+        <button class="send-button" id="sendMessageButton">Send</button>
+    </div>
 
     <script>
-        // ✅ Initialize Supabase
-        const supabase = createClient(
-            "https://fjlqkjwnelkamealhtyr.supabase.co",  // Your Supabase URL
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4"
-        );
+        // Check if there are any stored messages
+        const storedMessages = JSON.parse(localStorage.getItem('messages')) || [];
 
-        // ✅ Get conversation ID from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const conversationId = urlParams.get("conversation_id");
-
-        if (!conversationId) {
-            alert("No conversation found!");
-        }
-
-        // ✅ Fetch and display messages
-        async function fetchMessages() {
-            let { data: messages, error } = await supabase
-                .from("messages")
-                .select("*")
-                .eq("conversation_id", conversationId)
-                .order("created_at", { ascending: true });
-
-            if (error) {
-                console.error("Error fetching messages:", error.message);
-                return;
-            }
-
-            // ✅ Display messages
-            const chatBox = document.getElementById("chatBox");
-            chatBox.innerHTML = ""; 
-            messages.forEach(msg => {
-                const msgDiv = document.createElement("div");
-                msgDiv.textContent = msg.sender_id + ": " + msg.message;
-                chatBox.appendChild(msgDiv);
-            });
-        }
-
-        // ✅ Listen for new messages (real-time updates)
-        supabase
-            .channel(`messages:${conversationId}`)
-            .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, fetchMessages)
-            .subscribe();
-
-        // ✅ Send a message
-        document.getElementById("sendButton").addEventListener("click", async () => {
-            const messageInput = document.getElementById("messageInput");
-            const messageText = messageInput.value;
-            const senderId = "USER_ID_HERE";  // Replace with logged-in user ID
-
-            if (!messageText) return;
-
-            let { error } = await supabase
-                .from("messages")
-                .insert([{ conversation_id: conversationId, sender_id: senderId, message: messageText }]);
-
-            if (error) {
-                console.error("Error sending message:", error.message);
-            } else {
-                messageInput.value = ""; // Clear input after sending
-            }
+        // Display messages
+        const messageContainer = document.getElementById('messageContainer');
+        storedMessages.forEach((msg) => {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.innerHTML = `
+                <div class="message-sender">${msg.sender}</div>
+                <div class="message-content">${msg.content}</div>
+            `;
+            messageContainer.appendChild(messageElement);
         });
 
-        // ✅ Fetch messages on load
-        fetchMessages();
+        // Send a new message
+        const sendMessageButton = document.getElementById('sendMessageButton');
+        const messageInput = document.getElementById('messageInput');
+
+        sendMessageButton.addEventListener('click', () => {
+            const messageContent = messageInput.value.trim();
+            if (messageContent) {
+                const newMessage = {
+                    sender: 'User', // Use a fixed sender name or get it dynamically
+                    content: messageContent
+                };
+
+                // Add new message to storage
+                storedMessages.push(newMessage);
+                localStorage.setItem('messages', JSON.stringify(storedMessages));
+
+                // Display new message
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message');
+                messageElement.innerHTML = `
+                    <div class="message-sender">${newMessage.sender}</div>
+                    <div class="message-content">${newMessage.content}</div>
+                `;
+                messageContainer.appendChild(messageElement);
+
+                // Clear input field
+                messageInput.value = '';
+            }
+        });
     </script>
 
 </body>
