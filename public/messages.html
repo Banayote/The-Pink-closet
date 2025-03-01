@@ -1,136 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messages</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
             margin: 0;
             padding: 0;
+            background-color: #f9f9f9;
         }
-        .header {
-            background-color: pink;
-            padding: 10px;
+
+        header {
+            background-color: #ff6347;
             color: white;
+            padding: 10px;
             text-align: center;
         }
-        .message-container {
-            display: flex;
-            flex-direction: column;
+
+        .messages-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             padding: 20px;
-            gap: 10px;
+            border-radius: 8px;
         }
+
         .message {
-            background-color: white;
+            padding: 10px;
+            margin-bottom: 10px;
             border-radius: 5px;
-            padding: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #f1f1f1;
         }
+
         .message-sender {
             font-weight: bold;
-            color: pink;
         }
-        .message-content {
+
+        .message-text {
             margin-top: 5px;
         }
-        .message-input-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: white;
-            padding: 10px;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+
+        .send-message-container {
+            margin-top: 20px;
             display: flex;
-            align-items: center;
+            justify-content: space-between;
         }
-        .message-input {
-            width: 85%;
+
+        input[type="text"] {
+            width: 80%;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
-        .send-button {
-            background-color: pink;
+
+        button {
+            padding: 10px 15px;
+            background-color: #ff6347;
             color: white;
             border: none;
-            padding: 10px 15px;
-            margin-left: 10px;
-            border-radius: 5px;
             cursor: pointer;
+            border-radius: 5px;
         }
-        .send-button:hover {
-            background-color: #e60073;
+
+        button:hover {
+            background-color: #e5533b;
         }
     </style>
 </head>
+
 <body>
 
-    <!-- Header -->
-    <div class="header">
+    <header>
         <h1>Messages</h1>
-    </div>
+    </header>
 
-    <!-- Messages Section -->
-    <div class="message-container" id="messageContainer">
-        <!-- Messages will appear here -->
-    </div>
+    <main>
+        <div id="messages-container" class="messages-container">
+            <!-- Messages will be dynamically loaded here -->
+        </div>
 
-    <!-- Message Input Section -->
-    <div class="message-input-container">
-        <input type="text" id="messageInput" class="message-input" placeholder="Type your message...">
-        <button class="send-button" id="sendMessageButton">Send</button>
-    </div>
+        <div class="send-message-container">
+            <input type="text" id="message-input" placeholder="Type your message here...">
+            <button id="send-message-btn">Send</button>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; The Pink Closet 2024. All rights reserved.</p>
+    </footer>
+
+    <!-- Load Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 
     <script>
-        // Check if there are any stored messages
-        const storedMessages = JSON.parse(localStorage.getItem('messages')) || [];
+        document.addEventListener('DOMContentLoaded', async () => {
+            const supabase = window.supabase.createClient(
+                'https://fjlqkjwnelkamealhtyr.supabase.co', // Your Supabase URL
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4' // Your Supabase Anon Key
+            );
 
-        // Display messages
-        const messageContainer = document.getElementById('messageContainer');
-        storedMessages.forEach((msg) => {
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message');
-            messageElement.innerHTML = `
-                <div class="message-sender">${msg.sender}</div>
-                <div class="message-content">${msg.content}</div>
-            `;
-            messageContainer.appendChild(messageElement);
-        });
+            // Get conversation ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const conversationId = urlParams.get('conversation_id');
 
-        // Send a new message
-        const sendMessageButton = document.getElementById('sendMessageButton');
-        const messageInput = document.getElementById('messageInput');
-
-        sendMessageButton.addEventListener('click', () => {
-            const messageContent = messageInput.value.trim();
-            if (messageContent) {
-                const newMessage = {
-                    sender: 'User', // Use a fixed sender name or get it dynamically
-                    content: messageContent
-                };
-
-                // Add new message to storage
-                storedMessages.push(newMessage);
-                localStorage.setItem('messages', JSON.stringify(storedMessages));
-
-                // Display new message
-                const messageElement = document.createElement('div');
-                messageElement.classList.add('message');
-                messageElement.innerHTML = `
-                    <div class="message-sender">${newMessage.sender}</div>
-                    <div class="message-content">${newMessage.content}</div>
-                `;
-                messageContainer.appendChild(messageElement);
-
-                // Clear input field
-                messageInput.value = '';
+            if (!conversationId) {
+                alert('Conversation ID is missing.');
+                return;
             }
+
+            // Fetch conversation details from Supabase
+            try {
+                const { data: conversation, error } = await supabase
+                    .from('messages')
+                    .select('*, buyer_id, seller_id, message')
+                    .eq('id', conversationId);
+
+                if (error) throw error;
+
+                if (!conversation || conversation.length === 0) {
+                    document.getElementById('messages-container').innerHTML = '<p>No conversation found.</p>';
+                    return;
+                }
+
+                // Display messages in the conversation
+                const messagesContainer = document.getElementById('messages-container');
+                conversation.forEach(msg => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.classList.add('message');
+                    messageDiv.innerHTML = `
+                        <div class="message-sender">${msg.buyer_id === sessionStorage.getItem("buyerId") ? "You" : "Seller"}</div>
+                        <div class="message-text">${msg.message}</div>
+                    `;
+                    messagesContainer.appendChild(messageDiv);
+                });
+
+            } catch (err) {
+                console.error('Error fetching conversation:', err.message);
+                document.getElementById('messages-container').innerHTML = '<p>Error loading conversation. Try again later.</p>';
+            }
+
+            // Handle sending new messages
+            document.getElementById('send-message-btn').addEventListener('click', async () => {
+                const messageInput = document.getElementById('message-input');
+                const message = messageInput.value.trim();
+
+                if (!message) {
+                    alert('Please enter a message.');
+                    return;
+                }
+
+                const buyerId = sessionStorage.getItem("buyerId");
+
+                if (!buyerId) {
+                    alert("You need to be logged in to send a message.");
+                    return;
+                }
+
+                const { data, error } = await supabase
+                    .from('messages')
+                    .insert([
+                        { conversation_id: conversationId, buyer_id: buyerId, seller_id: conversation[0].seller_id, message: message }
+                    ])
+                    .single();
+
+                if (error) {
+                    console.error('Error sending message:', error.message);
+                    alert('Error sending message. Try again.');
+                    return;
+                }
+
+                // Clear the message input field and refresh messages
+                messageInput.value = '';
+                location.reload();
+            });
         });
     </script>
 
 </body>
+
 </html>
