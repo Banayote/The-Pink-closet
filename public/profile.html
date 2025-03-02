@@ -8,14 +8,14 @@
 </head>
 <body>
   <div class="profile-container">
-    <!-- Exit Icon -->
+    <!-- Exit Button -->
     <div class="exit-icon">
       <a href="index.html"><span>&larr;</span></a>
     </div>
 
     <!-- Banner Images -->
     <div class="banner">
-      <div id="banner-images" class="banner-images">
+      <div class="banner-images">
         <img id="banner-img-1" src="image1.jpg" alt="Banner Image 1">
         <img id="banner-img-2" src="image2.jpg" alt="Banner Image 2">
         <img id="banner-img-3" src="image3.jpg" alt="Banner Image 3">
@@ -29,17 +29,16 @@
 
     <!-- User Info -->
     <div class="profile-info">
-      <h1 id="username">Username</h1>
+      <h1 id="username">Loading...</h1>
       <p>Banayote</p>
       <div class="profile-actions">
-        <button id="message"><span class="icon">✉️</span> Message</button>
-        <button id="add-product"><span class="icon">➕</span> Add Product</button>
-        <button id="edit"><span class="icon">🔧</span> Edit</button>
-        <button id="copy-link"><span class="icon">🔗</span> Copy Link</button>
+        <button id="message-btn"><span class="icon">✉️</span> Message</button>
+        <button id="add-product-btn"><span class="icon">➕</span> Add Product</button>
+        <button id="edit-btn"><span class="icon">🔧</span> Edit</button>
+        <button id="copy-link-btn"><span class="icon">🔗</span> Copy Link</button>
       </div>
     </div>
 
-    <!-- Profile Stats -->
     <div class="profile-dashboard">
       <div class="stats">
         <div class="stat">
@@ -56,10 +55,6 @@
     <div class="product-list-button">
       <button>View Product List</button>
     </div>
-
-    <div class="user-products">
-      <!-- User's products will be displayed here -->
-    </div>
   </div>
 
   <!-- Supabase SDK -->
@@ -71,8 +66,17 @@
       const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
       const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
+      // Ensure Supabase is loaded
+      if (!supabase) {
+        console.error("Supabase failed to load.");
+        alert("Failed to connect to the database.");
+        return;
+      }
+
       // Get user ID from URL
-      const userId = new URLSearchParams(window.location.search).get('user_id');
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId = urlParams.get('user_id');
+
       if (!userId) {
         alert("User not found.");
         window.location.href = 'index.html';
@@ -95,28 +99,44 @@
         document.getElementById('banner-img-1').src = data.banner_img_1 || 'image1.jpg';
         document.getElementById('banner-img-2').src = data.banner_img_2 || 'image2.jpg';
         document.getElementById('banner-img-3').src = data.banner_img_3 || 'image3.jpg';
+
       } catch (err) {
         console.error("Error fetching user data:", err.message);
         alert("Failed to load user profile.");
       }
 
-      // Message button
-      document.getElementById('message').addEventListener('click', () => {
-        window.location.href = `messages.html?seller_id=${userId}`;
-      });
+      // Add Product Button Event
+      const addProductBtn = document.getElementById('add-product-btn');
+      if (addProductBtn) {
+        addProductBtn.addEventListener('click', () => {
+          console.log("Add Product Clicked");
+          window.location.href = `add-product.html?user_id=${userId}`;
+        });
+      } else {
+        console.error("Add Product button not found in DOM.");
+      }
 
-      // Add Product button
-      document.getElementById('add-product').addEventListener('click', () => {
-        window.location.href = `add-product.html?user_id=${userId}`;
-      });
+      // Message Button Event
+      const messageBtn = document.getElementById('message-btn');
+      if (messageBtn) {
+        messageBtn.addEventListener('click', () => {
+          console.log("Message Button Clicked");
+          window.location.href = `messages.html?seller_id=${userId}`;
+        });
+      } else {
+        console.error("Message button not found in DOM.");
+      }
 
-      // Copy Link button
-      document.getElementById('copy-link').addEventListener('click', () => {
-        const profileUrl = window.location.href;
-        navigator.clipboard.writeText(profileUrl)
-          .then(() => alert("Profile link copied!"))
-          .catch(err => console.error("Failed to copy link:", err));
-      });
+      // Copy Link Button Event
+      const copyLinkBtn = document.getElementById('copy-link-btn');
+      if (copyLinkBtn) {
+        copyLinkBtn.addEventListener('click', () => {
+          const profileUrl = window.location.href;
+          navigator.clipboard.writeText(profileUrl)
+            .then(() => alert("Profile link copied!"))
+            .catch(err => console.error("Failed to copy link:", err));
+        });
+      }
     });
   </script>
 </body>
