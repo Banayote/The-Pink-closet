@@ -13,30 +13,52 @@
       <a href="index.html"><span>&larr;</span></a>
     </div>
 
-    <!-- Profile Banner -->
+    <!-- Banner Images -->
     <div class="banner">
       <div id="banner-images" class="banner-images">
-        <img id="banner-img-1" src="default-banner.jpg" alt="Banner Image 1" class="banner-img">
-        <img id="banner-img-2" src="default-banner.jpg" alt="Banner Image 2" class="banner-img">
-        <img id="banner-img-3" src="default-banner.jpg" alt="Banner Image 3" class="banner-img">
+        <img id="banner-img-1" src="image1.jpg" alt="Banner Image 1">
+        <img id="banner-img-2" src="image2.jpg" alt="Banner Image 2">
+        <img id="banner-img-3" src="image3.jpg" alt="Banner Image 3">
       </div>
     </div>
 
     <!-- Profile Picture -->
     <div class="profile-picture">
-      <img id="profile-img" src="default-profile.jpg" alt="Profile Picture">
+      <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture">
     </div>
 
-    <!-- Profile Information -->
+    <!-- User Info -->
     <div class="profile-info">
-      <h1 id="username">Loading...</h1>
-      <p id="bio">Fetching user data...</p>
+      <h1 id="username">Username</h1>
+      <p>Banayote</p>
       <div class="profile-actions">
         <button id="message"><span class="icon">✉️</span> Message</button>
         <button id="add-product"><span class="icon">➕</span> Add Product</button>
-        <button id="edit-profile"><span class="icon">🔧</span> Edit Profile</button>
+        <button id="edit"><span class="icon">🔧</span> Edit</button>
         <button id="copy-link"><span class="icon">🔗</span> Copy Link</button>
       </div>
+    </div>
+
+    <!-- Profile Stats -->
+    <div class="profile-dashboard">
+      <div class="stats">
+        <div class="stat">
+          <h2>Sales</h2>
+          <p id="sales-count">0</p>
+        </div>
+        <div class="stat">
+          <h2>Visitors</h2>
+          <p id="visitors-count">0</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-list-button">
+      <button>View Product List</button>
+    </div>
+
+    <div class="user-products">
+      <!-- User's products will be displayed here -->
     </div>
   </div>
 
@@ -44,13 +66,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      // Initialize Supabase
-      const supabase = supabase.createClient(
-        "https://fjlqkjwnelkamealhtyr.supabase.co",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4"
-      );
+      // Supabase Credentials
+      const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
+      const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+      const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
-      // Get User ID from URL
+      // Get user ID from URL
       const userId = new URLSearchParams(window.location.search).get('user_id');
       if (!userId) {
         alert("User not found.");
@@ -62,7 +83,7 @@
         // Fetch user data from Supabase
         const { data, error } = await supabase
           .from('users')
-          .select('first_name, last_name, profile_img, banner_img_1, banner_img_2, banner_img_3, bio')
+          .select('first_name, last_name, profile_img, banner_img_1, banner_img_2, banner_img_3')
           .eq('id', userId)
           .single();
 
@@ -70,30 +91,31 @@
 
         // Update profile UI
         document.getElementById('username').textContent = `${data.first_name} ${data.last_name}`;
-        document.getElementById('bio').textContent = data.bio || "No bio available.";
-        document.getElementById('profile-img').src = data.profile_img || 'default-profile.jpg';
-        document.getElementById('banner-img-1').src = data.banner_img_1 || 'default-banner.jpg';
-        document.getElementById('banner-img-2').src = data.banner_img_2 || 'default-banner.jpg';
-        document.getElementById('banner-img-3').src = data.banner_img_3 || 'default-banner.jpg';
+        document.getElementById('profile-img').src = data.profile_img || 'profile-picture.jpg';
+        document.getElementById('banner-img-1').src = data.banner_img_1 || 'image1.jpg';
+        document.getElementById('banner-img-2').src = data.banner_img_2 || 'image2.jpg';
+        document.getElementById('banner-img-3').src = data.banner_img_3 || 'image3.jpg';
       } catch (err) {
         console.error("Error fetching user data:", err.message);
         alert("Failed to load user profile.");
       }
 
-      // Message button event
+      // Message button
       document.getElementById('message').addEventListener('click', () => {
         window.location.href = `messages.html?seller_id=${userId}`;
       });
 
-      // Copy link button event
+      // Add Product button
+      document.getElementById('add-product').addEventListener('click', () => {
+        window.location.href = `add-product.html?user_id=${userId}`;
+      });
+
+      // Copy Link button
       document.getElementById('copy-link').addEventListener('click', () => {
         const profileUrl = window.location.href;
-        navigator.clipboard.writeText(profileUrl).then(() => {
-          alert("Profile link copied to clipboard!");
-        }).catch(err => {
-          console.error("Failed to copy link: ", err);
-          alert("Failed to copy link.");
-        });
+        navigator.clipboard.writeText(profileUrl)
+          .then(() => alert("Profile link copied!"))
+          .catch(err => console.error("Failed to copy link:", err));
       });
     });
   </script>
