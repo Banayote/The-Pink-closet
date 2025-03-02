@@ -8,12 +8,10 @@
 </head>
 <body>
   <div class="profile-container">
-    <!-- Exit Button -->
     <div class="exit-icon">
       <a href="index.html"><span>&larr;</span></a>
     </div>
 
-    <!-- Banner Images -->
     <div class="banner">
       <div class="banner-images">
         <img id="banner-img-1" src="image1.jpg" alt="Banner Image 1">
@@ -22,60 +20,37 @@
       </div>
     </div>
 
-    <!-- Profile Picture -->
     <div class="profile-picture">
       <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture">
     </div>
 
-    <!-- User Info -->
     <div class="profile-info">
       <h1 id="username">Loading...</h1>
       <p>Banayote</p>
       <div class="profile-actions">
-        <button id="message-btn"><span class="icon">✉️</span> Message</button>
-        <button id="add-product-btn"><span class="icon">➕</span> Add Product</button>
-        <button id="edit-btn"><span class="icon">🔧</span> Edit</button>
-        <button id="copy-link-btn"><span class="icon">🔗</span> Copy Link</button>
+        <button id="message-btn">✉️ Message</button>
+        <button id="add-product-btn">➕ Add Product</button>
+        <button id="edit-btn">🔧 Edit</button>
+        <button id="copy-link-btn">🔗 Copy Link</button>
       </div>
-    </div>
-
-    <div class="profile-dashboard">
-      <div class="stats">
-        <div class="stat">
-          <h2>Sales</h2>
-          <p id="sales-count">0</p>
-        </div>
-        <div class="stat">
-          <h2>Visitors</h2>
-          <p id="visitors-count">0</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="product-list-button">
-      <button>View Product List</button>
     </div>
   </div>
 
-  <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      // Supabase Credentials
+      console.log("Script loaded."); // DEBUGGING
+
+      // Supabase Setup
       const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
       const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
       const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
-      // Ensure Supabase is loaded
-      if (!supabase) {
-        console.error("Supabase failed to load.");
-        alert("Failed to connect to the database.");
-        return;
-      }
-
       // Get user ID from URL
       const urlParams = new URLSearchParams(window.location.search);
       const userId = urlParams.get('user_id');
+
+      console.log("User ID:", userId); // DEBUGGING
 
       if (!userId) {
         alert("User not found.");
@@ -83,8 +58,8 @@
         return;
       }
 
+      // Fetch user data
       try {
-        // Fetch user data from Supabase
         const { data, error } = await supabase
           .from('users')
           .select('first_name, last_name, profile_img, banner_img_1, banner_img_2, banner_img_3')
@@ -93,7 +68,7 @@
 
         if (error) throw error;
 
-        // Update profile UI
+        // Update UI
         document.getElementById('username').textContent = `${data.first_name} ${data.last_name}`;
         document.getElementById('profile-img').src = data.profile_img || 'profile-picture.jpg';
         document.getElementById('banner-img-1').src = data.banner_img_1 || 'image1.jpg';
@@ -105,30 +80,31 @@
         alert("Failed to load user profile.");
       }
 
-      // Add Product Button Event
+      // Ensure Buttons Exist Before Adding Events
       const addProductBtn = document.getElementById('add-product-btn');
+      const messageBtn = document.getElementById('message-btn');
+      const copyLinkBtn = document.getElementById('copy-link-btn');
+
+      console.log("Buttons Loaded:", addProductBtn, messageBtn, copyLinkBtn); // DEBUGGING
+
       if (addProductBtn) {
         addProductBtn.addEventListener('click', () => {
           console.log("Add Product Clicked");
           window.location.href = `add-product.html?user_id=${userId}`;
         });
       } else {
-        console.error("Add Product button not found in DOM.");
+        console.error("Add Product Button Not Found!");
       }
 
-      // Message Button Event
-      const messageBtn = document.getElementById('message-btn');
       if (messageBtn) {
         messageBtn.addEventListener('click', () => {
           console.log("Message Button Clicked");
           window.location.href = `messages.html?seller_id=${userId}`;
         });
       } else {
-        console.error("Message button not found in DOM.");
+        console.error("Message Button Not Found!");
       }
 
-      // Copy Link Button Event
-      const copyLinkBtn = document.getElementById('copy-link-btn');
       if (copyLinkBtn) {
         copyLinkBtn.addEventListener('click', () => {
           const profileUrl = window.location.href;
@@ -136,6 +112,8 @@
             .then(() => alert("Profile link copied!"))
             .catch(err => console.error("Failed to copy link:", err));
         });
+      } else {
+        console.error("Copy Link Button Not Found!");
       }
     });
   </script>
