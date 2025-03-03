@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
     <link rel="stylesheet" href="profile.css">
 </head>
-
 <body>
 
     <div class="profile-container">
         <!-- Exit Icon -->
         <div class="exit-icon">
-            <a href="#" id="exitIcon"><span>&larr;</span></a>
+            <a href="index.html" id="exitIcon"><span>&larr;</span></a>
         </div>
 
+        <!-- Banner Images -->
         <div class="banner">
             <div id="banner-images" class="banner-images">
                 <img id="banner-img-1" src="image1.jpg" alt="Banner Image 1" class="banner-img">
@@ -24,13 +23,17 @@
             </div>
         </div>
 
+        <!-- Profile Picture -->
         <div class="profile-picture">
             <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture">
         </div>
 
+        <!-- Profile Info -->
         <div class="profile-info">
             <h1 id="username">Username</h1>
             <p>Banayote</p>
+
+            <!-- Buttons -->
             <div class="profile-actions">
                 <button id="message"><span class="icon">✉️</span> Message</button>
                 <button id="add-product"><span class="icon">➕</span> Add Product</button>
@@ -39,6 +42,7 @@
             </div>
         </div>
 
+        <!-- Stats -->
         <div class="profile-dashboard">
             <div class="stats">
                 <div class="stat">
@@ -52,41 +56,42 @@
             </div>
         </div>
 
+        <!-- Product List Button -->
         <div class="product-list-button">
             <button>View Product List</button>
         </div>
 
+        <!-- User Products Section -->
         <div class="user-products">
-            <!-- User's posted products will be displayed here -->
+            <!-- Products will be displayed here -->
         </div>
     </div>
 
-    <!-- Hidden file inputs -->
+    <!-- Hidden File Inputs -->
     <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
     <input type="file" id="banner-upload" accept="image/*" multiple style="display:none;">
 
-    <!-- Modal for displaying images -->
+    <!-- Modal for Images -->
     <div id="image-modal" class="modal">
         <span class="close">&times;</span>
         <img class="modal-content" id="modal-img">
     </div>
 
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
     <script>
         // ✅ Supabase Credentials
         const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+
+        // ✅ Initialize Supabase AFTER defining variables
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            const profileImg = document.getElementById('profile-img');
+            const usernameElem = document.getElementById('username');
             const addProductButton = document.getElementById('add-product');
             const messageButton = document.getElementById('message');
-            const exitIcon = document.getElementById('exitIcon');
-            const profileImg = document.getElementById('profile-img');
-            const bannerImages = document.querySelectorAll('.banner-images img');
-            const usernameElem = document.getElementById('username');
-            const editButton = document.getElementById('edit');
             const copyLinkButton = document.getElementById('copy-link');
 
             const userEmail = localStorage.getItem('email') || '';
@@ -96,7 +101,7 @@
                 window.location.href = 'index.html';
             }
 
-            // ✅ Fetch user profile
+            // ✅ Fetch User Profile
             async function fetchUserProfile() {
                 try {
                     const { data: user, error: authError } = await supabase.auth.getUser();
@@ -113,13 +118,9 @@
 
                     if (profileError) throw new Error(profileError.message);
 
-                    // ✅ Update UI with user data
+                    // ✅ Update Profile Data
                     usernameElem.textContent = `${profile.first_name || 'First'} ${profile.last_name || 'Last'}`;
                     profileImg.src = profile.profile_image || 'profile-picture.jpg';
-                    bannerImages[0].src = profile.banner_image1 || 'image1.jpg';
-                    bannerImages[1].src = profile.banner_image2 || 'image2.jpg';
-                    bannerImages[2].src = profile.banner_image3 || 'image3.jpg';
-
                 } catch (error) {
                     console.error('Error fetching user profile:', error);
                     alert('Failed to load profile. Please try again later.');
@@ -128,25 +129,15 @@
 
             fetchUserProfile();
 
-            // ✅ Fix: "Add Product" button works
-            if (addProductButton) {
-                addProductButton.addEventListener('click', () => {
-                    console.log("Navigating to add-product.html...");
-                    window.location.href = 'add-product.html';
-                });
-            } else {
-                console.error("❌ Add Product button not found.");
-            }
+            // ✅ Add Product Button - Redirect to Add Product Page
+            addProductButton.addEventListener('click', () => {
+                window.location.href = 'add-product.html';
+            });
 
-            // ✅ Fix: "Message" button works
-            if (messageButton) {
-                messageButton.addEventListener('click', () => {
-                    console.log("Navigating to message.html...");
-                    window.location.href = 'message.html';
-                });
-            } else {
-                console.error("❌ Message button not found.");
-            }
+            // ✅ Message Button - Redirect to Messages Page
+            messageButton.addEventListener('click', () => {
+                window.location.href = 'message.html';
+            });
 
             // ✅ Copy Profile Link
             copyLinkButton.addEventListener('click', () => {
@@ -155,11 +146,6 @@
                     .catch(error => console.error('Failed to copy link:', error));
             });
 
-            // ✅ Exit to Homepage
-            exitIcon.addEventListener('click', (event) => {
-                event.preventDefault();
-                window.location.href = 'index.html';
-            });
         });
     </script>
 
