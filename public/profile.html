@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
     <link rel="stylesheet" href="profile.css">
 </head>
+
 <body>
 
     <div class="profile-container">
-        <!-- Exit Icon with redirection to index.html -->
+        <!-- Exit Icon -->
         <div class="exit-icon">
-            <a href="index.html"><span>&larr;</span></a>
+            <a href="#" id="exitIcon"><span>&larr;</span></a>
         </div>
 
         <div class="banner">
@@ -29,7 +31,6 @@
         <div class="profile-info">
             <h1 id="username">Username</h1>
             <p>Banayote</p>
-
             <div class="profile-actions">
                 <button id="message"><span class="icon">✉️</span> Message</button>
                 <button id="add-product"><span class="icon">➕</span> Add Product</button>
@@ -71,19 +72,21 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
     <script>
-        // ✅ Your Supabase URL and Anon Key
-        const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';  
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';  
+        // ✅ Supabase Credentials
+        const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
+            const addProductButton = document.getElementById('add-product');
+            const messageButton = document.getElementById('message');
+            const exitIcon = document.getElementById('exitIcon');
             const profileImg = document.getElementById('profile-img');
             const bannerImages = document.querySelectorAll('.banner-images img');
             const usernameElem = document.getElementById('username');
             const editButton = document.getElementById('edit');
-            const addProductButton = document.getElementById('add-product');
-            const messageButton = document.getElementById('message');
             const copyLinkButton = document.getElementById('copy-link');
 
             const userEmail = localStorage.getItem('email') || '';
@@ -110,11 +113,13 @@
 
                     if (profileError) throw new Error(profileError.message);
 
+                    // ✅ Update UI with user data
                     usernameElem.textContent = `${profile.first_name || 'First'} ${profile.last_name || 'Last'}`;
                     profileImg.src = profile.profile_image || 'profile-picture.jpg';
                     bannerImages[0].src = profile.banner_image1 || 'image1.jpg';
                     bannerImages[1].src = profile.banner_image2 || 'image2.jpg';
                     bannerImages[2].src = profile.banner_image3 || 'image3.jpg';
+
                 } catch (error) {
                     console.error('Error fetching user profile:', error);
                     alert('Failed to load profile. Please try again later.');
@@ -123,53 +128,24 @@
 
             fetchUserProfile();
 
-            // ✅ Edit Profile
-            editButton.addEventListener('click', async () => {
-                const isEditing = editButton.textContent === 'Edit';
-                if (isEditing) {
-                    editButton.textContent = 'Save';
-                    usernameElem.contentEditable = true;
-                    usernameElem.focus();
-                } else {
-                    editButton.textContent = 'Edit';
-                    usernameElem.contentEditable = false;
-
-                    const [first_name, last_name] = usernameElem.textContent.split(' ') || ['First', 'Last'];
-                    const updatedProfileData = { first_name, last_name };
-
-                    try {
-                        const { error } = await supabase
-                            .from('users')
-                            .update(updatedProfileData)
-                            .eq('id', user.id);
-
-                        if (error) throw error;
-                        alert('Profile updated successfully!');
-                    } catch (error) {
-                        console.error('Error updating profile:', error);
-                        alert('Failed to update profile. Please try again later.');
-                    }
-                }
-            });
-
-            // ✅ Redirect to Add Product Page
+            // ✅ Fix: "Add Product" button works
             if (addProductButton) {
                 addProductButton.addEventListener('click', () => {
                     console.log("Navigating to add-product.html...");
                     window.location.href = 'add-product.html';
                 });
             } else {
-                console.error("Add Product button not found.");
+                console.error("❌ Add Product button not found.");
             }
 
-            // ✅ Redirect to Messages Page
+            // ✅ Fix: "Message" button works
             if (messageButton) {
                 messageButton.addEventListener('click', () => {
                     console.log("Navigating to message.html...");
                     window.location.href = 'message.html';
                 });
             } else {
-                console.error("Message button not found.");
+                console.error("❌ Message button not found.");
             }
 
             // ✅ Copy Profile Link
@@ -177,6 +153,12 @@
                 navigator.clipboard.writeText(window.location.href)
                     .then(() => alert('Profile link copied to clipboard!'))
                     .catch(error => console.error('Failed to copy link:', error));
+            });
+
+            // ✅ Exit to Homepage
+            exitIcon.addEventListener('click', (event) => {
+                event.preventDefault();
+                window.location.href = 'index.html';
             });
         });
     </script>
