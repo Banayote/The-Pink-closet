@@ -11,6 +11,9 @@
         .input-container { display: flex; margin-top: 10px; }
         input { flex: 1; padding: 10px; }
         button { padding: 10px; cursor: pointer; }
+        .message { margin: 10px 0; padding: 8px; border-radius: 5px; }
+        .buyer-message { background-color: #f1f1f1; text-align: left; }
+        .seller-message { background-color: #e1f7d5; text-align: right; }
     </style>
 </head>
 <body>
@@ -27,34 +30,47 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
+            // Initialize Supabase client with your URL and API key
             const supabase = supabase.createClient(
-                "https://fjlqkjwnelkamealhtyr.supabase.co",
-                "eyJhbGciOiJIUzI1NiIsInR..."
+                "https://fjlqkjwnelkamealhtyr.supabase.co",  // Supabase URL
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4"  // Supabase API Key
             );
 
             const urlParams = new URLSearchParams(window.location.search);
             const sellerId = urlParams.get("seller_id");
+            const buyerEmail = localStorage.getItem("email"); // Assuming buyer is logged in
+
+            if (!buyerEmail || !sellerId) {
+                alert('Error: Missing buyer or seller information.');
+                return;
+            }
 
             async function loadMessages() {
+                // Get messages between buyer and seller (using both ids)
                 const { data, error } = await supabase
                     .from("messages")
                     .select("*")
-                    .eq("seller_id", sellerId);
+                    .eq("buyer_email", buyerEmail)
+                    .eq("seller_email", sellerId);
 
-                if (error) console.error("Error loading messages:", error);
-                else {
+                if (error) {
+                    console.error("Error loading messages:", error);
+                } else {
                     const messageContainer = document.getElementById("messages");
                     messageContainer.innerHTML = "";
                     data.forEach(msg => {
                         const msgElement = document.createElement("p");
-                        msgElement.textContent = msg.message;
+                        msgElement.classList.add('message');
+                        msgElement.classList.add(msg.sender_email === buyerEmail ? 'buyer-message' : 'seller-message');
+                        msgElement.innerHTML = `<strong>${msg.sender_email}:</strong> ${msg.message}<br><small>${new Date(msg.timestamp).toLocaleString()}</small>`;
                         messageContainer.appendChild(msgElement);
-                    });
+                    }
 
-                    // Mark messages as read
+                    // Mark messages as read for the buyer's side
                     await supabase.from("messages")
                         .update({ read_status: true })
-                        .eq("seller_id", sellerId);
+                        .eq("buyer_email", buyerEmail)
+                        .eq("seller_email", sellerId);
                 }
             }
 
@@ -63,20 +79,24 @@
                 const newMessage = messageInput.value.trim();
 
                 if (newMessage) {
+                    // Send the message to the database
                     await supabase.from("messages").insert([
                         {
-                            seller_id: sellerId,
+                            buyer_email: buyerEmail,
+                            seller_email: sellerId,
                             message: newMessage,
                             timestamp: new Date().toISOString(),
-                            read_status: false
+                            read_status: false,
+                            sender_email: buyerEmail // Assuming the buyer is sending the message
                         }
                     ]);
+
                     messageInput.value = "";
-                    loadMessages();
+                    loadMessages(); // Reload the messages after sending
                 }
             });
 
-            loadMessages();
+            loadMessages(); // Initial load of messages
         });
     </script>
 </body>
