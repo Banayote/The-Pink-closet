@@ -4,180 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
-    <link rel="stylesheet" href="profile.css">
 </head>
 <body>
-    <div class="profile-container">
-        <!-- Exit Icon with redirection to index.html -->
-        <div class="exit-icon">
-            <a href="#" id="exitIcon"><span>&larr;</span></a>
-        </div>
-        <div class="banner">
-            <div id="banner-images" class="banner-images">
-                <img id="banner-img-1" src="image1.jpg" alt="Banner Image 1" class="banner-img">
-                <img id="banner-img-2" src="image2.jpg" alt="Banner Image 2" class="banner-img">
-                <img id="banner-img-3" src="image3.jpg" alt="Banner Image 3" class="banner-img">
-            </div>
-        </div>
-        <div class="profile-picture">
-            <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture">
-        </div>
-        <div class="profile-info">
-            <h1 id="username">Username</h1>
-            <p>Banayote</p>
-            <div class="profile-actions">
-                <button id="message"><span class="icon">✉️</span> Message</button>
-                <button id="add-product"><span class="icon">➕</span> Add Product</button>
-                <button id="edit"><span class="icon">🔧</span> Edit</button>
-                <button id="copy-link"><span class="icon">🔗</span> Link</button>
-            </div>
-        </div>
-        <div class="profile-dashboard">
-            <div class="stats">
-                <div class="stat">
-                    <h2>Sales</h2>
-                    <p id="sales-count"></p>
-                </div>
-                <div class="stat">
-                    <h2>Visitors</h2>
-                    <p id="visitors-count"></p>
-                </div>
-            </div>
-        </div>
-        <div class="product-list-button">
-            <button>View Product List</button>
-        </div>
-        <div class="user-products">
-            <!-- User's posted products will be displayed here -->
-        </div>
-    </div>
-    <!-- Hidden file inputs -->
-    <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
-    <input type="file" id="banner-upload" accept="image/*" multiple style="display:none;">
-    <!-- Modal for displaying images -->
-    <div id="image-modal" class="modal">
-        <span class="close">&times;</span>
-        <img class="modal-content" id="modal-img">
-    </div>
-  
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const exitIcon = document.getElementById('exitIcon');
-        const profileImg = document.getElementById('profile-img');
-        const bannerImages = document.querySelectorAll('.banner-images img');
-        const usernameElem = document.getElementById('username');
-        const editButton = document.getElementById('edit');
-        const addProductButton = document.getElementById('add-product');
-        const copyLinkButton = document.getElementById('copy-link');
-        const messageButton = document.getElementById('message');
+    <h1 id="username">Loading profile...</h1>
+    <button id="add-product">Add Product</button>
+    <button id="message">Message</button>
 
-        let isEditing = false;
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script>
+        const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';  
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';  
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const userEmail = localStorage.getItem('email') || '';
-        if (!userEmail) {
-            alert('User not found. Redirecting to homepage...');
-            window.location.href = 'index.html';
-        }
+        document.addEventListener('DOMContentLoaded', async () => {
+            const userEmail = localStorage.getItem('email');
 
-        // Supabase credentials
-        const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
-        const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
-
-        // Fetch User Profile
-        async function fetchUserProfile() {
-            try {
-                const { data: userData, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('email', userEmail)
-                    .single();
-                
-                if (error) throw new Error(error.message);
-
-                usernameElem.textContent = `${userData.first_name || 'First'} ${userData.last_name || 'Last'}`;
-                profileImg.src = userData.profile_image || 'profile-picture.jpg';
-                bannerImages[0].src = userData.banner_image1 || 'image1.jpg';
-                bannerImages[1].src = userData.banner_image2 || 'image2.jpg';
-                bannerImages[2].src = userData.banner_image3 || 'image3.jpg';
-
-            } catch (error) {
-                console.error('Error fetching user profile:', error);
-                alert('Failed to load profile. Please try again later.');
+            if (!userEmail) {
+                alert('No email found. Redirecting...');
+                window.location.href = 'store.html';  
+                return;
             }
-        }
 
-        fetchUserProfile();
+            document.getElementById('username').textContent = `Welcome, ${userEmail}`;
 
-        // Update User Profile
-        editButton.addEventListener('click', () => {
-            isEditing = !isEditing;
-            if (isEditing) {
-                editButton.textContent = 'Save';
-                usernameElem.contentEditable = true;
-                usernameElem.focus();
-            } else {
-                editButton.textContent = 'Edit';
-                usernameElem.contentEditable = false;
+            // Check if user exists in the database
+            let { data: user, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('email', userEmail)
+                .single();
 
-                const [first_name, last_name] = usernameElem.textContent.split(' ') || ['First', 'Last'];
-                const updatedProfileData = { first_name, last_name };
-
-                supabase
-                    .from('users')
-                    .update(updatedProfileData)
-                    .eq('email', userEmail)
-                    .then(response => console.log('Profile updated:', response))
-                    .catch(error => console.error('Error updating profile:', error));
+            if (error && error.code !== 'PGRST116') { // Ignore "not found" error
+                console.error('Error fetching user:', error);
+                alert('Could not load profile.');
+                return;
             }
-        });
 
-        // Redirect to Add Product Page
-        addProductButton.addEventListener('click', () => {
-            window.location.href = 'add-product.html';
-        });
+            if (!user) {
+                // If user doesn't exist, create a new profile
+                let { error: insertError } = await supabase.from('users').insert([{ email: userEmail }]);
 
-        // Message Button: Initiates conversation
-        messageButton.addEventListener('click', async () => {
-            const buyerId = `buyer-${Math.random().toString(36).substring(2)}`;  // Simulate anonymous buyer ID
-            const sellerId = userEmail; // Using email as sellerId
-
-            try {
-                const { data: conversation, error } = await supabase
-                    .from('conversations')
-                    .insert([
-                        {
-                            buyer_id: buyerId,
-                            seller_id: sellerId,
-                            product_id: 0, // Example, you can dynamically assign product IDs
-                            message: 'I am interested in buying your product!',
-                        }
-                    ]);
-
-                if (error) throw new Error(error.message);
-
-                alert('Conversation started!');
-
-                window.location.href = `conversation.html?conversation_id=${conversation[0].id}`;
-            } catch (error) {
-                console.error('Error creating conversation:', error);
+                if (insertError) {
+                    console.error('Error creating profile:', insertError);
+                    return;
+                }
+                console.log('New user profile created');
             }
-        });
 
-        // Copy Profile Link
-        copyLinkButton.addEventListener('click', () => {
-            navigator.clipboard.writeText(window.location.href)
-                .then(() => alert('Profile link copied to clipboard!'))
-                .catch(error => console.error('Failed to copy link:', error));
-        });
+            // Add Product button
+            document.getElementById('add-product').addEventListener('click', () => {
+                window.location.href = 'add-product.html';
+            });
 
-        // Exit to Homepage
-        exitIcon.addEventListener('click', (event) => {
-            event.preventDefault();
-            window.location.href = 'index.html';
+            // Message button (we will connect this later)
+            document.getElementById('message').addEventListener('click', () => {
+                alert('Messaging system will be added next!');
+            });
         });
-    });
-  </script>
-
+    </script>
 </body>
 </html>
+
