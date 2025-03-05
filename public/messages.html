@@ -29,20 +29,19 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            // Initialize Supabase
-            const supabase = supabase.createClient(
-                "https://fjlqkjwnelkamealhtyr.supabase.co",
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4"
-            );
+        // ✅ Initialize Supabase FIRST before using it
+        const supabase = supabase.createClient(
+            "https://fjlqkjwnelkamealhtyr.supabase.co",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4"
+        );
 
-            // Get buyer and seller info from URL
+        document.addEventListener("DOMContentLoaded", async () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const sellerEmail = urlParams.get("seller_id");
-            const buyerEmail = localStorage.getItem("email"); 
+            const sellerEmail = urlParams.get("seller_email"); // Make sure to use 'seller_email' in your URL query
+            const buyerEmail = localStorage.getItem("email"); // Assuming buyer is logged in
 
             if (!buyerEmail || !sellerEmail) {
-                alert('Error: Missing buyer or seller information.');
+                alert("Error: Missing buyer or seller information.");
                 return;
             }
 
@@ -50,26 +49,31 @@
                 const { data, error } = await supabase
                     .from("messages")
                     .select("*")
-                    .or(`buyer_email.eq.${buyerEmail},seller_email.eq.${sellerEmail}`)
+                    .or(`buyer_email.eq.${buyerEmail},seller_email.eq.${buyerEmail}`)
                     .order("timestamp", { ascending: true });
 
                 if (error) {
                     console.error("Error loading messages:", error);
-                    return;
+                } else {
+                    const messageContainer = document.getElementById("messages");
+                    messageContainer.innerHTML = "";
+                    data.forEach(msg => {
+                        const msgElement = document.createElement("p");
+                        msgElement.classList.add("message");
+                        msgElement.classList.add(msg.sender_email === buyerEmail ? "buyer-message" : "seller-message");
+                        msgElement.innerHTML = `<strong>${msg.sender_email}:</strong> ${msg.message}<br><small>${new Date(msg.timestamp).toLocaleString()}</small>`;
+                        messageContainer.appendChild(msgElement);
+                    });
+
+                    // ✅ Scroll to the latest message
+                    messageContainer.scrollTop = messageContainer.scrollHeight;
+
+                    // ✅ Mark messages as read
+                    await supabase.from("messages")
+                        .update({ read_status: true })
+                        .eq("seller_email", sellerEmail)
+                        .eq("buyer_email", buyerEmail);
                 }
-
-                const messageContainer = document.getElementById("messages");
-                messageContainer.innerHTML = "";
-
-                data.forEach(msg => {
-                    const msgElement = document.createElement("p");
-                    msgElement.classList.add('message');
-                    msgElement.classList.add(msg.sender_email === buyerEmail ? 'buyer-message' : 'seller-message');
-                    msgElement.innerHTML = `<strong>${msg.sender_email}:</strong> ${msg.message}<br><small>${new Date(msg.timestamp).toLocaleString()}</small>`;
-                    messageContainer.appendChild(msgElement);
-                });
-
-                messageContainer.scrollTop = messageContainer.scrollHeight;
             }
 
             document.getElementById("sendButton").addEventListener("click", async () => {
@@ -80,8 +84,6 @@
                     alert("Message cannot be empty!");
                     return;
                 }
-
-                console.log("Sending message:", newMessage, "From:", buyerEmail, "To:", sellerEmail);
 
                 const { error } = await supabase.from("messages").insert([
                     {
@@ -97,14 +99,14 @@
                 if (error) {
                     console.error("Error sending message:", error);
                     alert("Failed to send message. Check console for details.");
-                } else {
-                    console.log("Message sent successfully");
-                    messageInput.value = "";
-                    loadMessages();
+                    return;
                 }
+
+                messageInput.value = "";
+                loadMessages();
             });
 
-            loadMessages();
+            loadMessages(); // Initial load
         });
     </script>
 
