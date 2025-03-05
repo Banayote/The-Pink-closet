@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,7 +16,6 @@
         .seller-message { background-color: #e1f7d5; text-align: right; }
     </style>
 </head>
-
 <body>
 
     <h2>Messages</h2>
@@ -41,7 +39,7 @@
             // Get buyer and seller info from URL
             const urlParams = new URLSearchParams(window.location.search);
             const sellerEmail = urlParams.get("seller_id");
-            const buyerEmail = urlParams.get("buyer_email");
+            const buyerEmail = localStorage.getItem("email"); 
 
             if (!buyerEmail || !sellerEmail) {
                 alert('Error: Missing buyer or seller information.');
@@ -71,32 +69,36 @@
                     messageContainer.appendChild(msgElement);
                 });
 
-                // Auto-scroll to the latest message
                 messageContainer.scrollTop = messageContainer.scrollHeight;
-
-                // Mark messages as read
-                await supabase.from("messages")
-                    .update({ read_status: true })
-                    .eq("buyer_email", buyerEmail)
-                    .eq("seller_email", sellerEmail);
             }
 
             document.getElementById("sendButton").addEventListener("click", async () => {
                 const messageInput = document.getElementById("messageInput");
                 const newMessage = messageInput.value.trim();
 
-                if (newMessage) {
-                    await supabase.from("messages").insert([
-                        {
-                            buyer_email: buyerEmail,
-                            seller_email: sellerEmail,
-                            message: newMessage,
-                            timestamp: new Date().toISOString(),
-                            read_status: false,
-                            sender_email: buyerEmail
-                        }
-                    ]);
+                if (!newMessage) {
+                    alert("Message cannot be empty!");
+                    return;
+                }
 
+                console.log("Sending message:", newMessage, "From:", buyerEmail, "To:", sellerEmail);
+
+                const { error } = await supabase.from("messages").insert([
+                    {
+                        buyer_email: buyerEmail,
+                        seller_email: sellerEmail,
+                        message: newMessage,
+                        timestamp: new Date().toISOString(),
+                        read_status: false,
+                        sender_email: buyerEmail
+                    }
+                ]);
+
+                if (error) {
+                    console.error("Error sending message:", error);
+                    alert("Failed to send message. Check console for details.");
+                } else {
+                    console.log("Message sent successfully");
                     messageInput.value = "";
                     loadMessages();
                 }
