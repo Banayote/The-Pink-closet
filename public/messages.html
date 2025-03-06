@@ -27,15 +27,18 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Fix: Updated to the correct URL for the latest version of Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
+
     <script>
-        // ✅ Initialize Supabase FIRST before using it
+        // Initialize Supabase FIRST before using it
         const supabase = supabase.createClient(
             "https://fjlqkjwnelkamealhtyr.supabase.co",
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4"
         );
 
         document.addEventListener("DOMContentLoaded", async () => {
+            // Make sure sellerEmail and buyerEmail are available before using
             const urlParams = new URLSearchParams(window.location.search);
             const sellerEmail = urlParams.get("seller_email"); // Make sure to use 'seller_email' in your URL query
             const buyerEmail = localStorage.getItem("email"); // Assuming buyer is logged in
@@ -76,6 +79,7 @@
                 }
             }
 
+            // Send the message when the button is clicked
             document.getElementById("sendButton").addEventListener("click", async () => {
                 const messageInput = document.getElementById("messageInput");
                 const newMessage = messageInput.value.trim();
