@@ -3,138 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile</title>
-    <link rel="stylesheet" href="profile.css">
+    <title>Add Product</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #ffc0cb;
+            color: #fff;
+            text-align: center;
+            padding: 1rem;
+        }
+        main {
+            padding: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        form {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #ffc0cb;
+            color: #fff;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        button:hover {
+            background-color: #ffb6c1;
+        }
+    </style>
 </head>
-
 <body>
+    <header>
+        <h1>Add a New Product</h1>
+    </header>
+    <main>
+        <form id="add-product-form">
+            <label for="product-name">Product Name:</label>
+            <input type="text" id="product-name" name="name" required>
 
-    <div class="profile-container">
-        <div class="exit-icon">
-            <a href="index.html" id="exitIcon"><span>&larr;</span></a>
-        </div>
+            <label for="product-description">Description:</label>
+            <textarea id="product-description" name="description" required></textarea>
 
-        <div class="banner">
-            <div id="banner-images" class="banner-images">
-                <img id="banner-img-1" src="image1.jpg" alt="Banner Image 1" class="banner-img">
-                <img id="banner-img-2" src="image2.jpg" alt="Banner Image 2" class="banner-img">
-                <img id="banner-img-3" src="image3.jpg" alt="Banner Image 3" class="banner-img">
-            </div>
-        </div>
+            <label for="product-price">Price:</label>
+            <input type="number" id="product-price" name="price" step="0.01" required>
 
-        <div class="profile-picture">
-            <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture">
-        </div>
+            <label for="product-category">Category:</label>
+            <input type="text" id="product-category" name="category" required>
 
-        <div class="profile-info">
-            <h1 id="username">Username</h1>
-            <p id="user-email"></p>
+            <label for="product-image">Image:</label>
+            <input type="file" id="product-image" name="image" accept="image/*" required>
 
-            <div class="profile-actions">
-                <button id="message"><span class="icon">✉️</span> Message</button>
-                <button id="add-product"><span class="icon">➕</span> Add Product</button>
-                <button id="edit"><span class="icon">🔧</span> Edit</button>
-                <button id="copy-link"><span class="icon">🔗</span> Link</button>
-            </div>
-        </div>
+            <button type="submit">Add Product</button>
+        </form>
+    </main>
 
-        <div class="profile-dashboard">
-            <div class="stats">
-                <div class="stat">
-                    <h2>Sales</h2>
-                    <p id="sales-count">0</p>
-                </div>
-                <div class="stat">
-                    <h2>Visitors</h2>
-                    <p id="visitors-count">0</p>
-                </div>
-            </div>
-        </div>
+    <!-- Load Supabase First -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 
-        <div class="product-list-button">
-            <button>View Product List</button>
-        </div>
-
-        <div class="user-products"></div>
-    </div>
-
-    <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
-    <input type="file" id="banner-upload" accept="image/*" multiple style="display:none;">
-
-    <div id="image-modal" class="modal">
-        <span class="close">&times;</span>
-        <img class="modal-content" id="modal-img">
-    </div>
-
-    <!-- ✅ Load Supabase First -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
-    <!-- ✅ Now Load Your JavaScript -->
+    <!-- JavaScript to Handle Form Submission -->
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log("Script is loading...");
+        document.addEventListener("DOMContentLoaded", function() {
+            console.log("DOM fully loaded and parsed");
 
-            // ✅ Initialize Supabase
-            const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
-            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+            // Ensure Supabase library has loaded
+            if (!window.supabase) {
+                console.error("Supabase library failed to load");
+                alert("Failed to load Supabase. Check your internet connection.");
+                return;
+            }
 
-            const { createClient } = supabase;
-            const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+            // Initialize Supabase client
+            const supabaseUrl = 'https://eczpdpysryifkekieloc.supabase.co';  // Your Supabase URL
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjenBkcHlzcnlpZmtla2llbG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMjQ2NDUsImV4cCI6MjA0NzYwMDY0NX0.lxC6cqnwH9hMbGC4AsE5W6JRt34eyp4MxhNtAl0MdM4';  // Your Supabase API key
+            
+            const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+            console.log("Supabase initialized successfully");
 
-            console.log("Supabase client initialized.");
+            // Handle form submission
+            document.getElementById('add-product-form').addEventListener('submit', async (event) => {
+                event.preventDefault();
 
-            // ✅ Get seller ID from URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const seller_id = urlParams.get('seller_id');
+                // Collect form data
+                const productName = document.getElementById('product-name').value.trim();
+                const productDescription = document.getElementById('product-description').value.trim();
+                const productPrice = parseFloat(document.getElementById('product-price').value);
+                const productCategory = document.getElementById('product-category').value.trim();
+                const productImage = document.getElementById('product-image').files[0];
 
-            if (seller_id) {
+                if (!productImage) {
+                    alert('Please select an image.');
+                    return;
+                }
+
+                const userId = new URLSearchParams(window.location.search).get('user_id');
+                if (!userId) {
+                    alert("User ID not found.");
+                    return;
+                }
+
                 try {
-                    // ✅ Fetch the correct seller profile
-                    const { data: seller, error: sellerError } = await supabaseClient
-                        .from('users')
-                        .select('*')
-                        .eq('id', seller_id)
-                        .single();
+                    // Upload the image to Supabase storage
+                    const { data: imageData, error: imageError } = await supabase
+                        .storage
+                        .from('product-images')  // Ensure this matches your Supabase Storage bucket name
+                        .upload(`products/${Date.now()}_${productImage.name}`, productImage, {
+                            cacheControl: '3600',
+                            upsert: false
+                        });
 
-                    if (sellerError) {
-                        console.error('Error fetching seller:', sellerError);
-                        alert('Error loading seller profile.');
+                    if (imageError) {
+                        console.error('Image upload error:', imageError);
+                        alert('Failed to upload image.');
                         return;
                     }
 
-                    // ✅ Update profile info with seller data
-                    document.getElementById('username').textContent = `${seller.first_name} ${seller.last_name}`;
-                    document.getElementById('profile-img').src = seller.profile_image || 'profile-picture.jpg';
-                    document.getElementById('user-email').textContent = seller.email || 'No email available';
+                    // Construct image URL from the storage bucket
+                    const imageUrl = `https://eczpdpysryifkekieloc.supabase.co/storage/v1/object/public/product-images/${imageData.path}`;
 
-                    // ✅ Make sure the Message button works
-                    document.getElementById('message').addEventListener('click', function() {
-                        window.location.href = `messages.html?seller_id=${seller_id}`;
-                    });
+                    // Construct product object
+                    const product = {
+                        name: productName,
+                        description: productDescription,
+                        price: productPrice,
+                        category: productCategory,
+                        user_id: userId,
+                        images: imageUrl,
+                        image_url: imageUrl
+                    };
+
+                    // Insert product into the 'products' table in Supabase
+                    const { data, error } = await supabase
+                        .from('products')
+                        .insert([product]);
+
+                    if (error) {
+                        console.error('Error adding product:', error);
+                        alert(`Failed to add product: ${error.message || 'Unknown error'}`);
+                        return;
+                    }
+
+                    console.log('Product added successfully:', data);
+                    alert('Product added successfully!');
+                    event.target.reset();
 
                 } catch (error) {
-                    console.error('Error fetching seller profile:', error);
-                    alert('Failed to load profile. Please try again later.');
+                    console.error('Error:', error);
+                    alert('An error occurred. Please check the console for details.');
                 }
-            } else {
-                console.error('Seller ID is missing from URL.');
-                alert('Invalid seller profile.');
-            }
-
-            // ✅ Add Product Button - Redirect to Add Product Page
-            document.getElementById('add-product').addEventListener('click', () => {
-                window.location.href = 'add-product.html';
             });
-
-            // ✅ Copy Profile Link
-            document.getElementById('copy-link').addEventListener('click', () => {
-                navigator.clipboard.writeText(window.location.href)
-                    .then(() => alert('Profile link copied to clipboard!'))
-                    .catch(error => console.error('Failed to copy link:', error));
-            });
-
         });
     </script>
-
 </body>
 </html>
