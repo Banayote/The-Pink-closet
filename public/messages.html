@@ -7,10 +7,10 @@
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
         .chat-container { width: 90%; max-width: 400px; margin: auto; }
-        .messages { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; }
+        .messages { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; background: #fafafa; }
         .input-container { display: flex; margin-top: 10px; }
-        input { flex: 1; padding: 10px; }
-        button { padding: 10px; cursor: pointer; }
+        input { flex: 1; padding: 10px; border: 1px solid #ccc; }
+        button { padding: 10px; cursor: pointer; background: #007bff; color: white; border: none; }
         .message { margin: 10px 0; padding: 8px; border-radius: 5px; }
         .buyer-message { background-color: #f1f1f1; text-align: left; }
         .seller-message { background-color: #e1f7d5; text-align: right; }
@@ -27,41 +27,44 @@
         </div>
     </div>
 
+    <!-- Load Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ✅ Initialize Supabase FIRST before using it
-        const supabase = supabase.createClient(
+        // ✅ Correctly Initialize Supabase
+        const { createClient } = supabase;
+        const supabaseClient = createClient(
             "https://fjlqkjwnelkamealhtyr.supabase.co",
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4"
         );
 
         document.addEventListener("DOMContentLoaded", async () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const sellerEmail = urlParams.get("seller_email"); // Make sure to use 'seller_email' in your URL query
-            const buyerEmail = localStorage.getItem("email"); // Assuming buyer is logged in
+            const sellerEmail = urlParams.get("seller_email");
+            const buyerEmail = localStorage.getItem("email"); // Assuming the buyer is logged in
 
             if (!buyerEmail || !sellerEmail) {
-                alert("Error: Missing buyer or seller information.");
+                alert("Error: Missing buyer or seller email.");
                 return;
             }
 
             async function loadMessages() {
-                const { data, error } = await supabase
-                    .from("messages")
-                    .select("*")
-                    .or(`buyer_email.eq.${buyerEmail},seller_email.eq.${buyerEmail}`)
-                    .order("timestamp", { ascending: true });
+                try {
+                    const { data, error } = await supabaseClient
+                        .from("messages")
+                        .select("*")
+                        .or(`buyer_email.eq.${buyerEmail},seller_email.eq.${buyerEmail}`)
+                        .order("timestamp", { ascending: true });
 
-                if (error) {
-                    console.error("Error loading messages:", error);
-                } else {
+                    if (error) throw error;
+
                     const messageContainer = document.getElementById("messages");
                     messageContainer.innerHTML = "";
+
                     data.forEach(msg => {
                         const msgElement = document.createElement("p");
-                        msgElement.classList.add("message");
-                        msgElement.classList.add(msg.sender_email === buyerEmail ? "buyer-message" : "seller-message");
-                        msgElement.innerHTML = `<strong>${msg.sender_email}:</strong> ${msg.message}<br><small>${new Date(msg.timestamp).toLocaleString()}</small>`;
+                        msgElement.classList.add("message", msg.sender_email === buyerEmail ? "buyer-message" : "seller-message");
+                        msgElement.innerHTML = `<strong>${msg.sender_email}:</strong> ${msg.message}<br>
+                                                <small>${new Date(msg.timestamp).toLocaleString()}</small>`;
                         messageContainer.appendChild(msgElement);
                     });
 
@@ -69,10 +72,13 @@
                     messageContainer.scrollTop = messageContainer.scrollHeight;
 
                     // ✅ Mark messages as read
-                    await supabase.from("messages")
+                    await supabaseClient.from("messages")
                         .update({ read_status: true })
                         .eq("seller_email", sellerEmail)
                         .eq("buyer_email", buyerEmail);
+                } catch (error) {
+                    console.error("Error loading messages:", error);
+                    alert("Failed to load messages.");
                 }
             }
 
@@ -85,28 +91,29 @@
                     return;
                 }
 
-                const { error } = await supabase.from("messages").insert([
-                    {
-                        buyer_email: buyerEmail,
-                        seller_email: sellerEmail,
-                        message: newMessage,
-                        timestamp: new Date().toISOString(),
-                        read_status: false,
-                        sender_email: buyerEmail
-                    }
-                ]);
+                try {
+                    const { error } = await supabaseClient.from("messages").insert([
+                        {
+                            buyer_email: buyerEmail,
+                            seller_email: sellerEmail,
+                            message: newMessage,
+                            timestamp: new Date().toISOString(),
+                            read_status: false,
+                            sender_email: buyerEmail
+                        }
+                    ]);
 
-                if (error) {
+                    if (error) throw error;
+
+                    messageInput.value = ""; // ✅ Clear input after sending
+                    loadMessages(); // ✅ Reload messages after sending
+                } catch (error) {
                     console.error("Error sending message:", error);
-                    alert("Failed to send message. Check console for details.");
-                    return;
+                    alert("Failed to send message.");
                 }
-
-                messageInput.value = "";
-                loadMessages();
             });
 
-            loadMessages(); // Initial load
+            loadMessages(); // ✅ Initial message load
         });
     </script>
 
