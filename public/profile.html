@@ -107,8 +107,8 @@
                     document.getElementById('profile-img').src = seller.profile_image || 'profile-picture.jpg';
                     document.getElementById('user-email').textContent = seller.email || 'No email available';
 
-                    // ✅ Update Message button to include seller ID
-                    document.getElementById('message').addEventListener('click', () => {
+                    // ✅ Make sure the Message button works
+                    document.getElementById('message').addEventListener('click', function() {
                         window.location.href = `messages.html?seller_id=${seller_id}`;
                     });
 
