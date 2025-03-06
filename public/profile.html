@@ -31,10 +31,18 @@
             <p>Banayote</p>
 
             <div class="profile-actions">
-                <button id="message"><span class="icon">✉️</span> Message</button>
-                <button id="add-product"><span class="icon">➕</span> Add Product</button>
-                <button id="edit"><span class="icon">🔧</span> Edit</button>
-                <button id="copy-link"><span class="icon">🔗</span> Link</button>
+                <button id="message">
+                    <span class="icon">✉️</span> Message
+                </button>
+                <button id="add-product">
+                    <span class="icon">➕</span> Add Product
+                </button>
+                <button id="edit">
+                    <span class="icon">🔧</span> Edit
+                </button>
+                <button id="copy-link">
+                    <span class="icon">🔗</span> Link
+                </button>
             </div>
         </div>
 
@@ -55,8 +63,7 @@
             <button>View Product List</button>
         </div>
 
-        <div class="user-products">
-        </div>
+        <div class="user-products"></div>
     </div>
 
     <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
@@ -84,36 +91,44 @@
 
             console.log("Supabase client initialized.");
 
-            // ✅ Fetch User Profile (Without Authentication)
-            async function fetchUserProfile() {
+            // ✅ Get seller ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const seller_id = urlParams.get('seller_id');
+
+            if (seller_id) {
                 try {
-                    // Assuming you have a default user ID or fetching any user data
-                    const { data: profile, error: profileError } = await supabaseClient
+                    // ✅ Fetch the correct seller profile
+                    const { data: seller, error: sellerError } = await supabaseClient
                         .from('users')
                         .select('*')
-                        .limit(1) // Fetches the first user in the database
+                        .eq('id', seller_id)
                         .single();
 
-                    if (profileError) throw new Error(profileError.message);
+                    if (sellerError) {
+                        console.error('Error fetching seller:', sellerError);
+                        return;
+                    }
 
-                    document.getElementById('username').textContent = `${profile.first_name || 'First'} ${profile.last_name || 'Last'}`;
-                    document.getElementById('profile-img').src = profile.profile_image || 'profile-picture.jpg';
+                    // ✅ Update profile info with seller data
+                    document.getElementById('username').textContent = `${seller.first_name} ${seller.last_name}`;
+                    document.getElementById('profile-img').src = seller.profile_image || 'profile-picture.jpg';
+                    
+                    // ✅ Update Message button to include seller ID
+                    document.getElementById('message').addEventListener('click', () => {
+                        window.location.href = `messages.html?seller_id=${seller_id}`;
+                    });
+
                 } catch (error) {
-                    console.error('Error fetching user profile:', error);
+                    console.error('Error fetching seller profile:', error);
                     alert('Failed to load profile. Please try again later.');
                 }
+            } else {
+                console.error('Seller ID is missing from URL.');
             }
-
-            fetchUserProfile();
 
             // ✅ Add Product Button - Redirect to Add Product Page
             document.getElementById('add-product').addEventListener('click', () => {
                 window.location.href = 'add-product.html';
-            });
-
-            // ✅ Message Button - Redirect to Messages Page
-            document.getElementById('message').addEventListener('click', () => {
-                window.location.href = 'messages.html';
             });
 
             // ✅ Copy Profile Link
