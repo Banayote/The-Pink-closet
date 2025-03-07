@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,7 +30,7 @@
     <!-- Load Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ✅ Correctly Initialize Supabase
+        // ✅ Initialize Supabase
         const { createClient } = supabase;
         const supabaseClient = createClient(
             "https://fjlqkjwnelkamealhtyr.supabase.co", 
@@ -40,17 +39,16 @@
 
         document.addEventListener("DOMContentLoaded", async () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const sellerEmail = urlParams.get("seller_email");
-            
-            // Generate a unique buyer ID if not available in sessionStorage
+            const sellerId = urlParams.get("seller_id"); // ✅ Corrected from seller_email to seller_id
+
             let buyerId = sessionStorage.getItem("buyer_id");
             if (!buyerId) {
-                buyerId = "buyer-" + Math.random().toString(36).substr(2, 9);  // Generate a unique random ID
-                sessionStorage.setItem("buyer_id", buyerId);  // Store the unique ID in sessionStorage
+                buyerId = "buyer-" + Math.random().toString(36).substr(2, 9);
+                sessionStorage.setItem("buyer_id", buyerId);
             }
 
-            if (!sellerEmail) {
-                alert("Error: Missing seller email.");
+            if (!sellerId) {
+                alert("Error: Missing seller ID.");
                 return;
             }
 
@@ -59,7 +57,7 @@
                     const { data, error } = await supabaseClient
                         .from("messages")
                         .select("*")
-                        .or(`buyer_id.eq.${buyerId},seller_email.eq.${sellerEmail}`)
+                        .or(`buyer_id.eq.${buyerId},seller_id.eq.${sellerId}`)
                         .order("timestamp", { ascending: true });
 
                     if (error) throw error;
@@ -70,18 +68,16 @@
                     data.forEach(msg => {
                         const msgElement = document.createElement("p");
                         msgElement.classList.add("message", msg.buyer_id === buyerId ? "buyer-message" : "seller-message");
-                        msgElement.innerHTML = `<strong>${msg.sender_email}:</strong> ${msg.message}<br>
+                        msgElement.innerHTML = `<strong>${msg.buyer_id === buyerId ? "You" : "Seller"}:</strong> ${msg.message}<br>
                                                 <small>${new Date(msg.timestamp).toLocaleString()}</small>`;
                         messageContainer.appendChild(msgElement);
                     });
 
-                    // ✅ Scroll to the latest message
                     messageContainer.scrollTop = messageContainer.scrollHeight;
 
-                    // ✅ Mark messages as read
                     await supabaseClient.from("messages")
                         .update({ read_status: true })
-                        .eq("seller_email", sellerEmail)
+                        .eq("seller_id", sellerId)
                         .eq("buyer_id", buyerId);
                 } catch (error) {
                     console.error("Error loading messages:", error);
@@ -101,26 +97,25 @@
                 try {
                     const { error } = await supabaseClient.from("messages").insert([
                         {
-                            buyer_id: buyerId,  // Use buyer's unique session ID
-                            seller_email: sellerEmail,
+                            buyer_id: buyerId,  
+                            seller_id: sellerId,  
                             message: newMessage,
                             timestamp: new Date().toISOString(),
-                            read_status: false,
-                            sender_email: buyerId // Use buyer's unique ID as sender_email
+                            read_status: false
                         }
                     ]);
 
                     if (error) throw error;
 
-                    messageInput.value = ""; // ✅ Clear input after sending
-                    loadMessages(); // ✅ Reload messages after sending
+                    messageInput.value = ""; 
+                    loadMessages(); 
                 } catch (error) {
                     console.error("Error sending message:", error);
                     alert("Failed to send message.");
                 }
             });
 
-            loadMessages(); // ✅ Initial message load
+            loadMessages(); 
         });
     </script>
 </body>
