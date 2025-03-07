@@ -80,7 +80,7 @@
             const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
             console.log("Supabase client initialized.");
 
-            // ✅ Fetch User Profile and Seller Email
+            // ✅ Fetch User Profile and Seller ID
             async function fetchUserProfile() {
                 try {
                     const { data: profile, error: profileError } = await supabaseClient
@@ -94,10 +94,10 @@
                     document.getElementById('username').textContent = `${profile.first_name || 'First'} ${profile.last_name || 'Last'}`;
                     document.getElementById('profile-img').src = profile.profile_image || 'profile-picture.jpg';
 
-                    // Pass the seller's email (use dynamically fetched email)
-                    const sellerEmail = profile.email;
+                    // Pass the seller's ID (use dynamically fetched user ID)
+                    const sellerId = profile.id; // Ensure `id` is the seller's unique identifier
                     document.getElementById('message').addEventListener('click', () => {
-                        window.location.href = `messages.html?seller_email=${encodeURIComponent(sellerEmail)}`;
+                        window.location.href = `messages.html?seller_id=${encodeURIComponent(sellerId)}`;
                     });
 
                 } catch (error) {
@@ -123,4 +123,5 @@
     </script>
 
 </body>
+
 </html>
