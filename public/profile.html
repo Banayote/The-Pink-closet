@@ -9,7 +9,6 @@
 </head>
 
 <body>
-
     <div class="profile-container">
         <div class="exit-icon">
             <a href="index.html" id="exitIcon"><span>&larr;</span></a>
@@ -56,8 +55,7 @@
             <button>View Product List</button>
         </div>
 
-        <div class="user-products">
-        </div>
+        <div class="user-products"></div>
     </div>
 
     <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
@@ -80,18 +78,9 @@
             const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
             const { createClient } = supabase;
             const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
-
             console.log("Supabase client initialized.");
 
-            // Fetch Seller Email (replace with actual logic to get seller email)
-            const sellerEmail = "seller@example.com";  // Get this dynamically if needed
-
-            // ✅ Message Button - Redirect to Messages Page with seller_email
-            document.getElementById('message').addEventListener('click', () => {
-                window.location.href = `messages.html?seller_email=${encodeURIComponent(sellerEmail)}`;
-            });
-
-            // Fetch User Profile (Without Authentication)
+            // ✅ Fetch User Profile and Seller Email
             async function fetchUserProfile() {
                 try {
                     const { data: profile, error: profileError } = await supabaseClient
@@ -104,6 +93,13 @@
 
                     document.getElementById('username').textContent = `${profile.first_name || 'First'} ${profile.last_name || 'Last'}`;
                     document.getElementById('profile-img').src = profile.profile_image || 'profile-picture.jpg';
+
+                    // Pass the seller's email (use dynamically fetched email)
+                    const sellerEmail = profile.email;
+                    document.getElementById('message').addEventListener('click', () => {
+                        window.location.href = `messages.html?seller_email=${encodeURIComponent(sellerEmail)}`;
+                    });
+
                 } catch (error) {
                     console.error('Error fetching user profile:', error);
                     alert('Failed to load profile. Please try again later.');
@@ -123,7 +119,6 @@
                     .then(() => alert('Profile link copied to clipboard!'))
                     .catch(error => console.error('Failed to copy link:', error));
             });
-
         });
     </script>
 
