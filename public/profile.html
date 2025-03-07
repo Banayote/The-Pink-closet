@@ -1,126 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile</title>
-    <link rel="stylesheet" href="profile.css">
+    <title>Messages</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .chat-container { width: 90%; max-width: 400px; margin: auto; }
+        .messages { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; background: #fafafa; }
+        .input-container { display: flex; margin-top: 10px; }
+        input { flex: 1; padding: 10px; border: 1px solid #ccc; }
+        button { padding: 10px; cursor: pointer; background: #007bff; color: white; border: none; }
+        .message { margin: 10px 0; padding: 8px; border-radius: 5px; }
+        .buyer-message { background-color: #f1f1f1; text-align: left; }
+        .seller-message { background-color: #e1f7d5; text-align: right; }
+    </style>
 </head>
 
 <body>
-    <div class="profile-container">
-        <div class="exit-icon">
-            <a href="index.html" id="exitIcon"><span>&larr;</span></a>
+    <h2>Messages</h2>
+    <div class="chat-container">
+        <div class="messages" id="messages"></div>
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Type a message...">
+            <button id="sendButton">Send</button>
         </div>
-
-        <div class="banner">
-            <div id="banner-images" class="banner-images">
-                <img id="banner-img-1" src="image1.jpg" alt="Banner Image 1" class="banner-img">
-                <img id="banner-img-2" src="image2.jpg" alt="Banner Image 2" class="banner-img">
-                <img id="banner-img-3" src="image3.jpg" alt="Banner Image 3" class="banner-img">
-            </div>
-        </div>
-
-        <div class="profile-picture">
-            <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture">
-        </div>
-
-        <div class="profile-info">
-            <h1 id="username">Username</h1>
-            <p>Banayote</p>
-
-            <div class="profile-actions">
-                <button id="message"><span class="icon">✉️</span> Message</button>
-                <button id="add-product"><span class="icon">➕</span> Add Product</button>
-                <button id="edit"><span class="icon">🔧</span> Edit</button>
-                <button id="copy-link"><span class="icon">🔗</span> Link</button>
-            </div>
-        </div>
-
-        <div class="profile-dashboard">
-            <div class="stats">
-                <div class="stat">
-                    <h2>Sales</h2>
-                    <p id="sales-count"></p>
-                </div>
-                <div class="stat">
-                    <h2>Visitors</h2>
-                    <p id="visitors-count"></p>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-list-button">
-            <button>View Product List</button>
-        </div>
-
-        <div class="user-products"></div>
     </div>
 
-    <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
-    <input type="file" id="banner-upload" accept="image/*" multiple style="display:none;">
-
-    <div id="image-modal" class="modal">
-        <span class="close">&times;</span>
-        <img class="modal-content" id="modal-img">
-    </div>
-
-    <!-- ✅ Load Supabase First -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
+    <!-- Load Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log("Script is loading...");
+        // ✅ Initialize Supabase
+        const { createClient } = supabase;
+        const supabaseClient = createClient(
+            "https://fjlqkjwnelkamealhtyr.supabase.co", 
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4"
+        );
 
-            // ✅ Initialize Supabase
-            const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
-            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
-            const { createClient } = supabase;
-            const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
-            console.log("Supabase client initialized.");
+        document.addEventListener("DOMContentLoaded", async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sellerId = urlParams.get("seller_id"); // ✅ Corrected from seller_email to seller_id
 
-            // ✅ Fetch User Profile and Seller Email
-            async function fetchUserProfile() {
+            let buyerId = sessionStorage.getItem("buyer_id");
+            if (!buyerId) {
+                buyerId = "buyer-" + Math.random().toString(36).substr(2, 9);
+                sessionStorage.setItem("buyer_id", buyerId);
+            }
+
+            if (!sellerId) {
+                alert("Error: Missing seller ID.");
+                return;
+            }
+
+            async function loadMessages() {
                 try {
-                    const { data: profile, error: profileError } = await supabaseClient
-                        .from('users')
-                        .select('*')
-                        .limit(1) // Fetches the first user in the database
-                        .single();
+                    const { data, error } = await supabaseClient
+                        .from("messages")
+                        .select("*")
+                        .or(`buyer_id.eq.${buyerId},seller_id.eq.${sellerId}`)
+                        .order("timestamp", { ascending: true });
 
-                    if (profileError) throw new Error(profileError.message);
+                    if (error) throw error;
 
-                    document.getElementById('username').textContent = `${profile.first_name || 'First'} ${profile.last_name || 'Last'}`;
-                    document.getElementById('profile-img').src = profile.profile_image || 'profile-picture.jpg';
+                    const messageContainer = document.getElementById("messages");
+                    messageContainer.innerHTML = "";
 
-                    // Pass the seller's email (use dynamically fetched email)
-                    const sellerEmail = profile.email;
-                    document.getElementById('message').addEventListener('click', () => {
-                        window.location.href = `messages.html?seller_email=${encodeURIComponent(sellerEmail)}`;
+                    data.forEach(msg => {
+                        const msgElement = document.createElement("p");
+                        msgElement.classList.add("message", msg.buyer_id === buyerId ? "buyer-message" : "seller-message");
+                        msgElement.innerHTML = `<strong>${msg.buyer_id === buyerId ? "You" : "Seller"}:</strong> ${msg.message}<br>
+                                                <small>${new Date(msg.timestamp).toLocaleString()}</small>`;
+                        messageContainer.appendChild(msgElement);
                     });
 
+                    messageContainer.scrollTop = messageContainer.scrollHeight;
+
+                    await supabaseClient.from("messages")
+                        .update({ read_status: true })
+                        .eq("seller_id", sellerId)
+                        .eq("buyer_id", buyerId);
                 } catch (error) {
-                    console.error('Error fetching user profile:', error);
-                    alert('Failed to load profile. Please try again later.');
+                    console.error("Error loading messages:", error);
+                    alert("Failed to load messages.");
                 }
             }
 
-            fetchUserProfile();
+            document.getElementById("sendButton").addEventListener("click", async () => {
+                const messageInput = document.getElementById("messageInput");
+                const newMessage = messageInput.value.trim();
 
-            // Add Product Button - Redirect to Add Product Page
-            document.getElementById('add-product').addEventListener('click', () => {
-                window.location.href = 'add-product.html';
+                if (!newMessage) {
+                    alert("Message cannot be empty!");
+                    return;
+                }
+
+                try {
+                    const { error } = await supabaseClient.from("messages").insert([
+                        {
+                            buyer_id: buyerId,  
+                            seller_id: sellerId,  
+                            message: newMessage,
+                            timestamp: new Date().toISOString(),
+                            read_status: false
+                        }
+                    ]);
+
+                    if (error) throw error;
+
+                    messageInput.value = ""; 
+                    loadMessages(); 
+                } catch (error) {
+                    console.error("Error sending message:", error);
+                    alert("Failed to send message.");
+                }
             });
 
-            // Copy Profile Link
-            document.getElementById('copy-link').addEventListener('click', () => {
-                navigator.clipboard.writeText(window.location.href)
-                    .then(() => alert('Profile link copied to clipboard!'))
-                    .catch(error => console.error('Failed to copy link:', error));
-            });
+            loadMessages(); 
         });
     </script>
-
 </body>
+
 </html>
