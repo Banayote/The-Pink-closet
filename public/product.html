@@ -90,16 +90,16 @@
     <script>
         console.log("✅ Script Loaded");
 
-        // Initialize Supabase globally before DOMContentLoaded
+        // ✅ Fix: Initialize Supabase Globally Before DOMContentLoaded
         const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
 
         let supabase;
-
+        
         document.addEventListener('DOMContentLoaded', async () => {
             console.log("✅ Page loaded, initializing Supabase...");
             
-            // Ensure Supabase is loaded before using it
+            // ✅ Ensure Supabase is loaded before using it
             if (window.supabase) {
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 console.log("✅ Supabase initialized");
@@ -129,7 +129,7 @@
                     throw error || new Error("Product not found.");
                 }
 
-                // Display product details
+                // ✅ Display product details
                 document.getElementById('product-container').innerHTML = `
                     <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
                     <div class="product-details">
@@ -148,14 +148,25 @@
             }
         });
 
-        // Function to start a conversation
+        // ✅ Function to start a conversation
         async function startConversation(productId, sellerId) {
             console.log(`📩 Starting conversation with seller ${sellerId} for product ${productId}`);
 
+            // Set the guest email if the user is not logged in
+            const guestEmail = "guest@example.com"; // Default guest email if no user is logged in
+            const buyerId = 'guest'; // Use guest buyer ID for simplicity, but this should be dynamic if you have a real user.
+
             try {
+                // Insert the new message into the database, with buyer and seller information
                 const { data, error } = await supabase
                     .from('messages')
-                    .insert([{ buyer_id: 'guest', seller_id: sellerId, product_id: productId, message: "Hi, I'm interested in this product!" }])
+                    .insert([{
+                        buyer_id: buyerId, 
+                        seller_id: sellerId, 
+                        product_id: productId, 
+                        sender_email: guestEmail, // Add sender_email here
+                        message: "Hi, I'm interested in this product!" 
+                    }])
                     .select()
                     .single();
 
