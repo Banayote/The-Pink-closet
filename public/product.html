@@ -4,71 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details</title>
+    <!-- Load Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
+    <style>
+        /* You can customize styles here, for now, I leave it as an example */
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }
+        header { background-color: #ff6347; color: white; padding: 10px; text-align: center; }
+        .product-container { display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #fff; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin: 20px; border-radius: 8px; max-width: 600px; margin: 20px auto; }
+        .product-container img { max-width: 100%; height: auto; border-radius: 8px; }
+        .product-details { margin-top: 20px; text-align: center; }
+        .product-name { font-size: 2rem; font-weight: bold; }
+        .product-description { color: #555; margin-top: 10px; }
+        .product-price { color: #ff6347; font-size: 1.5rem; margin-top: 15px; }
+        .visit-store-btn, .buy-btn { background-color: #ff6347; color: white; padding: 10px 20px; font-size: 1rem; border: none; cursor: pointer; margin-top: 20px; text-decoration: none; border-radius: 5px; display: inline-block; }
+        .visit-store-btn:hover, .buy-btn:hover { background-color: #e5533b; }
+    </style>
 </head>
+
 <body>
+    <header>
+        <h1>Product Details</h1>
+    </header>
 
-    <h1>Product Details</h1>
-    <div id="product-container"></div>
+    <main>
+        <div id="product-container" class="product-container">
+            <!-- Product details will be injected here -->
+        </div>
+    </main>
 
+    <footer>
+        <p>&copy; The Pink Closet 2024. All rights reserved.</p>
+    </footer>
+
+    <!-- Initialize Supabase after the script tag -->
     <script>
-        // ✅ Initialize Supabase
-        const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+        // ✅ Wait for Supabase to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co'; // Your Supabase URL
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'; // Your Supabase Anon Key
+            
+            const { createClient } = supabase;
+            const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const { createClient } = supabase;
-        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+            // ✅ Get product ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
 
-        // ✅ Get product ID from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const productId = urlParams.get('id');
-
-        if (!productId) {
-            alert('Product ID is missing.');
-        } else {
-            loadProduct(productId);
-        }
-
-        // ✅ Fetch Product Details
-        async function loadProduct(productId) {
-            try {
-                const { data: product, error } = await supabaseClient
-                    .from('products')
-                    .select('*')
-                    .eq('id', productId)
-                    .single();
-
-                if (error) throw error;
-
-                document.getElementById('product-container').innerHTML = `
-                    <h2>${product.name}</h2>
-                    <p>${product.description}</p>
-                    <p>Price: $${product.price}</p>
-                    <button onclick="startConversation('${product.seller_id}')">Buy</button>
-                `;
-            } catch (err) {
-                console.error('Error fetching product:', err);
-                alert('Failed to load product details.');
+            if (!productId) {
+                alert('Product ID is missing.');
+            } else {
+                loadProduct(productId);
             }
-        }
 
-        // ✅ Start Conversation
-        async function startConversation(sellerId) {
-            try {
-                const { data, error } = await supabaseClient
-                    .from('messages')
-                    .insert([{ buyer_id: 'guest', seller_id: sellerId, message: "I'm interested!" }])
-                    .select()
-                    .single();
+            // ✅ Fetch Product Details
+            async function loadProduct(productId) {
+                try {
+                    const { data: product, error } = await supabaseClient
+                        .from('products')
+                        .select('*')
+                        .eq('id', productId)
+                        .single();
 
-                if (error) throw error;
+                    if (error) throw error;
 
-                window.location.href = `messages.html?conversation_id=${data.id}`;
-            } catch (err) {
-                console.error('Error starting conversation:', err);
-                alert('Error starting conversation.');
+                    // Populate Product Details
+                    const productContainer = document.getElementById('product-container');
+                    productContainer.innerHTML = `
+                        <img src="${product.image_url || 'https://via.placeholder.com/150'}" alt="${product.name}">
+                        <div class="product-details">
+                            <h2 class="product-name">${product.name}</h2>
+                            <p class="product-description">${product.description}</p>
+                            <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
+                            <a href="profile.html?id=${product.seller_id}" class="visit-store-btn">Visit Store</a>
+                            <button class="buy-btn" onclick="startConversation('${product.seller_id}')">Buy</button>
+                        </div>
+                    `;
+                } catch (err) {
+                    console.error('Error fetching product:', err);
+                    alert('Failed to load product details.');
+                }
             }
-        }
+
+            // ✅ Start Conversation
+            async function startConversation(sellerId) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('messages')
+                        .insert([{ buyer_id: 'guest', seller_id: sellerId, message: "I'm interested!" }])
+                        .select()
+                        .single();
+
+                    if (error) throw error;
+
+                    window.location.href = `messages.html?conversation_id=${data.id}`;
+                } catch (err) {
+                    console.error('Error starting conversation:', err);
+                    alert('Error starting conversation.');
+                }
+            }
+        });
     </script>
 
 </body>
