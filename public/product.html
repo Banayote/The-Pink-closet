@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,10 +28,9 @@
             padding: 20px;
             background-color: #fff;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            margin: 20px;
+            margin: 20px auto;
             border-radius: 8px;
             max-width: 600px;
-            margin: 20px auto;
         }
 
         .product-container img {
@@ -77,6 +78,7 @@
         }
     </style>
 </head>
+
 <body>
     <header>
         <h1>Product Details</h1>
@@ -93,14 +95,13 @@
     </footer>
 
     <!-- Load Supabase Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            const supabase = window.supabase.createClient(
-                'https://fjlqkjwnelkamealhtyr.supabase.co', // Your Supabase URL
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4' // Your Supabase Anon Key
-            );
+            const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+            const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
             // Get product ID from URL
             const urlParams = new URLSearchParams(window.location.search);
@@ -115,7 +116,7 @@
                 // Fetch product details from Supabase
                 const { data: product, error } = await supabase
                     .from('products')
-                    .select()
+                    .select('*')
                     .eq('id', productId)
                     .single();
 
@@ -146,29 +147,37 @@
 
         // Function to start a conversation between buyer and seller
         async function startConversation(productId, sellerId) {
-            const supabase = window.supabase.createClient(
-                'https://fjlqkjwnelkamealhtyr.supabase.co', // Your Supabase URL
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4' // Your Supabase Anon Key
-            );
+            const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+            const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-            // Create a new conversation in Supabase
-            const { data, error } = await supabase
-                .from('messages')
-                .insert([
-                    { buyer_id: 'guest', seller_id: sellerId, product_id: productId, message: "Hi, I'm interested in this product!" }
-                ])
-                .select()
-                .single();
-
-            if (error) {
-                console.error("Error creating conversation:", error.message);
-                alert("Error starting conversation. Try again.");
-                return;
+            // Retrieve buyer's ID from sessionStorage or generate one
+            let buyerId = sessionStorage.getItem("buyer_id");
+            if (!buyerId) {
+                buyerId = "buyer-" + Math.random().toString(36).substr(2, 9); // Generate random buyer ID
+                sessionStorage.setItem("buyer_id", buyerId);
             }
 
-            // Redirect to messages page with conversation ID
-            window.location.href = `messages.html?conversation_id=${data.id}`;
+            try {
+                // Create a new conversation in Supabase
+                const { data, error } = await supabase
+                    .from('messages')
+                    .insert([
+                        { buyer_id: buyerId, seller_id: sellerId, product_id: productId, message: "Hi, I'm interested in this product!" }
+                    ])
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                // Redirect to messages page with conversation ID
+                window.location.href = `messages.html?conversation_id=${data.id}`;
+            } catch (err) {
+                console.error("Error creating conversation:", err.message);
+                alert("Error starting conversation. Try again.");
+            }
         }
     </script>
 </body>
+
 </html>
