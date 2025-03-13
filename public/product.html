@@ -78,9 +78,6 @@
         }
     </style>
 
-    <!-- ✅ Load Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
-
 </head>
 
 <body>
@@ -99,8 +96,18 @@
         <p>&copy; The Pink Closet 2024. All rights reserved.</p>
     </footer>
 
+    <!-- ✅ Load Supabase **BEFORE** JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
+
     <script>
+        // ✅ Wait until Supabase loads
         document.addEventListener('DOMContentLoaded', async function () {
+            if (!window.supabase) {
+                console.error("❌ Supabase library is not loaded!");
+                alert("Supabase failed to load. Refresh the page.");
+                return;
+            }
+
             console.log("✅ Page loaded, initializing Supabase...");
 
             // ✅ Initialize Supabase
@@ -163,6 +170,12 @@
         async function startConversation(sellerId) {
             console.log("📩 Starting conversation with seller ID:", sellerId);
             
+            if (!window.supabase) {
+                console.error("❌ Supabase is not initialized!");
+                alert("Supabase is not loaded. Refresh the page.");
+                return;
+            }
+
             const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
             const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
 
