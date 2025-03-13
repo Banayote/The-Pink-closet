@@ -81,7 +81,7 @@
     </style>
 
     <!-- ✅ Load Supabase Properly -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.2.0/dist/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.6/dist/supabase.min.js"></script>
 </head>
 
 <body>
@@ -108,6 +108,7 @@
             const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
             const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
 
+            // Check if the Supabase object is available
             if (!window.supabase) {
                 console.error("❌ Supabase failed to load!");
                 alert("Supabase failed to load. Please refresh the page.");
