@@ -59,4 +59,101 @@
             font-size: 1.5rem;
             margin-top: 15px;
 
+document.addEventListener('DOMContentLoaded', async function () {
+    console.log("✅ Page loaded, initializing Supabase...");
+
+    // ✅ Ensure Supabase is properly initialized
+    const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+
+    if (!window.supabase) {
+        console.error("❌ Supabase failed to load!");
+        alert("Supabase failed to load. Please refresh the page.");
+        return;
+    }
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log("✅ Supabase initialized:", supabaseClient);
+
+    // ✅ Fetch Product Details
+    fetchProduct(supabaseClient);
+});
+
+async function fetchProduct(supabaseClient) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id');
+
+    if (!productId) {
+        alert('🚨 Product ID is missing.');
+        return;
+    }
+
+    console.log("🔍 Fetching product with ID:", productId);
+
+    try {
+        const { data: product, error } = await supabaseClient
+            .from('products')
+            .select('*')
+            .eq('id', productId)
+            .single();
+
+        if (error) throw error;
+
+        if (!product) {
+            document.getElementById('product-container').innerHTML = '<p>❌ Product not found.</p>';
+            return;
+        }
+
+        // ✅ Inject Product Details
+        document.getElementById('product-container').innerHTML = `
+            <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
+            <div class="product-details">
+                <h2 class="product-name">${product.name}</h2>
+                <p class="product-description">${product.description}</p>
+                <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
+                <a href="profile.html?id=${product.seller_id}" class="visit-store-btn">Visit Store</a>
+                <button class="buy-btn" onclick="startConversation('${product.seller_id}')">Buy</button>
+            </div>
+        `;
+
+        console.log("✅ Product displayed successfully!");
+
+    } catch (err) {
+        console.error('🚨 Error fetching product:', err);
+        alert('❌ Failed to load product details.');
+    }
+}
+
+// ✅ Function to Start Conversation
+async function startConversation(sellerId) {
+    console.log("📩 Starting conversation with seller ID:", sellerId);
+
+    const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+
+    if (!window.supabase) {
+        console.error("❌ Supabase failed to load!");
+        alert("Supabase failed to load. Please refresh the page.");
+        return;
+    }
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('messages')
+            .insert([{ buyer_id: 'guest', seller_id: sellerId, message: "I'm interested in this product!" }])
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        console.log("✅ Conversation started, redirecting...");
+        window.location.href = `messages.html?conversation_id=${data.id}`;
+
+    } catch (err) {
+        console.error('❌ Error starting conversation:', err);
+        alert('Error starting conversation. Please try again.');
+    }
+}
 
