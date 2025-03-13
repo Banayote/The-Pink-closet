@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details</title>
 
-    <!-- ✅ Load Supabase Library with "defer" to make sure it loads first -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js" defer></script>
+    <!-- ✅ Load Supabase Library First -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
 
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }
@@ -37,14 +37,14 @@
         <p>&copy; The Pink Closet 2024. All rights reserved.</p>
     </footer>
 
-    <!-- ✅ Now the script that uses Supabase will wait for it to be loaded -->
+    <!-- ✅ Wait for the script to load properly -->
     <script>
         document.addEventListener('DOMContentLoaded', async function () {
             console.log("Page loaded, waiting for Supabase...");
 
-            // Check if Supabase is loaded
+            // ✅ Ensure Supabase Library is loaded
             if (typeof supabase === "undefined") {
-                console.error("Supabase library is not loaded. Please refresh the page.");
+                console.error("Supabase library is not loaded. Refresh the page or check script order.");
                 alert("Error loading Supabase. Please refresh.");
                 return;
             }
