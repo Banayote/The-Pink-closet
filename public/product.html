@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details</title>
-
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -60,8 +59,7 @@
             margin-top: 15px;
         }
 
-        .visit-store-btn,
-        .buy-btn {
+        .visit-store-btn, .buy-btn {
             background-color: #ff6347;
             color: white;
             padding: 10px 20px;
@@ -74,14 +72,10 @@
             display: inline-block;
         }
 
-        .visit-store-btn:hover,
-        .buy-btn:hover {
+        .visit-store-btn:hover, .buy-btn:hover {
             background-color: #e5533b;
         }
     </style>
-
-    <!-- ✅ Load Supabase Properly -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
 </head>
 
 <body>
@@ -100,28 +94,34 @@
         <p>&copy; The Pink Closet 2024. All rights reserved.</p>
     </footer>
 
+    <!-- Load Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
+
     <script>
+        // Wait for the page to load and Supabase to be ready
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("✅ Page loaded, initializing Supabase...");
+            console.log("✅ Page loaded, waiting for Supabase...");
 
-            // ✅ Ensure Supabase is properly initialized
-            const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
-            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
-
+            // Check if Supabase is loaded
             if (!window.supabase) {
-                console.error("❌ Supabase failed to load!");
-                alert("Supabase failed to load. Please refresh the page.");
+                console.error("❌ Supabase library is not loaded!");
+                alert("Failed to load Supabase. Please refresh the page.");
                 return;
             }
 
-            const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            console.log("✅ Supabase initialized:", supabaseClient);
+            // Initialize Supabase
+            const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';  // Your Supabase URL
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';  // Your Supabase anon key
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-            // ✅ Fetch Product Details
-            fetchProduct(supabaseClient);
+            console.log("✅ Supabase initialized!");
+
+            // Fetch product details from Supabase
+            fetchProduct(supabase);
         });
 
-        async function fetchProduct(supabaseClient) {
+        // Function to fetch product data
+        async function fetchProduct(supabase) {
             const urlParams = new URLSearchParams(window.location.search);
             const productId = urlParams.get('id');
 
@@ -133,21 +133,22 @@
             console.log("🔍 Fetching product with ID:", productId);
 
             try {
-                // Fetch product from the 'products' table based on the ID
-                const { data: product, error } = await supabaseClient
+                const { data: product, error } = await supabase
                     .from('products')
                     .select('*')
                     .eq('id', productId)
-                    .single(); // .single ensures only one result
+                    .single();
 
-                if (error) throw error;
+                if (error) {
+                    throw error;
+                }
 
                 if (!product) {
                     document.getElementById('product-container').innerHTML = '<p>❌ Product not found.</p>';
                     return;
                 }
 
-                // ✅ Inject Product Details into HTML
+                // Display the product details
                 document.getElementById('product-container').innerHTML = `
                     <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
                     <div class="product-details">
@@ -159,41 +160,40 @@
                     </div>
                 `;
 
-                console.log("✅ Product displayed successfully!");
-
+                console.log("✅ Product details displayed!");
             } catch (err) {
                 console.error('🚨 Error fetching product:', err);
                 alert('❌ Failed to load product details.');
             }
         }
 
-        // ✅ Function to Start Conversation
+        // Function to start a conversation with the seller
         async function startConversation(sellerId) {
             console.log("📩 Starting conversation with seller ID:", sellerId);
 
-            const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
-            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
-
             if (!window.supabase) {
-                console.error("❌ Supabase failed to load!");
-                alert("Supabase failed to load. Please refresh the page.");
+                console.error("❌ Supabase is not initialized!");
+                alert("Supabase is not loaded. Refresh the page.");
                 return;
             }
 
-            const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';  // Your Supabase URL
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';  // Your Supabase anon key
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
             try {
-                const { data, error } = await supabaseClient
+                const { data, error } = await supabase
                     .from('messages')
                     .insert([{ buyer_id: 'guest', seller_id: sellerId, message: "I'm interested in this product!" }])
                     .select()
                     .single();
 
-                if (error) throw error;
+                if (error) {
+                    throw error;
+                }
 
                 console.log("✅ Conversation started, redirecting...");
                 window.location.href = `messages.html?conversation_id=${data.id}`;
-
             } catch (err) {
                 console.error('❌ Error starting conversation:', err);
                 alert('Error starting conversation. Please try again.');
