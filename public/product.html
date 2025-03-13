@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details</title>
 
-    <!-- Load Supabase Library First -->
+    <!-- ✅ Load Supabase Library First -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js"></script>
 
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }
         header { background-color: #ff6347; color: white; padding: 10px; text-align: center; }
-        .product-container { display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #fff; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin: 20px; border-radius: 8px; max-width: 600px; margin: 20px auto; }
+        .product-container { display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #fff; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); border-radius: 8px; max-width: 600px; margin: 20px auto; }
         .product-container img { max-width: 100%; height: auto; border-radius: 8px; }
         .product-details { margin-top: 20px; text-align: center; }
         .product-name { font-size: 2rem; font-weight: bold; }
@@ -37,14 +37,15 @@
         <p>&copy; The Pink Closet 2024. All rights reserved.</p>
     </footer>
 
+    <!-- ✅ Place the script **AFTER** Supabase is loaded -->
     <script>
         document.addEventListener('DOMContentLoaded', async function () {
             console.log("Page loaded, waiting for Supabase...");
 
-            // ✅ Ensure Supabase is available
-            if (!window.supabase) {
-                console.error("Supabase library is not loaded. Ensure script is loaded properly.");
-                alert("Error loading Supabase. Please refresh the page.");
+            // ✅ Ensure Supabase Library is Loaded
+            if (typeof supabase === "undefined") {
+                console.error("Supabase library is not loaded. Refresh the page or check script order.");
+                alert("Error loading Supabase. Please refresh.");
                 return;
             }
 
@@ -52,8 +53,8 @@
             const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
             const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
 
-            const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            console.log("Supabase initialized:", supabase);
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log("Supabase initialized:", supabaseClient);
 
             // ✅ Get product ID from URL
             const urlParams = new URLSearchParams(window.location.search);
@@ -68,7 +69,7 @@
 
             // ✅ Fetch Product Details
             try {
-                const { data: product, error } = await supabase
+                const { data: product, error } = await supabaseClient
                     .from('products')
                     .select('*')
                     .eq('id', productId)
@@ -104,7 +105,7 @@
                 console.log("Starting conversation with seller ID:", sellerId);
 
                 try {
-                    const { data, error } = await supabase
+                    const { data, error } = await supabaseClient
                         .from('messages')
                         .insert([{ buyer_id: 'guest', seller_id: sellerId, message: "I'm interested in this product!" }])
                         .select()
