@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -85,17 +84,29 @@
         <p>&copy; The Pink Closet 2024. All rights reserved.</p>
     </footer>
 
-    <!-- Correct Supabase Library -->
+    <!-- Load Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // ✅ Initialize Supabase once
+        console.log("✅ Script Loaded");
+
+        // ✅ Fix: Initialize Supabase Globally Before DOMContentLoaded
         const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        let supabase;
+        
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log("✅ Page loaded, fetching product...");
+            console.log("✅ Page loaded, initializing Supabase...");
+            
+            // ✅ Ensure Supabase is loaded before using it
+            if (window.supabase) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log("✅ Supabase initialized");
+            } else {
+                console.error("❌ Supabase library is not loaded.");
+                return;
+            }
 
             // Get product ID from URL
             const urlParams = new URLSearchParams(window.location.search);
@@ -162,5 +173,4 @@
     </script>
 
 </body>
-
 </html>
