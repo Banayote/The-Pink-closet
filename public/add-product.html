@@ -15,7 +15,17 @@
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4"  // Replace with the correct API key
         );
 
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", async () => {
+            // ✅ Get current user session
+            const { data: session, error: sessionError } = await supabase.auth.getSession();
+
+            if (sessionError || !session) {
+                // User is not logged in, redirect to login page or show an error
+                alert("❌ You must be logged in to add a product.");
+                window.location.href = "/login"; // Update this with your actual login page URL
+                return;
+            }
+
             const form = document.getElementById("add-product-form");
 
             form.addEventListener("submit", async (event) => {
@@ -47,17 +57,6 @@
                         throw new Error("Cloudinary upload failed");
                     }
 
-                    // ✅ Get the logged-in user (seller) details
-                    const { data: user, error: userError } = await supabase.auth.getUser();
-                    if (userError) {
-                        alert("❌ Error fetching user: " + userError.message);
-                        return;
-                    }
-                    if (!user) {
-                        alert("❌ User not logged in! Please log in before adding a product.");
-                        return;
-                    }
-
                     // ✅ Prepare product data for Supabase
                     const product = {
                         name: productName,
@@ -65,7 +64,7 @@
                         price: productPrice,
                         category: productCategory,
                         image_url: imageData.secure_url,
-                        seller_id: user.id  // Assign seller_id to the logged-in user
+                        seller_id: session.user.id  // Assign seller_id to the logged-in user
                     };
 
                     // ✅ Insert product data into Supabase
