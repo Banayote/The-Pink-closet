@@ -5,66 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
-        }
-        header {
-            background-color: #ff6347;
-            color: white;
-            padding: 10px;
-            text-align: center;
-        }
-        .product-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            margin: 20px auto;
-            border-radius: 8px;
-            max-width: 600px;
-        }
-        .product-container img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-        }
-        .product-details {
-            margin-top: 20px;
-            text-align: center;
-        }
-        .product-name {
-            font-size: 2rem;
-            font-weight: bold;
-        }
-        .product-description {
-            color: #555;
-            margin-top: 10px;
-        }
-        .product-price {
-            color: #ff6347;
-            font-size: 1.5rem;
-            margin-top: 15px;
-        }
-        .visit-store-btn, .buy-btn {
-            background-color: #ff6347;
-            color: white;
-            padding: 10px 20px;
-            font-size: 1rem;
-            border: none;
-            cursor: pointer;
-            margin-top: 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            display: inline-block;
-        }
-        .visit-store-btn:hover, .buy-btn:hover {
-            background-color: #e5533b;
-        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }
+        header { background-color: #ff6347; color: white; padding: 10px; text-align: center; }
+        .product-container { display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #fff; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin: 20px auto; border-radius: 8px; max-width: 600px; }
+        .product-container img { max-width: 100%; height: auto; border-radius: 8px; }
+        .product-details { margin-top: 20px; text-align: center; }
+        .product-name { font-size: 2rem; font-weight: bold; }
+        .product-description { color: #555; margin-top: 10px; }
+        .product-price { color: #ff6347; font-size: 1.5rem; margin-top: 15px; }
+        .visit-store-btn, .buy-btn { background-color: #ff6347; color: white; padding: 10px 20px; font-size: 1rem; border: none; cursor: pointer; margin-top: 20px; text-decoration: none; border-radius: 5px; display: inline-block; }
+        .visit-store-btn:hover, .buy-btn:hover { background-color: #e5533b; }
     </style>
 </head>
 
@@ -90,23 +40,14 @@
     <script>
         console.log("✅ Script Loaded");
 
-        // ✅ Fix: Initialize Supabase Globally Before DOMContentLoaded
+        // ✅ Initialize Supabase
         const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
 
-        let supabase;
-        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log("✅ Page loaded, initializing Supabase...");
-            
-            // ✅ Ensure Supabase is loaded before using it
-            if (window.supabase) {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                console.log("✅ Supabase initialized");
-            } else {
-                console.error("❌ Supabase library is not loaded.");
-                return;
-            }
+            console.log("✅ Page loaded, fetching product...");
 
             // Get product ID from URL
             const urlParams = new URLSearchParams(window.location.search);
@@ -118,7 +59,7 @@
             }
 
             try {
-                // Fetch product details from Supabase
+                // ✅ Fetch product details
                 const { data: product, error } = await supabase
                     .from('products')
                     .select('*')
@@ -129,6 +70,10 @@
                     throw error || new Error("Product not found.");
                 }
 
+                if (!product.seller_id) {
+                    throw new Error("❌ Error: Missing seller ID.");
+                }
+
                 // ✅ Display product details
                 document.getElementById('product-container').innerHTML = `
                     <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
@@ -137,7 +82,7 @@
                         <p class="product-description">${product.description}</p>
                         <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
                         <a href="profile.html?id=${product.seller_id}" class="visit-store-btn">Visit Store</a>
-                        <button class="buy-btn" onclick="startConversation(${product.id}, '${product.seller_id}')">Buy</button>
+                        <button class="buy-btn" onclick="startConversation('${product.id}', '${product.seller_id}')">Buy</button>
                     </div>
                 `;
 
@@ -148,23 +93,17 @@
             }
         });
 
-        // ✅ Function to start a conversation
+        // ✅ Function to start a conversation (No Buyer ID Required)
         async function startConversation(productId, sellerId) {
             console.log(`📩 Starting conversation with seller ${sellerId} for product ${productId}`);
 
-            // Set the guest email if the user is not logged in
-            const guestEmail = "guest@example.com"; // Default guest email if no user is logged in
-            const buyerId = 'guest'; // Use guest buyer ID for simplicity, but this should be dynamic if you have a real user.
-
             try {
-                // Insert the new message into the database, with buyer and seller information
+                // ✅ Insert anonymous message (No buyer ID needed)
                 const { data, error } = await supabase
                     .from('messages')
-                    .insert([{
-                        buyer_id: buyerId, 
-                        seller_id: sellerId, 
+                    .insert([{ 
                         product_id: productId, 
-                        sender_email: guestEmail, // Add sender_email here
+                        seller_id: sellerId, 
                         message: "Hi, I'm interested in this product!" 
                     }])
                     .select()
