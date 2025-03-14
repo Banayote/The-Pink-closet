@@ -17,7 +17,6 @@
         .visit-store-btn:hover, .buy-btn:hover { background-color: #e5533b; }
     </style>
 </head>
-
 <body>
 
     <header>
@@ -43,7 +42,6 @@
         // ✅ Initialize Supabase
         const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
-
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -85,7 +83,6 @@
                         <button class="buy-btn" onclick="startConversation('${product.id}', '${product.seller_id}')">Buy</button>
                     </div>
                 `;
-
                 console.log("✅ Product displayed successfully.");
             } catch (err) {
                 console.error('❌ Error fetching product:', err.message);
@@ -93,18 +90,35 @@
             }
         });
 
-        // ✅ Function to start a conversation (No Buyer ID Required)
+        // ✅ Function to generate anonymous buyer ID
+        function generateBuyerId() {
+            // Check if there's already a buyer ID in localStorage
+            let buyerId = localStorage.getItem('buyer_id');
+            if (!buyerId) {
+                // If not, create a new unique ID
+                buyerId = Date.now().toString();
+                // Save it in localStorage for future reference
+                localStorage.setItem('buyer_id', buyerId);
+            }
+            return buyerId;
+        }
+
+        // ✅ Function to start conversation
         async function startConversation(productId, sellerId) {
             console.log(`📩 Starting conversation with seller ${sellerId} for product ${productId}`);
 
+            // Generate or get the anonymous buyer ID
+            const buyerId = generateBuyerId();
+
             try {
-                // ✅ Insert anonymous message (No buyer ID needed)
+                // ✅ Insert a new message to start the conversation
                 const { data, error } = await supabase
                     .from('messages')
-                    .insert([{ 
-                        product_id: productId, 
-                        seller_id: sellerId, 
-                        message: "Hi, I'm interested in this product!" 
+                    .insert([{
+                        product_id: productId,
+                        seller_id: sellerId,
+                        buyer_id: buyerId,  // Include the generated anonymous buyer ID
+                        message: "Hi, I'm interested in this product!"
                     }])
                     .select()
                     .single();
