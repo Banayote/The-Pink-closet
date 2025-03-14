@@ -48,7 +48,11 @@
                     }
 
                     // ✅ Get the logged-in user (seller) details
-                    const user = supabase.auth.user();
+                    const { data: user, error: userError } = await supabase.auth.getUser();
+                    if (userError) {
+                        alert("❌ Error fetching user: " + userError.message);
+                        return;
+                    }
                     if (!user) {
                         alert("❌ User not logged in! Please log in before adding a product.");
                         return;
