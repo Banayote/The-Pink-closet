@@ -17,7 +17,7 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             const form = document.getElementById("add-product-form");
-            
+
             form.addEventListener("submit", async (event) => {
                 event.preventDefault();  // Prevent page reload
 
@@ -47,13 +47,21 @@
                         throw new Error("Cloudinary upload failed");
                     }
 
+                    // ✅ Get the logged-in user (seller) details
+                    const user = supabase.auth.user();
+                    if (!user) {
+                        alert("❌ User not logged in! Please log in before adding a product.");
+                        return;
+                    }
+
                     // ✅ Prepare product data for Supabase
                     const product = {
                         name: productName,
                         description: productDescription,
                         price: productPrice,
                         category: productCategory,
-                        image_url: imageData.secure_url
+                        image_url: imageData.secure_url,
+                        seller_id: user.id  // Assign seller_id to the logged-in user
                     };
 
                     // ✅ Insert product data into Supabase
@@ -113,3 +121,4 @@
     </main>
 </body>
 </html>
+
