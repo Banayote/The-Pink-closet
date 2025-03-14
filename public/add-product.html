@@ -19,7 +19,13 @@
             // ✅ Get current user session
             const { data: session, error: sessionError } = await supabase.auth.getSession();
 
-            if (sessionError || !session) {
+            if (sessionError) {
+                console.error("Error fetching session:", sessionError.message);
+                alert("❌ Error fetching session. Please try again.");
+                return;
+            }
+
+            if (!session || !session.user) {
                 // User is not logged in, redirect to login page or show an error
                 alert("❌ You must be logged in to add a product.");
                 window.location.href = "/login"; // Update this with your actual login page URL
@@ -124,4 +130,3 @@
     </main>
 </body>
 </html>
-
