@@ -9,35 +9,23 @@
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
-        // ✅ Initialize Supabase client
-        const supabase = createClient(
-            "https://fjlqkjwnelkamealhtyr.supabase.co",  // Replace with the correct URL
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4"  // Replace with the correct API key
-        );
+        const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        document.addEventListener("DOMContentLoaded", async () => {
-            // ✅ Get current user session
-            const { data: session, error: sessionError } = await supabase.auth.getSession();
-
-            if (sessionError) {
-                console.error("Error fetching session:", sessionError.message);
-                alert("❌ Error fetching session. Please try again.");
-                return;
-            }
-
-            if (!session || !session.user) {
-                // User is not logged in, redirect to login page or show an error
-                alert("❌ You must be logged in to add a product.");
-                window.location.href = "/login"; // Update this with your actual login page URL
-                return;
-            }
-
+        document.addEventListener("DOMContentLoaded", () => {
             const form = document.getElementById("add-product-form");
+            const urlParams = new URLSearchParams(window.location.search);
+            const sellerId = urlParams.get("seller_id");
+
+            if (!sellerId) {
+                alert("Error: Missing seller ID.");
+                return;
+            }
 
             form.addEventListener("submit", async (event) => {
-                event.preventDefault();  // Prevent page reload
+                event.preventDefault();
 
-                // Get form data
                 const productName = document.getElementById("product-name").value;
                 const productDescription = document.getElementById("product-description").value;
                 const productPrice = parseFloat(document.getElementById("product-price").value);
@@ -59,74 +47,43 @@
                     const imageResponse = await fetch(cloudinaryUrl, { method: "POST", body: formData });
                     const imageData = await imageResponse.json();
 
-                    if (!imageData.secure_url) {
-                        throw new Error("Cloudinary upload failed");
-                    }
+                    if (!imageData.secure_url) throw new Error("Image upload failed");
 
-                    // ✅ Prepare product data for Supabase
                     const product = {
                         name: productName,
                         description: productDescription,
                         price: productPrice,
                         category: productCategory,
                         image_url: imageData.secure_url,
-                        seller_id: session.user.id  // Assign seller_id to the logged-in user
+                        seller_id: sellerId // ✅ Associate product with the seller
                     };
 
-                    // ✅ Insert product data into Supabase
-                    const { data, error } = await supabase.from("products").insert([product]);
+                    const { error } = await supabase.from("products").insert([product]);
 
                     if (error) {
-                        console.error("❌ Supabase Insert Error:", error);
+                        console.error("Supabase Insert Error:", error);
                         alert("Failed to add product: " + error.message);
                     } else {
                         alert("✅ Product added successfully!");
-                        form.reset();  // Reset form
+                        form.reset();
                     }
                 } catch (error) {
-                    console.error("❌ Error:", error);
+                    console.error("Error:", error);
                     alert("An error occurred: " + error.message);
                 }
             });
         });
     </script>
-
-    <script src="https://upload-widget.cloudinary.com/v2.0/global/all.js"></script>
-
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f8f8f8; margin: 0; padding: 0; }
-        header { background-color: #ffc0cb; color: #fff; text-align: center; padding: 1rem; }
-        h1 { margin: 0; }
-        main { padding: 1rem; max-width: 800px; margin: 0 auto; }
-        form { background-color: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); padding: 2rem; }
-        label { display: block; margin-bottom: 0.5rem; color: #333; }
-        input, textarea { width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 4px; }
-        textarea { resize: vertical; }
-        button { background-color: #ffc0cb; color: #fff; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 1rem; }
-        button:hover { background-color: #ffb6c1; }
-    </style>
 </head>
 <body>
-    <header><h1>Add a New Product</h1></header>
-    <main>
-        <form id="add-product-form">
-            <label for="product-name">Product Name:</label>
-            <input type="text" id="product-name" name="name" required>
-
-            <label for="product-description">Description:</label>
-            <textarea id="product-description" name="description" required></textarea>
-
-            <label for="product-price">Price:</label>
-            <input type="number" id="product-price" name="price" step="0.01" required>
-
-            <label for="product-category">Category:</label>
-            <input type="text" id="product-category" name="category" required>
-
-            <label for="product-image">Image:</label>
-            <input type="file" id="product-image" name="image" accept="image/*" required>
-
-            <button type="submit">Add Product</button>
-        </form>
-    </main>
+    <h1>Add Product</h1>
+    <form id="add-product-form">
+        <input type="text" id="product-name" placeholder="Product Name" required>
+        <textarea id="product-description" placeholder="Description" required></textarea>
+        <input type="number" id="product-price" placeholder="Price" required>
+        <input type="text" id="product-category" placeholder="Category" required>
+        <input type="file" id="product-image" accept="image/*" required>
+        <button type="submit">Add Product</button>
+    </form>
 </body>
 </html>
