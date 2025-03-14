@@ -1,20 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }
-        header { background-color: #ff6347; color: white; padding: 10px; text-align: center; }
-        .product-container { display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #fff; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin: 20px auto; border-radius: 8px; max-width: 600px; }
-        .product-container img { max-width: 100%; height: auto; border-radius: 8px; }
-        .product-details { margin-top: 20px; text-align: center; }
-        .product-name { font-size: 2rem; font-weight: bold; }
-        .product-description { color: #555; margin-top: 10px; }
-        .product-price { color: #ff6347; font-size: 1.5rem; margin-top: 15px; }
-        .visit-store-btn, .buy-btn { background-color: #ff6347; color: white; padding: 10px 20px; font-size: 1rem; border: none; cursor: pointer; margin-top: 20px; text-decoration: none; border-radius: 5px; display: inline-block; }
-        .visit-store-btn:hover, .buy-btn:hover { background-color: #e5533b; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #ffc0cb;
+            color: #fff;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        .product-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .product-info img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .product-info h2 {
+            margin-top: 10px;
+        }
+
+        .product-info p {
+            margin: 5px 0;
+        }
+
+        button {
+            background-color: #ffc0cb;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            background-color: #ffb6c1;
+        }
     </style>
 </head>
 
@@ -24,103 +76,82 @@
         <h1>Product Details</h1>
     </header>
 
-    <main>
-        <div id="product-container" class="product-container">
-            <p>Loading product...</p>
+    <div class="product-container">
+        <div class="product-info">
+            <!-- Product Image -->
+            <img id="product-image" src="" alt="Product Image">
+            <!-- Product Name -->
+            <h2 id="product-name">Product Name</h2>
+            <!-- Product Description -->
+            <p id="product-description">Product Description</p>
+            <!-- Product Price -->
+            <p id="product-price">$0.00</p>
+            <!-- Product Category -->
+            <p id="product-category">Category</p>
+
+            <!-- Buy Button -->
+            <button id="buy-button">Buy</button>
         </div>
-    </main>
-
-    <footer>
-        <p>&copy; The Pink Closet 2024. All rights reserved.</p>
-    </footer>
-
-    <!-- Load Supabase Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    </div>
 
     <script>
-        console.log("✅ Script Loaded");
-
-        // ✅ Initialize Supabase
+        // Supabase URL and Key (your actual values)
         const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log("✅ Page loaded, fetching product...");
-
-            // Get product ID from URL
+        // Function to load product details from Supabase
+        async function fetchProductDetails() {
             const urlParams = new URLSearchParams(window.location.search);
-            const productId = urlParams.get('id');
+            const productId = urlParams.get('product_id'); // Extract product_id from the URL query string
 
             if (!productId) {
-                document.getElementById('product-container').innerHTML = '<p>❌ Product ID is missing.</p>';
+                alert('Product ID is missing.');
                 return;
             }
 
+            // Fetch the product details from Supabase
             try {
-                // ✅ Fetch product details
-                const { data: product, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('products')
                     .select('*')
                     .eq('id', productId)
                     .single();
 
-                if (error || !product) {
-                    throw error || new Error("Product not found.");
-                }
-
-                if (!product.seller_id) {
-                    throw new Error("❌ Error: Missing seller ID.");
-                }
-
-                // ✅ Display product details
-                document.getElementById('product-container').innerHTML = `
-                    <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
-                    <div class="product-details">
-                        <h2 class="product-name">${product.name}</h2>
-                        <p class="product-description">${product.description}</p>
-                        <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
-                        <a href="profile.html?id=${product.seller_id}" class="visit-store-btn">Visit Store</a>
-                        <button class="buy-btn" onclick="startConversation('${product.id}', '${product.seller_id}')">Buy</button>
-                    </div>
-                `;
-
-                console.log("✅ Product displayed successfully.");
-            } catch (err) {
-                console.error('❌ Error fetching product:', err.message);
-                document.getElementById('product-container').innerHTML = '<p>❌ Failed to load product details.</p>';
-            }
-        });
-
-        // ✅ Function to start a conversation (No Buyer ID Required)
-        async function startConversation(productId, sellerId) {
-            console.log(`📩 Starting conversation with seller ${sellerId} for product ${productId}`);
-
-            try {
-                // ✅ Insert anonymous message (No buyer ID needed)
-                const { data, error } = await supabase
-                    .from('messages')
-                    .insert([{ 
-                        product_id: productId, 
-                        seller_id: sellerId, 
-                        message: "Hi, I'm interested in this product!" 
-                    }])
-                    .select()
-                    .single();
-
                 if (error) {
-                    throw error;
+                    console.error('Error fetching product:', error);
+                    alert('Error fetching product details');
+                    return;
                 }
 
-                console.log("✅ Conversation started, redirecting...");
-                window.location.href = `messages.html?conversation_id=${data.id}`;
-            } catch (err) {
-                console.error("❌ Error creating conversation:", err.message);
-                alert("Error starting conversation. Please try again.");
+                // Populate the product information on the page
+                document.getElementById('product-image').src = data.image_url || 'default-product-image.jpg';
+                document.getElementById('product-name').textContent = data.name;
+                document.getElementById('product-description').textContent = data.description;
+                document.getElementById('product-price').textContent = `$${data.price.toFixed(2)}`;
+                document.getElementById('product-category').textContent = data.category;
+
+                // Set seller ID
+                const sellerId = data.seller_id;
+
+                // Buy button action
+                document.getElementById('buy-button').addEventListener('click', () => {
+                    // Redirect to messages page with the seller's ID
+                    window.location.href = `messages.html?seller_id=${encodeURIComponent(sellerId)}`;
+                });
+
+            } catch (error) {
+                console.error('Error fetching product details:', error);
+                alert('Failed to load product details');
             }
         }
+
+        // Load the product details on page load
+        document.addEventListener('DOMContentLoaded', fetchProductDetails);
     </script>
 
 </body>
+
 </html>
