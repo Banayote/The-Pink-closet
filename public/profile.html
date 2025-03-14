@@ -6,7 +6,6 @@
     <title>User Profile</title>
     <link rel="stylesheet" href="profile.css">
 </head>
-
 <body>
     <div class="profile-container">
         <div class="exit-icon">
@@ -65,72 +64,36 @@
         <img class="modal-content" id="modal-img">
     </div>
 
-    <!-- ✅ Load Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <!-- ✅ Load Supabase -->
+    <script type="module">
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
-    <script>
+        const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log("Script is loading...");
+            console.log("Fetching user profile...");
 
-            // ✅ Supabase Configuration
-            const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
-            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
-            const { createClient } = supabase;
-            const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
-            console.log("✅ Supabase client initialized.");
+            try {
+                const { data: profile, error } = await supabase.from("users").select("*").limit(1).single();
 
-            // ✅ Fetch User Profile and Seller ID
-            async function fetchUserProfile() {
-                try {
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/users?select=*`, {
-                        method: 'GET',
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${SUPABASE_KEY}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
+                if (error) throw error;
 
-                    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                document.getElementById("username").textContent = `${profile.first_name} ${profile.last_name}`;
+                document.getElementById("profile-img").src = profile.profile_image || "profile-picture.jpg";
 
-                    const data = await response.json();
+                // Store seller ID and pass it to Add Product page
+                const sellerId = profile.id;
+                document.getElementById("add-product").addEventListener("click", () => {
+                    window.location.href = `add-product.html?seller_id=${encodeURIComponent(sellerId)}`;
+                });
 
-                    if (data.length === 0) {
-                        throw new Error("No user data found.");
-                    }
-
-                    const profile = data[0]; // Assume first user for now
-
-                    document.getElementById('username').textContent = `${profile.first_name || 'First'} ${profile.last_name || 'Last'}`;
-                    document.getElementById('profile-img').src = profile.profile_image || 'profile-picture.jpg';
-
-                    // ✅ Pass the seller's ID to messages
-                    const sellerId = profile.id;
-                    document.getElementById('message').addEventListener('click', () => {
-                        window.location.href = `messages.html?seller_id=${encodeURIComponent(sellerId)}`;
-                    });
-
-                } catch (error) {
-                    console.error('❌ Error fetching user profile:', error);
-                    alert('Failed to load profile. Please try again later.');
-                }
+            } catch (error) {
+                console.error("Error fetching user profile:", error);
+                alert("Failed to load profile. Please try again.");
             }
-
-            fetchUserProfile();
-
-            // ✅ Redirect to Add Product Page
-            document.getElementById('add-product').addEventListener('click', () => {
-                window.location.href = 'add-product.html';
-            });
-
-            // ✅ Copy Profile Link
-            document.getElementById('copy-link').addEventListener('click', () => {
-                navigator.clipboard.writeText(window.location.href)
-                    .then(() => alert('Profile link copied to clipboard!'))
-                    .catch(error => console.error('❌ Failed to copy link:', error));
-            });
         });
     </script>
-
 </body>
 </html>
