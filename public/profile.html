@@ -94,10 +94,17 @@
                     document.getElementById('username').textContent = `${profile.first_name || 'First'} ${profile.last_name || 'Last'}`;
                     document.getElementById('profile-img').src = profile.profile_image || 'profile-picture.jpg';
 
-                    // Pass the seller's ID (use dynamically fetched user ID)
+                    // Store the seller's ID
                     const sellerId = profile.id; // Ensure `id` is the seller's unique identifier
+                    localStorage.setItem("seller_id", sellerId); // Store sellerId in localStorage for use in other pages
+
                     document.getElementById('message').addEventListener('click', () => {
                         window.location.href = `messages.html?seller_id=${encodeURIComponent(sellerId)}`;
+                    });
+
+                    // Add Product Button - Redirect to Add Product Page
+                    document.getElementById('add-product').addEventListener('click', () => {
+                        window.location.href = `add-product.html?seller_id=${encodeURIComponent(sellerId)}`;
                     });
 
                 } catch (error) {
@@ -107,11 +114,6 @@
             }
 
             fetchUserProfile();
-
-            // Add Product Button - Redirect to Add Product Page
-            document.getElementById('add-product').addEventListener('click', () => {
-                window.location.href = 'add-product.html';
-            });
 
             // Copy Profile Link
             document.getElementById('copy-link').addEventListener('click', () => {
