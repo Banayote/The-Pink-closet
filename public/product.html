@@ -1,157 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f8f8;
-            margin: 0;
-            padding: 0;
-        }
-
-        header {
-            background-color: #ffc0cb;
-            color: #fff;
-            text-align: center;
-            padding: 1rem;
-        }
-
-        h1 {
-            margin: 0;
-        }
-
-        .product-container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .product-info {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .product-info img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-        }
-
-        .product-info h2 {
-            margin-top: 10px;
-        }
-
-        .product-info p {
-            margin: 5px 0;
-        }
-
-        button {
-            background-color: #ffc0cb;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        button:hover {
-            background-color: #ffb6c1;
-        }
+        body { font-family: Arial, sans-serif; background-color: #f8f8f8; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 20px auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        h1 { text-align: center; }
+        img { width: 100%; border-radius: 8px; }
+        .details { margin-top: 10px; }
+        .price { font-size: 1.2em; font-weight: bold; color: #e60023; }
+        button { display: block; width: 100%; padding: 10px; margin-top: 10px; border: none; background-color: #ff4081; color: white; font-size: 1.2em; cursor: pointer; border-radius: 5px; }
+        button:hover { background-color: #e60073; }
     </style>
 </head>
-
 <body>
-
-    <header>
-        <h1>Product Details</h1>
-    </header>
-
-    <div class="product-container">
-        <div class="product-info">
-            <!-- Product Image -->
-            <img id="product-image" src="" alt="Product Image">
-            <!-- Product Name -->
-            <h2 id="product-name">Product Name</h2>
-            <!-- Product Description -->
-            <p id="product-description">Product Description</p>
-            <!-- Product Price -->
-            <p id="product-price">$0.00</p>
-            <!-- Product Category -->
-            <p id="product-category">Category</p>
-
-            <!-- Buy Button -->
+    <div class="container">
+        <h1 id="product-name">Loading...</h1>
+        <img id="product-image" src="" alt="Product Image">
+        <div class="details">
+            <p id="product-description"></p>
+            <p class="price" id="product-price"></p>
             <button id="buy-button">Buy</button>
         </div>
     </div>
 
     <script>
-        // Supabase URL and Key (your actual values)
-        const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+        // ✅ Initialize Supabase
+        const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const { createClient } = supabase;
-        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+        // ✅ Get product ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('product_id');
 
-        // Function to load product details from Supabase
+        if (!productId) {
+            alert("❌ Product ID is missing in the URL.");
+            throw new Error("❌ Missing product_id in URL.");
+        }
+
+        // ✅ Fetch product details
         async function fetchProductDetails() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const productId = urlParams.get('product_id'); // Extract product_id from the URL query string
-
-            if (!productId) {
-                alert('Product ID is missing.');
-                return;
-            }
-
-            // Fetch the product details from Supabase
             try {
                 const { data, error } = await supabaseClient
-                    .from('products')
-                    .select('*')
-                    .eq('id', productId)
+                    .from("products")
+                    .select("*")
+                    .eq("id", productId)
                     .single();
 
                 if (error) {
-                    console.error('Error fetching product:', error);
-                    alert('Error fetching product details');
+                    console.error("❌ Supabase Error:", error);
+                    alert("❌ Failed to fetch product details.");
                     return;
                 }
 
-                // Populate the product information on the page
-                document.getElementById('product-image').src = data.image_url || 'default-product-image.jpg';
-                document.getElementById('product-name').textContent = data.name;
-                document.getElementById('product-description').textContent = data.description;
-                document.getElementById('product-price').textContent = `$${data.price.toFixed(2)}`;
-                document.getElementById('product-category').textContent = data.category;
+                if (!data) {
+                    alert("❌ No product found with this ID.");
+                    return;
+                }
 
-                // Set seller ID
-                const sellerId = data.seller_id;
+                // ✅ Update the page with product info
+                document.getElementById("product-name").textContent = data.name;
+                document.getElementById("product-image").src = data.image_url;
+                document.getElementById("product-description").textContent = data.description;
+                document.getElementById("product-price").textContent = `$${data.price}`;
 
-                // Buy button action
-                document.getElementById('buy-button').addEventListener('click', () => {
-                    // Redirect to messages page with the seller's ID
-                    window.location.href = `messages.html?seller_id=${encodeURIComponent(sellerId)}`;
+                // ✅ Set up the Buy button to start a conversation
+                document.getElementById("buy-button").addEventListener("click", () => {
+                    if (!data.seller_id) {
+                        alert("❌ Seller ID is missing for this product.");
+                        return;
+                    }
+                    window.location.href = `messages.html?seller_id=${encodeURIComponent(data.seller_id)}`;
                 });
 
-            } catch (error) {
-                console.error('Error fetching product details:', error);
-                alert('Failed to load product details');
+            } catch (err) {
+                console.error("❌ Error:", err);
+                alert("❌ An error occurred while fetching the product.");
             }
         }
 
-        // Load the product details on page load
-        document.addEventListener('DOMContentLoaded', fetchProductDetails);
+        fetchProductDetails();
     </script>
-
 </body>
-
 </html>
