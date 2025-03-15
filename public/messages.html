@@ -7,17 +7,11 @@
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }
         header { background-color: #ff6347; color: white; padding: 10px; text-align: center; }
-        .container { max-width: 600px; margin: 20px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); }
-        .chat-list { display: flex; flex-direction: column; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
-        .chat-item { cursor: pointer; padding: 10px; border-radius: 5px; background: #ff6347; color: white; margin-bottom: 5px; text-align: center; }
-        .chat-item:hover { background: #e5533b; }
-        .chat-box { max-height: 300px; overflow-y: auto; padding: 10px; border: 1px solid #ddd; margin-top: 10px; }
-        .message { background: #ff6347; color: white; padding: 8px; border-radius: 5px; margin-bottom: 5px; width: fit-content; }
-        .message.sender { background: #ddd; color: black; margin-left: auto; }
-        .input-box { display: flex; margin-top: 10px; }
-        input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px; }
-        button { background: #ff6347; color: white; padding: 8px 15px; border: none; cursor: pointer; margin-left: 5px; border-radius: 5px; }
-        button:hover { background: #e5533b; }
+        .message-container { padding: 20px; background-color: #fff; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin: 20px auto; border-radius: 8px; max-width: 600px; }
+        .message { margin-bottom: 10px; padding: 10px; border-radius: 5px; background-color: #f1f1f1; }
+        .message-buyer { background-color: #d3ffd3; }
+        .message-seller { background-color: #f3f3f3; }
+        .send-message { width: 100%; padding: 10px; font-size: 1rem; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -26,146 +20,120 @@
         <h1>Messages</h1>
     </header>
 
-    <div class="container">
-        <div class="chat-list" id="chat-list">
-            <p>Loading buyers...</p>
+    <main>
+        <div id="message-container" class="message-container">
+            <p>Loading messages...</p>
+            <textarea id="message-input" class="send-message" placeholder="Type a message"></textarea>
+            <button onclick="sendMessage()" class="send-message">Send</button>
         </div>
+    </main>
 
-        <div class="chat-box" id="chat-box">
-            <p>Select a chat to view messages.</p>
-        </div>
+    <footer>
+        <p>&copy; The Pink Closet 2024. All rights reserved.</p>
+    </footer>
 
-        <div class="input-box">
-            <input type="text" id="message-input" placeholder="Type a message...">
-            <button onclick="sendMessage()">Send</button>
-        </div>
-    </div>
-
-    <!-- Supabase -->
+    <!-- Load Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <script>
         console.log("✅ Script Loaded");
 
-        // ✅ Initialize Supabase with your credentials
+        // Initialize Supabase
         const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ✅ Extract product & seller from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const productId = urlParams.get('product_id');
-        const sellerId = urlParams.get('seller_id');
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("✅ Page loaded, fetching messages...");
 
-        if (!productId || !sellerId) {
-            console.error("❌ Missing product_id or seller_id in URL.");
-            document.querySelector('.container').innerHTML = "<p>❌ Error: Chat details missing.</p>";
-            throw new Error("Missing required URL parameters.");
-        }
+            // Get conversation_id from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const conversationId = urlParams.get('conversation_id');
 
-        let selectedBuyerId = null;
-
-        // ✅ Fetch unique buyers who messaged about this product
-        async function loadBuyers() {
-            console.log("📩 Loading buyers...");
-            const { data: buyers, error } = await supabase
-                .from('messages')
-                .select('buyer_id')
-                .eq('product_id', productId)
-                .eq('seller_id', sellerId)
-                .group('buyer_id');
-
-            if (error || !buyers.length) {
-                document.getElementById('chat-list').innerHTML = "<p>No messages yet.</p>";
+            if (!conversationId) {
+                document.getElementById('message-container').innerHTML = '<p>❌ Conversation ID is missing.</p>';
                 return;
             }
 
-            const chatList = document.getElementById('chat-list');
-            chatList.innerHTML = '';
+            try {
+                // Fetch messages for the conversation
+                const { data: messages, error } = await supabase
+                    .from('messages')
+                    .select('*')
+                    .eq('conversation_id', conversationId)
+                    .order('created_at', { ascending: true });
 
-            buyers.forEach(({ buyer_id }) => {
-                const chatItem = document.createElement('div');
-                chatItem.classList.add('chat-item');
-                chatItem.textContent = `Buyer ${buyer_id.substring(0, 6)}...`;
-                chatItem.onclick = () => loadMessages(buyer_id);
-                chatList.appendChild(chatItem);
-            });
-
-            console.log("✅ Buyers loaded.");
-        }
-
-        // ✅ Load messages for a specific buyer
-        async function loadMessages(buyerId) {
-            console.log(`📩 Loading messages for Buyer: ${buyerId}`);
-            selectedBuyerId = buyerId;
-
-            const { data: messages, error } = await supabase
-                .from('messages')
-                .select('*')
-                .eq('product_id', productId)
-                .eq('seller_id', sellerId)
-                .eq('buyer_id', buyerId)
-                .order('created_at', { ascending: true });
-
-            if (error) {
-                console.error("❌ Error loading messages:", error.message);
-                document.getElementById('chat-box').innerHTML = "<p>Error loading messages.</p>";
-                return;
-            }
-
-            const chatBox = document.getElementById('chat-box');
-            chatBox.innerHTML = '';
-
-            messages.forEach(msg => {
-                const messageDiv = document.createElement('div');
-                messageDiv.classList.add('message');
-                if (msg.seller_id === sellerId) {
-                    messageDiv.classList.add('sender');
+                if (error || !messages) {
+                    throw error || new Error("Messages not found.");
                 }
-                messageDiv.textContent = msg.message;
-                chatBox.appendChild(messageDiv);
+
+                // Render messages
+                renderMessages(messages);
+            } catch (err) {
+                console.error('❌ Error loading messages:', err.message);
+                document.getElementById('message-container').innerHTML = '<p>❌ Failed to load messages.</p>';
+            }
+        });
+
+        // Function to render messages
+        function renderMessages(messages) {
+            const container = document.getElementById('message-container');
+            container.innerHTML = '';
+
+            messages.forEach(message => {
+                const messageClass = message.sender_id === message.buyer_id ? 'message-buyer' : 'message-seller';
+                container.innerHTML += `
+                    <div class="message ${messageClass}">
+                        <p>${message.message}</p>
+                    </div>
+                `;
             });
 
-            console.log("✅ Messages loaded.");
+            // Add message input box and send button
+            container.innerHTML += `
+                <textarea id="message-input" class="send-message" placeholder="Type a message"></textarea>
+                <button onclick="sendMessage()" class="send-message">Send</button>
+            `;
         }
 
-        // ✅ Send a new message
+        // Function to send a message
         async function sendMessage() {
-            if (!selectedBuyerId) {
-                alert("Please select a chat first.");
+            const messageContent = document.getElementById('message-input').value.trim();
+
+            if (!messageContent) {
+                alert('Please enter a message.');
                 return;
             }
 
-            const messageInput = document.getElementById('message-input');
-            const messageText = messageInput.value.trim();
-            if (!messageText) return;
+            const conversationId = new URLSearchParams(window.location.search).get('conversation_id');
+            const buyerId = localStorage.getItem('buyer_id');
+            const sellerId = new URLSearchParams(window.location.search).get('seller_id');
 
-            console.log(`📩 Sending message: ${messageText}`);
+            try {
+                // Insert new message into the database
+                const { data, error } = await supabase
+                    .from('messages')
+                    .insert([{
+                        conversation_id: conversationId,
+                        buyer_id: buyerId,
+                        seller_id: sellerId,
+                        message: messageContent,
+                    }])
+                    .select()
+                    .single();
 
-            const { error } = await supabase
-                .from('messages')
-                .insert([{ 
-                    product_id: productId,
-                    seller_id: sellerId,
-                    buyer_id: selectedBuyerId,
-                    message: messageText
-                }]);
+                if (error) {
+                    throw error;
+                }
 
-            if (error) {
-                console.error("❌ Error sending message:", error.message);
-                return;
+                console.log('✅ Message sent successfully');
+                // Re-fetch messages to display the new one
+                window.location.reload();
+            } catch (err) {
+                console.error('❌ Error sending message:', err.message);
+                alert('Error sending message. Please try again.');
             }
-
-            // ✅ Add the new message to the chat instantly
-            const chatBox = document.getElementById('chat-box');
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', 'sender');
-            messageDiv.textContent = messageText;
-            chatBox.appendChild(messageDiv);
-
-            messageInput.value = "";
         }
-
-        document.addEventListener('DOMContentLoaded', loadBuyers);
     </script>
 
 </body>
