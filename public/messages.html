@@ -3,28 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messages</title>
+    <title>Product Conversation</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }
         header { background-color: #ff6347; color: white; padding: 10px; text-align: center; }
-        .message-container { padding: 20px; background-color: #fff; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin: 20px auto; border-radius: 8px; max-width: 600px; }
-        .message { margin-bottom: 10px; padding: 10px; border-radius: 5px; background-color: #f1f1f1; }
-        .message-buyer { background-color: #d3ffd3; }
-        .message-seller { background-color: #f3f3f3; }
-        .send-message { width: 100%; padding: 10px; font-size: 1rem; margin-top: 20px; }
+        .messages-container { display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #fff; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin: 20px auto; border-radius: 8px; max-width: 600px; }
+        .message { margin: 10px 0; padding: 10px; background-color: #f1f1f1; border-radius: 5px; width: 100%; }
+        .message-sender { font-weight: bold; }
+        .send-message { padding: 10px; background-color: #ff6347; color: white; font-size: 1rem; border: none; cursor: pointer; border-radius: 5px; margin-top: 10px; }
     </style>
 </head>
+
 <body>
 
     <header>
-        <h1>Messages</h1>
+        <h1>Product Conversation</h1>
     </header>
 
     <main>
-        <div id="message-container" class="message-container">
+        <div id="messages-container" class="messages-container">
             <p>Loading messages...</p>
-            <textarea id="message-input" class="send-message" placeholder="Type a message"></textarea>
-            <button onclick="sendMessage()" class="send-message">Send</button>
+            <!-- Messages will be displayed here -->
+        </div>
+
+        <div>
+            <textarea id="message-input" rows="4" cols="50" placeholder="Write your message..."></textarea>
+            <button class="send-message" onclick="sendMessage()">Send Message</button>
         </div>
     </main>
 
@@ -38,87 +42,82 @@
     <script>
         console.log("✅ Script Loaded");
 
-        // Initialize Supabase
+        // ✅ Initialize Supabase
         const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log("✅ Page loaded, fetching messages...");
+            console.log("✅ Page loaded, fetching conversation...");
 
-            // Get conversation_id from URL
+            // Get product_id and seller_id from the URL
             const urlParams = new URLSearchParams(window.location.search);
-            const conversationId = urlParams.get('conversation_id');
+            const productId = urlParams.get('product_id');
+            const sellerId = urlParams.get('seller_id');
+            const buyerId = localStorage.getItem('buyer_id'); // Assuming buyer_id is stored in localStorage
 
-            if (!conversationId) {
-                document.getElementById('message-container').innerHTML = '<p>❌ Conversation ID is missing.</p>';
+            if (!productId || !sellerId || !buyerId) {
+                document.getElementById('messages-container').innerHTML = '<p>❌ Missing product_id, seller_id, or buyer_id.</p>';
                 return;
             }
 
             try {
-                // Fetch messages for the conversation
-                const { data: messages, error } = await supabase
+                // Check if a conversation already exists
+                const { data: existingMessages, error } = await supabase
                     .from('messages')
                     .select('*')
-                    .eq('conversation_id', conversationId)
-                    .order('created_at', { ascending: true });
+                    .eq('product_id', productId)
+                    .eq('seller_id', sellerId)
+                    .eq('buyer_id', buyerId);
 
-                if (error || !messages) {
-                    throw error || new Error("Messages not found.");
+                if (error) {
+                    throw error;
                 }
 
-                // Render messages
-                renderMessages(messages);
+                if (existingMessages.length === 0) {
+                    document.getElementById('messages-container').innerHTML = '<p>No messages found. Start a conversation!</p>';
+                    return;
+                }
+
+                // Display messages
+                document.getElementById('messages-container').innerHTML = existingMessages.map(message => `
+                    <div class="message">
+                        <p class="message-sender">${message.buyer_id === buyerId ? 'You' : 'Seller'}:</p>
+                        <p>${message.message}</p>
+                    </div>
+                `).join('');
+
             } catch (err) {
                 console.error('❌ Error loading messages:', err.message);
-                document.getElementById('message-container').innerHTML = '<p>❌ Failed to load messages.</p>';
+                document.getElementById('messages-container').innerHTML = '<p>❌ Failed to load messages.</p>';
             }
         });
 
-        // Function to render messages
-        function renderMessages(messages) {
-            const container = document.getElementById('message-container');
-            container.innerHTML = '';
-
-            messages.forEach(message => {
-                const messageClass = message.sender_id === message.buyer_id ? 'message-buyer' : 'message-seller';
-                container.innerHTML += `
-                    <div class="message ${messageClass}">
-                        <p>${message.message}</p>
-                    </div>
-                `;
-            });
-
-            // Add message input box and send button
-            container.innerHTML += `
-                <textarea id="message-input" class="send-message" placeholder="Type a message"></textarea>
-                <button onclick="sendMessage()" class="send-message">Send</button>
-            `;
-        }
-
-        // Function to send a message
+        // Send a message
         async function sendMessage() {
-            const messageContent = document.getElementById('message-input').value.trim();
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value.trim();
+            const productId = new URLSearchParams(window.location.search).get('product_id');
+            const sellerId = new URLSearchParams(window.location.search).get('seller_id');
+            const buyerId = localStorage.getItem('buyer_id'); // Assuming buyer_id is stored in localStorage
 
-            if (!messageContent) {
+            if (!message) {
                 alert('Please enter a message.');
                 return;
             }
 
-            const conversationId = new URLSearchParams(window.location.search).get('conversation_id');
-            const buyerId = localStorage.getItem('buyer_id');
-            const sellerId = new URLSearchParams(window.location.search).get('seller_id');
-
             try {
-                // Insert new message into the database
+                // Insert a new message into the messages table
                 const { data, error } = await supabase
                     .from('messages')
-                    .insert([{
-                        conversation_id: conversationId,
-                        buyer_id: buyerId,
-                        seller_id: sellerId,
-                        message: messageContent,
-                    }])
+                    .insert([
+                        {
+                            product_id: productId,
+                            seller_id: sellerId,
+                            buyer_id: buyerId,
+                            message: message
+                        }
+                    ])
                     .select()
                     .single();
 
@@ -126,9 +125,12 @@
                     throw error;
                 }
 
-                console.log('✅ Message sent successfully');
-                // Re-fetch messages to display the new one
-                window.location.reload();
+                console.log("✅ Message sent successfully.");
+                messageInput.value = ''; // Clear the input field
+
+                // Reload the messages
+                document.location.reload();
+
             } catch (err) {
                 console.error('❌ Error sending message:', err.message);
                 alert('Error sending message. Please try again.');
