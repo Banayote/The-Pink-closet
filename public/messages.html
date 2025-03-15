@@ -64,19 +64,15 @@
         <button class="send-btn" onclick="sendMessage()">Send</button>
     </div>
 
-    <!-- Load Supabase -->
+    <!-- Supabase Initialization Script -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <!-- Main Script to interact with Supabase -->
     <script>
-        // Initialize Supabase client with your URL and anon key
+        // Initialize Supabase client
         const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co'; // Your Supabase URL
         const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'; // Your Supabase Anon API Key
 
-        // Initialize supabase client
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY); 
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY); // Initialize Supabase
 
-        // Wait for the DOM content to be loaded before interacting with it
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const sellerId = urlParams.get('seller_id');
@@ -125,7 +121,7 @@
         async function sendMessage() {
             const messageInput = document.getElementById('message-input');
             const messageText = messageInput.value.trim();
-            
+
             if (messageText === '') {
                 alert('Please enter a message.');
                 return;
