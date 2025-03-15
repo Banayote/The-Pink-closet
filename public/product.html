@@ -3,28 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messages</title>
+    <title>Product Details</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }
         header { background-color: #ff6347; color: white; padding: 10px; text-align: center; }
-        .message-container { padding: 20px; background-color: #fff; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin: 20px auto; border-radius: 8px; max-width: 600px; }
-        .message { margin-bottom: 10px; padding: 10px; border-radius: 5px; background-color: #f1f1f1; }
-        .message-buyer { background-color: #d3ffd3; }
-        .message-seller { background-color: #f3f3f3; }
-        .send-message { width: 100%; padding: 10px; font-size: 1rem; margin-top: 20px; }
+        .product-container { display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #fff; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin: 20px auto; border-radius: 8px; max-width: 600px; }
+        .product-container img { max-width: 100%; height: auto; border-radius: 8px; }
+        .product-details { margin-top: 20px; text-align: center; }
+        .product-name { font-size: 2rem; font-weight: bold; }
+        .product-description { color: #555; margin-top: 10px; }
+        .product-price { color: #ff6347; font-size: 1.5rem; margin-top: 15px; }
+        .visit-store-btn, .buy-btn { background-color: #ff6347; color: white; padding: 10px 20px; font-size: 1rem; border: none; cursor: pointer; margin-top: 20px; text-decoration: none; border-radius: 5px; display: inline-block; }
+        .visit-store-btn:hover, .buy-btn:hover { background-color: #e5533b; }
     </style>
 </head>
+
 <body>
 
     <header>
-        <h1>Messages</h1>
+        <h1>Product Details</h1>
     </header>
 
     <main>
-        <div id="message-container" class="message-container">
-            <p>Loading messages...</p>
-            <textarea id="message-input" class="send-message" placeholder="Type a message"></textarea>
-            <button onclick="sendMessage()" class="send-message">Send</button>
+        <div id="product-container" class="product-container">
+            <p>Loading product...</p>
         </div>
     </main>
 
@@ -38,86 +40,71 @@
     <script>
         console.log("✅ Script Loaded");
 
-        // Initialize Supabase
+        // ✅ Initialize Supabase
         const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log("✅ Page loaded, fetching messages...");
+            console.log("✅ Page loaded, fetching product...");
 
-            // Get conversation_id from URL
+            // Get product ID from URL
             const urlParams = new URLSearchParams(window.location.search);
-            const conversationId = urlParams.get('conversation_id');
+            const productId = urlParams.get('id');
 
-            if (!conversationId) {
-                document.getElementById('message-container').innerHTML = '<p>❌ Conversation ID is missing.</p>';
+            if (!productId) {
+                document.getElementById('product-container').innerHTML = '<p>❌ Product ID is missing.</p>';
                 return;
             }
 
             try {
-                // Fetch messages for the conversation
-                const { data: messages, error } = await supabase
-                    .from('messages')
+                // ✅ Fetch product details
+                const { data: product, error } = await supabase
+                    .from('products')
                     .select('*')
-                    .eq('conversation_id', conversationId)
-                    .order('created_at', { ascending: true });
+                    .eq('id', productId)
+                    .single();
 
-                if (error || !messages) {
-                    throw error || new Error("Messages not found.");
+                if (error || !product) {
+                    throw error || new Error("Product not found.");
                 }
 
-                // Render messages
-                renderMessages(messages);
+                if (!product.seller_id) {
+                    throw new Error("❌ Error: Missing seller ID.");
+                }
+
+                // ✅ Display product details
+                document.getElementById('product-container').innerHTML = `
+                    <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
+                    <div class="product-details">
+                        <h2 class="product-name">${product.name}</h2>
+                        <p class="product-description">${product.description}</p>
+                        <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
+                        <a href="profile.html?id=${product.seller_id}" class="visit-store-btn">Visit Store</a>
+                        <button class="buy-btn" onclick="startConversation('${product.id}', '${product.seller_id}')">Buy</button>
+                    </div>
+                `;
+
+                console.log("✅ Product displayed successfully.");
             } catch (err) {
-                console.error('❌ Error loading messages:', err.message);
-                document.getElementById('message-container').innerHTML = '<p>❌ Failed to load messages.</p>';
+                console.error('❌ Error fetching product:', err.message);
+                document.getElementById('product-container').innerHTML = '<p>❌ Failed to load product details.</p>';
             }
         });
 
-        // Function to render messages
-        function renderMessages(messages) {
-            const container = document.getElementById('message-container');
-            container.innerHTML = '';
-
-            messages.forEach(message => {
-                const messageClass = message.sender_id === message.buyer_id ? 'message-buyer' : 'message-seller';
-                container.innerHTML += `
-                    <div class="message ${messageClass}">
-                        <p>${message.message}</p>
-                    </div>
-                `;
-            });
-
-            // Add message input box and send button
-            container.innerHTML += `
-                <textarea id="message-input" class="send-message" placeholder="Type a message"></textarea>
-                <button onclick="sendMessage()" class="send-message">Send</button>
-            `;
-        }
-
-        // Function to send a message
-        async function sendMessage() {
-            const messageContent = document.getElementById('message-input').value.trim();
-
-            if (!messageContent) {
-                alert('Please enter a message.');
-                return;
-            }
-
-            const conversationId = new URLSearchParams(window.location.search).get('conversation_id');
-            const buyerId = localStorage.getItem('buyer_id');
-            const sellerId = new URLSearchParams(window.location.search).get('seller_id');
+        // ✅ Function to start a conversation (No Buyer ID Required)
+        async function startConversation(productId, sellerId) {
+            console.log(`📩 Starting conversation with seller ${sellerId} for product ${productId}`);
 
             try {
-                // Insert new message into the database
+                // ✅ Insert anonymous message (No buyer ID needed)
                 const { data, error } = await supabase
                     .from('messages')
-                    .insert([{
-                        conversation_id: conversationId,
-                        buyer_id: buyerId,
-                        seller_id: sellerId,
-                        message: messageContent,
+                    .insert([{ 
+                        product_id: productId, 
+                        seller_id: sellerId, 
+                        message: "Hi, I'm interested in this product!" 
                     }])
                     .select()
                     .single();
@@ -126,12 +113,11 @@
                     throw error;
                 }
 
-                console.log('✅ Message sent successfully');
-                // Re-fetch messages to display the new one
-                window.location.reload();
+                console.log("✅ Conversation started, redirecting...");
+                window.location.href = `messages.html?conversation_id=${data.id}`;
             } catch (err) {
-                console.error('❌ Error sending message:', err.message);
-                alert('Error sending message. Please try again.');
+                console.error("❌ Error creating conversation:", err.message);
+                alert("Error starting conversation. Please try again.");
             }
         }
     </script>
