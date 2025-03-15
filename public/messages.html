@@ -64,15 +64,15 @@
         <button class="send-btn" onclick="sendMessage()">Send</button>
     </div>
 
-    <!-- Load Supabase (important to load this script first) -->
+    <!-- Load Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Main Script to interact with Supabase -->
     <script>
-        // Initialize Supabase client here first
+        // Initialize Supabase client first
         const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
         const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY); // Initialize supabase client first
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY); // Initialize supabase client
 
         // Once the page content is loaded, start handling interactions
         document.addEventListener('DOMContentLoaded', async () => {
