@@ -76,6 +76,7 @@
 
         // Once the page content is loaded, start handling interactions
         document.addEventListener('DOMContentLoaded', async () => {
+            // Get seller_id from the URL
             const urlParams = new URLSearchParams(window.location.search);
             const sellerId = urlParams.get('seller_id');
             
