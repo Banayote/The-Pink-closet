@@ -41,9 +41,8 @@
         console.log("✅ Script Loaded");
 
         // ✅ Initialize Supabase
-        const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
-
+        const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co'; // Your Supabase URL
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'; // Your Supabase Anon Key
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -93,17 +92,32 @@
             }
         });
 
-        // ✅ Function to start a conversation (No Buyer ID Required)
+        // ✅ Function to generate anonymous buyer ID
+        function generateBuyerId() {
+            let buyerId = localStorage.getItem('buyer_id');
+            if (!buyerId) {
+                // Generate a unique buyer ID if it doesn't exist
+                buyerId = Date.now().toString(); // Use current timestamp for uniqueness
+                localStorage.setItem('buyer_id', buyerId); // Save to localStorage for later
+            }
+            return buyerId;
+        }
+
+        // ✅ Function to start a conversation (with Buyer ID)
         async function startConversation(productId, sellerId) {
             console.log(`📩 Starting conversation with seller ${sellerId} for product ${productId}`);
 
+            // Get the buyer ID
+            const buyerId = generateBuyerId();
+
             try {
-                // ✅ Insert anonymous message (No buyer ID needed)
+                // ✅ Insert message to start the conversation
                 const { data, error } = await supabase
                     .from('messages')
                     .insert([{ 
                         product_id: productId, 
                         seller_id: sellerId, 
+                        buyer_id: buyerId, // Include buyer_id now
                         message: "Hi, I'm interested in this product!" 
                     }])
                     .select()
@@ -114,7 +128,7 @@
                 }
 
                 console.log("✅ Conversation started, redirecting...");
-                window.location.href = `messages.html?conversation_id=${data.id}`;
+                window.location.href = `messages.html?conversation_id=${data.id}`; // Redirect to the conversation
             } catch (err) {
                 console.error("❌ Error creating conversation:", err.message);
                 alert("Error starting conversation. Please try again.");
