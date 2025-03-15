@@ -72,9 +72,11 @@
         // Initialize Supabase client with your URL and anon key
         const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co'; // Your Supabase URL
         const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'; // Your Supabase Anon API Key
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY); // Initialize supabase client
 
-        // Once the page content is loaded, start handling interactions
+        // Ensure that 'supabase' client is initialized before using any supabase methods
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY); // Initialize supabase client
+        
+        // Wait for the DOM content to be loaded before interacting with it
         document.addEventListener('DOMContentLoaded', async () => {
             // Get seller_id from the URL
             const urlParams = new URLSearchParams(window.location.search);
@@ -165,3 +167,4 @@
     </script>
 </body>
 </html>
+
