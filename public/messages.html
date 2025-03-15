@@ -7,138 +7,165 @@
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }
         header { background-color: #ff6347; color: white; padding: 10px; text-align: center; }
-        .chat-container { max-width: 600px; margin: 20px auto; background: white; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 8px; }
-        .messages { height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; background: #f1f1f1; }
-        .message { padding: 8px; margin-bottom: 10px; border-radius: 5px; }
-        .buyer { background: #d1e7ff; text-align: left; }
-        .seller { background: #ffcccc; text-align: right; }
-        .chat-input { display: flex; gap: 10px; }
-        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        button { padding: 10px; background: #ff6347; color: white; border: none; cursor: pointer; border-radius: 5px; }
+        .container { max-width: 600px; margin: 20px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); }
+        .chat-list { display: flex; flex-direction: column; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .chat-item { cursor: pointer; padding: 10px; border-radius: 5px; background: #ff6347; color: white; margin-bottom: 5px; text-align: center; }
+        .chat-item:hover { background: #e5533b; }
+        .chat-box { max-height: 300px; overflow-y: auto; padding: 10px; border: 1px solid #ddd; margin-top: 10px; }
+        .message { background: #ff6347; color: white; padding: 8px; border-radius: 5px; margin-bottom: 5px; width: fit-content; }
+        .message.sender { background: #ddd; color: black; margin-left: auto; }
+        .input-box { display: flex; margin-top: 10px; }
+        input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px; }
+        button { background: #ff6347; color: white; padding: 8px 15px; border: none; cursor: pointer; margin-left: 5px; border-radius: 5px; }
         button:hover { background: #e5533b; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Chat</h1>
+        <h1>Messages</h1>
     </header>
 
-    <div class="chat-container">
-        <div class="messages" id="messages">
-            <p>Loading messages...</p>
+    <div class="container">
+        <div class="chat-list" id="chat-list">
+            <p>Loading buyers...</p>
         </div>
-        <div class="chat-input">
-            <input type="text" id="messageInput" placeholder="Type a message...">
+
+        <div class="chat-box" id="chat-box">
+            <p>Select a chat to view messages.</p>
+        </div>
+
+        <div class="input-box">
+            <input type="text" id="message-input" placeholder="Type a message...">
             <button onclick="sendMessage()">Send</button>
         </div>
     </div>
 
-    <footer>
-        <p>&copy; The Pink Closet 2024. All rights reserved.</p>
-    </footer>
-
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         console.log("✅ Script Loaded");
 
-        // ✅ Added your Supabase credentials
+        // ✅ Initialize Supabase with your credentials
         const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ✅ Get URL parameters
+        // ✅ Extract product & seller from URL
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('product_id');
         const sellerId = urlParams.get('seller_id');
-        const buyerId = getOrCreateBuyerId(); // Generate buyer ID
 
         if (!productId || !sellerId) {
             console.error("❌ Missing product_id or seller_id in URL.");
-            alert("Error: Missing chat details.");
-            window.location.href = "index.html"; // Redirect if missing data
+            document.querySelector('.container').innerHTML = "<p>❌ Error: Chat details missing.</p>";
+            throw new Error("Missing required URL parameters.");
         }
 
-        console.log(`📩 Chat opened for product ${productId} with seller ${sellerId} and buyer ${buyerId}`);
+        let selectedBuyerId = null;
 
-        // ✅ Fetch and display messages
-        async function loadMessages() {
-            try {
-                const { data, error } = await supabase
-                    .from('messages')
-                    .select('*')
-                    .eq('product_id', productId)
-                    .eq('seller_id', sellerId)
-                    .eq('buyer_id', buyerId) // Only load messages from this conversation
-                    .order('created_at', { ascending: true });
+        // ✅ Fetch unique buyers who messaged about this product
+        async function loadBuyers() {
+            console.log("📩 Loading buyers...");
+            const { data: buyers, error } = await supabase
+                .from('messages')
+                .select('buyer_id')
+                .eq('product_id', productId)
+                .eq('seller_id', sellerId)
+                .group('buyer_id');
 
-                if (error) throw error;
-                displayMessages(data);
-            } catch (err) {
-                console.error("❌ Error loading messages:", err.message);
+            if (error || !buyers.length) {
+                document.getElementById('chat-list').innerHTML = "<p>No messages yet.</p>";
+                return;
             }
-        }
 
-        function displayMessages(messages) {
-            const messageContainer = document.getElementById("messages");
-            messageContainer.innerHTML = ""; // Clear old messages
+            const chatList = document.getElementById('chat-list');
+            chatList.innerHTML = '';
 
-            messages.forEach(msg => {
-                const div = document.createElement("div");
-                div.classList.add("message");
-                div.classList.add(msg.sender === 'seller' ? "seller" : "buyer");
-                div.textContent = msg.message;
-                messageContainer.appendChild(div);
+            buyers.forEach(({ buyer_id }) => {
+                const chatItem = document.createElement('div');
+                chatItem.classList.add('chat-item');
+                chatItem.textContent = `Buyer ${buyer_id.substring(0, 6)}...`;
+                chatItem.onclick = () => loadMessages(buyer_id);
+                chatList.appendChild(chatItem);
             });
 
-            messageContainer.scrollTop = messageContainer.scrollHeight; // Auto-scroll
+            console.log("✅ Buyers loaded.");
         }
 
-        // ✅ Send message function
-        async function sendMessage() {
-            const messageInput = document.getElementById("messageInput");
-            const messageText = messageInput.value.trim();
+        // ✅ Load messages for a specific buyer
+        async function loadMessages(buyerId) {
+            console.log(`📩 Loading messages for Buyer: ${buyerId}`);
+            selectedBuyerId = buyerId;
 
+            const { data: messages, error } = await supabase
+                .from('messages')
+                .select('*')
+                .eq('product_id', productId)
+                .eq('seller_id', sellerId)
+                .eq('buyer_id', buyerId)
+                .order('created_at', { ascending: true });
+
+            if (error) {
+                console.error("❌ Error loading messages:", error.message);
+                document.getElementById('chat-box').innerHTML = "<p>Error loading messages.</p>";
+                return;
+            }
+
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML = '';
+
+            messages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                if (msg.seller_id === sellerId) {
+                    messageDiv.classList.add('sender');
+                }
+                messageDiv.textContent = msg.message;
+                chatBox.appendChild(messageDiv);
+            });
+
+            console.log("✅ Messages loaded.");
+        }
+
+        // ✅ Send a new message
+        async function sendMessage() {
+            if (!selectedBuyerId) {
+                alert("Please select a chat first.");
+                return;
+            }
+
+            const messageInput = document.getElementById('message-input');
+            const messageText = messageInput.value.trim();
             if (!messageText) return;
+
             console.log(`📩 Sending message: ${messageText}`);
 
-            try {
-                const { data, error } = await supabase
-                    .from('messages')
-                    .insert([{
-                        product_id: productId,
-                        seller_id: sellerId,
-                        buyer_id: buyerId,
-                        sender: 'buyer', // Mark message as sent by buyer
-                        message: messageText
-                    }]);
+            const { error } = await supabase
+                .from('messages')
+                .insert([{ 
+                    product_id: productId,
+                    seller_id: sellerId,
+                    buyer_id: selectedBuyerId,
+                    message: messageText
+                }]);
 
-                if (error) throw error;
-
-                messageInput.value = ""; // Clear input
-                loadMessages(); // Refresh messages
-            } catch (err) {
-                console.error("❌ Error sending message:", err.message);
+            if (error) {
+                console.error("❌ Error sending message:", error.message);
+                return;
             }
+
+            // ✅ Add the new message to the chat instantly
+            const chatBox = document.getElementById('chat-box');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', 'sender');
+            messageDiv.textContent = messageText;
+            chatBox.appendChild(messageDiv);
+
+            messageInput.value = "";
         }
 
-        // ✅ Generate or get unique buyer ID
-        function getOrCreateBuyerId() {
-            let buyerId = localStorage.getItem('buyer_id');
-            if (!buyerId) {
-                buyerId = "buyer-" + Date.now().toString();
-                localStorage.setItem('buyer_id', buyerId);
-            }
-            return buyerId;
-        }
-
-        // ✅ Listen for real-time updates
-        supabase.channel('messages')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, loadMessages)
-            .subscribe();
-
-        // ✅ Load messages on page load
-        loadMessages();
+        document.addEventListener('DOMContentLoaded', loadBuyers);
     </script>
 
 </body>
