@@ -48,6 +48,13 @@
         const productId = urlParams.get('product_id');
         const sellerId = urlParams.get('seller_id');
 
+        // ✅ Validate required parameters
+        if (!productId || !sellerId) {
+            console.error("❌ Missing product_id or seller_id in URL.");
+            document.body.innerHTML = "<h2 style='text-align:center;color:red;'>❌ Error: Missing product or seller information.</h2>";
+            throw new Error("Missing required URL parameters.");
+        }
+
         // ✅ Generate or retrieve buyer ID
         function generateBuyerId() {
             let buyerId = localStorage.getItem('buyer_id');
@@ -59,9 +66,9 @@
         }
         const buyerId = generateBuyerId();
 
-        if (!productId || !sellerId) {
-            console.error("❌ Missing product_id or seller_id in URL.");
-        }
+        console.log(`✅ Buyer ID: ${buyerId}`);
+        console.log(`✅ Product ID: ${productId}`);
+        console.log(`✅ Seller ID: ${sellerId}`);
 
         // ✅ Load messages
         async function loadMessages() {
@@ -72,7 +79,7 @@
                 .select('*')
                 .eq('product_id', productId)
                 .eq('seller_id', sellerId)
-                .eq('buyer_id', buyerId) // Show only messages related to this buyer
+                .eq('buyer_id', buyerId)
                 .order('created_at', { ascending: true });
 
             if (error) {
@@ -109,7 +116,7 @@
                     product_id: productId,
                     seller_id: sellerId,
                     buyer_id: buyerId,
-                    sender: 'buyer', // Mark messages as from buyer
+                    sender: 'buyer',
                     message: messageText
                 }]);
 
@@ -120,7 +127,7 @@
 
             console.log("✅ Message sent:", data);
             messageInput.value = "";
-            loadMessages(); // Reload messages after sending
+            loadMessages();
         }
 
         // ✅ Load messages on page load
