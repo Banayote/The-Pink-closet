@@ -3,85 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Messages</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-        .chat-container { max-width: 500px; margin: auto; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background: #fff; }
-        .messages { height: 300px; overflow-y: auto; border-bottom: 1px solid #ddd; padding: 10px; }
-        .message { padding: 8px; margin: 5px 0; border-radius: 5px; }
-        .seller { background-color: #ffddcc; text-align: left; }
-        .buyer { background-color: #cce5ff; text-align: right; }
-        .input-container { display: flex; margin-top: 10px; }
-        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        button { padding: 10px; background-color: #ff6347; color: white; border: none; cursor: pointer; border-radius: 5px; margin-left: 5px; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }
+        header { background-color: #ff6347; color: white; padding: 10px; text-align: center; }
+        .messages-container { max-width: 600px; margin: 20px auto; background: white; padding: 20px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); border-radius: 8px; }
+        .message { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .message.buyer { background-color: #f1f1f1; text-align: left; }
+        .message.seller { background-color: #ffdbc5; text-align: right; }
+        .message-input { display: flex; margin-top: 20px; }
+        .message-input input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .message-input button { background-color: #ff6347; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-left: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="chat-container">
-        <h2>Chat</h2>
-        <div class="messages" id="messages"></div>
-        <div class="input-container">
-            <input type="text" id="messageInput" placeholder="Type a message...">
-            <button onclick="sendMessage()">Send</button>
-        </div>
+<header>
+    <h1>Messages</h1>
+</header>
+
+<main>
+    <div id="messages-container" class="messages-container">
+        <p>Loading messages...</p>
     </div>
 
-    <script>
-        console.log("✅ Chat Script Loaded");
+    <div class="message-input">
+        <input type="text" id="message-text" placeholder="Type a message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</main>
 
-        // ✅ Initialize Supabase
-        const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';  // Your Supabase URL
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';  // Your Supabase anon key
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+<footer>
+    <p>&copy; The Pink Closet 2024. All rights reserved.</p>
+</footer>
 
-        // ✅ Get conversation_id from URL
+<!-- Load Supabase Library -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+    console.log("✅ Script Loaded");
+
+    // ✅ Initialize Supabase
+    const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        console.log("✅ Page loaded, checking user type...");
+
+        // Get conversation ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const conversationId = urlParams.get('conversation_id');
 
         if (!conversationId) {
-            alert("❌ No conversation found.");
-            throw new Error("❌ Missing conversation_id in URL.");
+            document.getElementById('messages-container').innerHTML = '<p>❌ Conversation ID is missing.</p>';
+            return;
         }
 
-        async function loadMessages() {
-            const { data, error } = await supabase
-                .from('messages')
-                .select('*')
-                .eq('id', conversationId)
-                .order('created_at', { ascending: true });
+        // ✅ Get the anonymous buyer ID (or check if the user is a seller)
+        let buyerId = localStorage.getItem('buyer_id');
+        let sellerId = localStorage.getItem('seller_id'); // If logged-in seller
 
-            if (error) {
-                console.error("❌ Error fetching messages:", error);
-                return;
+        let userRole = buyerId ? 'buyer' : (sellerId ? 'seller' : null);
+        let userId = buyerId || sellerId;  // Use buyer ID if available, otherwise seller ID
+
+        if (!userId) {
+            alert("❌ Error: No user ID found. Please start a conversation first.");
+            return;
+        }
+
+        console.log(`✅ User detected as ${userRole} with ID: ${userId}`);
+
+        // ✅ Fetch messages from the database
+        async function fetchMessages() {
+            console.log("📩 Fetching messages...");
+
+            try {
+                const { data: messages, error } = await supabase
+                    .from('messages')
+                    .select('*')
+                    .eq('id', conversationId)
+                    .order('created_at', { ascending: true });
+
+                if (error) throw error;
+
+                if (!messages || messages.length === 0) {
+                    document.getElementById('messages-container').innerHTML = '<p>❌ No messages found.</p>';
+                    return;
+                }
+
+                // ✅ Display messages
+                document.getElementById('messages-container').innerHTML = messages.map(msg => `
+                    <div class="message ${msg.buyer_id === userId ? 'buyer' : 'seller'}">
+                        <p>${msg.message}</p>
+                    </div>
+                `).join('');
+
+                console.log("✅ Messages displayed.");
+            } catch (err) {
+                console.error("❌ Error fetching messages:", err.message);
+                document.getElementById('messages-container').innerHTML = '<p>❌ Failed to load messages.</p>';
             }
-
-            const messagesContainer = document.getElementById('messages');
-            messagesContainer.innerHTML = data.map(msg => 
-                `<div class="message ${msg.is_seller ? 'seller' : 'buyer'}">
-                    ${msg.message}
-                </div>`
-            ).join('');
         }
 
+        fetchMessages();
+
+        // ✅ Send message function
         async function sendMessage() {
-            const message = document.getElementById('messageInput').value;
-            if (!message.trim()) return;
+            const messageText = document.getElementById('message-text').value.trim();
+            if (!messageText) return alert("⚠️ Message cannot be empty!");
 
-            const { error } = await supabase
-                .from('messages')
-                .insert([{ conversation_id: conversationId, message, is_seller: false }]);
+            try {
+                const { error } = await supabase
+                    .from('messages')
+                    .insert([{ 
+                        id: conversationId,
+                        seller_id: sellerId, 
+                        buyer_id: buyerId,  
+                        message: messageText 
+                    }]);
 
-            if (!error) {
-                document.getElementById('messageInput').value = '';
-                loadMessages();  // Refresh chat
+                if (error) throw error;
+
+                console.log("✅ Message sent!");
+                document.getElementById('message-text').value = "";
+                fetchMessages();  // Refresh messages after sending
+            } catch (err) {
+                console.error("❌ Error sending message:", err.message);
+                alert("Error sending message. Please try again.");
             }
         }
 
-        // Load chat when page opens
-        loadMessages();
-    </script>
+        window.sendMessage = sendMessage;
+    });
+</script>
 
 </body>
 </html>
