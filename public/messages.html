@@ -15,7 +15,7 @@
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
-        // ✅ Initialize Supabase FIRST before using it
+        // ✅ Initialize Supabase
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = createClient(SUPABASE_URL, SUPABASE_API_KEY);
@@ -52,7 +52,7 @@
 
                 data.forEach((msg) => {
                     const messageElement = document.createElement("p");
-                    messageElement.textContent = msg.text;
+                    messageElement.textContent = msg.text || "[No message text]";
                     messagesContainer.appendChild(messageElement);
                 });
             }
@@ -72,6 +72,7 @@
 
                 if (error) {
                     console.error("❌ Error sending message:", error.message);
+                    alert("Failed to send message. Check the database column names.");
                 } else {
                     messageInput.value = "";
                     await loadMessages();
