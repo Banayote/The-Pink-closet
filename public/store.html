@@ -79,7 +79,7 @@
         // Initialize Supabase
         const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
         const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
         document.addEventListener('DOMContentLoaded', () => {
             const exitIcon = document.getElementById('exitIcon');
@@ -109,7 +109,7 @@
 
                 try {
                     // Insert user into Supabase
-                    const { data, error } = await supabaseClient
+                    const { data, error } = await supabase
                         .from('users')
                         .insert([payload])
                         .select(); // Fetch inserted data
@@ -119,8 +119,13 @@
                         alert('Failed to create store. Please try again.');
                     } else if (data && data.length > 0) {
                         const userId = data[0].id; // Get the new user ID
+
+                        // ✅ Save user data in local storage
+                        localStorage.setItem('user_id', userId);
+                        localStorage.setItem('user_name', `${payload.first_name} ${payload.last_name}`);
+
                         alert('Store created successfully! Redirecting...');
-                        window.location.href = `profile.html?user_id=${userId}`; // Redirect to profile.html with user ID
+                        window.location.href = `profile.html`; // Redirect to profile.html (no need to pass ID in URL)
                     }
                 } catch (error) {
                     console.error('Unexpected error:', error.message);
