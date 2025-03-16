@@ -102,16 +102,17 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwi...";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ✅ Get seller_id from URL
+        // ✅ Get seller_id & product_id from URL
         const urlParams = new URLSearchParams(window.location.search);
         const sellerId = urlParams.get("seller_id");
+        const productId = urlParams.get("product_id");
 
-        if (!sellerId) {
-            alert("Error: Missing seller ID.");
-            window.location.href = "index.html"; // Redirect if no seller_id
+        if (!sellerId || !productId) {
+            alert("Error: Missing seller ID or product ID.");
+            window.location.href = "index.html"; // Redirect if missing data
         }
 
         // ✅ Get buyer_id (from localStorage or create one)
@@ -131,6 +132,7 @@
                 .from("messages")
                 .select("*")
                 .eq("seller_id", sellerId)
+                .eq("product_id", productId) // Only messages for this product
                 .order("created_at", { ascending: true });
 
             if (error) {
@@ -164,15 +166,16 @@
             const text = messageInput.value.trim();
             if (!text) return;
 
-            if (!sellerId) {
-                console.error("❌ Error: seller_id is missing.");
-                alert("Error: Missing seller ID.");
+            if (!sellerId || !productId) {
+                console.error("❌ Error: Missing seller_id or product_id.");
+                alert("Error: Missing seller or product information.");
                 return;
             }
 
             const { data, error } = await supabase
                 .from("messages")
                 .insert([{ 
+                    product_id: productId,
                     buyer_id: buyerId,
                     seller_id: sellerId,
                     message: text 
