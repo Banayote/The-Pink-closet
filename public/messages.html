@@ -4,81 +4,190 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messages</title>
+    <link rel="stylesheet" href="messages.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .chat-container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+
+        .chat-header {
+            background-color: pink;
+            padding: 15px;
+            color: white;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            word-wrap: break-word;
+        }
+
+        .buyer-message {
+            background-color: #d1ffd1;
+            align-self: flex-start;
+        }
+
+        .seller-message {
+            background-color: #d1e0ff;
+            align-self: flex-end;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            background: #fff;
+            border-top: 1px solid #ddd;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .chat-input button {
+            background-color: pink;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .chat-input button:hover {
+            background-color: #ff80a0;
+        }
+    </style>
 </head>
 <body>
-    <h1>Messages</h1>
-    <div id="messages-container"></div>
-    <input type="text" id="message-input" placeholder="Type your message...">
-    <button id="send-message">Send</button>
 
-    <!-- ✅ Load Supabase -->
+    <div class="chat-container">
+        <div class="chat-header">Chat</div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Type a message...">
+            <button id="sendMessage">Send</button>
+        </div>
+    </div>
+
     <script type="module">
-        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
 
-        // ✅ Initialize Supabase
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-        const supabase = createClient(SUPABASE_URL, SUPABASE_API_KEY);
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        document.addEventListener("DOMContentLoaded", async () => {
-            console.log("✅ Messages page loaded");
+        // Get seller_id from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const sellerId = urlParams.get("seller_id");
 
-            // ✅ Get seller ID from URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const sellerId = urlParams.get("seller_id");
+        // Get buyer_id from localStorage (or create one if not exists)
+        let buyerId = localStorage.getItem("buyer_id");
+        if (!buyerId) {
+            buyerId = "buyer-" + Math.random().toString(36).substring(7); // Generate random buyer ID
+            localStorage.setItem("buyer_id", buyerId);
+        }
 
-            if (!sellerId) {
-                alert("Seller ID not found!");
+        const chatMessages = document.getElementById("chatMessages");
+        const messageInput = document.getElementById("messageInput");
+        const sendMessageBtn = document.getElementById("sendMessage");
+
+        // Load messages from Supabase
+        async function loadMessages() {
+            const { data, error } = await supabase
+                .from("messages")
+                .select("*")
+                .eq("seller_id", sellerId)
+                .order("created_at", { ascending: true });
+
+            if (error) {
+                console.error("Error loading messages:", error.message);
                 return;
             }
 
-            console.log("📌 Seller ID:", sellerId);
+            chatMessages.innerHTML = "";
+            data.forEach(displayMessage);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+        }
 
-            // ✅ Fetch and display messages
-            async function loadMessages() {
-                const { data, error } = await supabase
-                    .from("messages")
-                    .select("*")
-                    .eq("seller_id", sellerId)
-                    .order("created_at", { ascending: true });
+        // Display a message in chat
+        function displayMessage(message) {
+            const div = document.createElement("div");
+            div.classList.add("message");
 
-                if (error) {
-                    console.error("❌ Error loading messages:", error.message);
-                    return;
-                }
-
-                const messagesContainer = document.getElementById("messages-container");
-                messagesContainer.innerHTML = "";
-
-                data.forEach((msg) => {
-                    const messageElement = document.createElement("p");
-                    messageElement.textContent = msg.text || "[No message text]";
-                    messagesContainer.appendChild(messageElement);
-                });
+            if (message.buyer_id === buyerId) {
+                div.classList.add("buyer-message");
+            } else {
+                div.classList.add("seller-message");
             }
 
-            await loadMessages();
+            div.textContent = message.message;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
 
-            // ✅ Send Message
-            document.getElementById("send-message").addEventListener("click", async () => {
-                const messageInput = document.getElementById("message-input");
-                const messageText = messageInput.value.trim();
+        // Send a new message
+        sendMessageBtn.addEventListener("click", async () => {
+            const text = messageInput.value.trim();
+            if (!text) return;
 
-                if (!messageText) return;
+            const { data, error } = await supabase
+                .from("messages")
+                .insert([{ 
+                    buyer_id: buyerId,
+                    seller_id: sellerId,
+                    message: text 
+                }]);
 
-                const { error } = await supabase.from("messages").insert([
-                    { seller_id: sellerId, text: messageText, created_at: new Date().toISOString() }
-                ]);
+            if (error) {
+                console.error("❌ Error sending message:", error.message);
+                return;
+            }
 
-                if (error) {
-                    console.error("❌ Error sending message:", error.message);
-                    alert("Failed to send message. Check the database column names.");
-                } else {
-                    messageInput.value = "";
-                    await loadMessages();
-                }
-            });
+            messageInput.value = "";
+            loadMessages(); // Reload messages after sending
         });
+
+        // Listen for new messages in real time
+        supabase.channel("messages_channel")
+            .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (payload) => {
+                displayMessage(payload.new);
+            })
+            .subscribe();
+
+        // Load messages initially
+        loadMessages();
     </script>
+
 </body>
 </html>
