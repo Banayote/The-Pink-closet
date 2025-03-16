@@ -105,14 +105,19 @@
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Get seller_id from URL
+        // ✅ Get seller_id from URL
         const urlParams = new URLSearchParams(window.location.search);
         const sellerId = urlParams.get("seller_id");
 
-        // Get buyer_id from localStorage (or create one if not exists)
+        if (!sellerId) {
+            alert("Error: Missing seller ID.");
+            window.location.href = "index.html"; // Redirect if no seller_id
+        }
+
+        // ✅ Get buyer_id (from localStorage or create one)
         let buyerId = localStorage.getItem("buyer_id");
         if (!buyerId) {
-            buyerId = "buyer-" + Math.random().toString(36).substring(7); // Generate random buyer ID
+            buyerId = "buyer-" + Math.random().toString(36).substring(7);
             localStorage.setItem("buyer_id", buyerId);
         }
 
@@ -120,7 +125,7 @@
         const messageInput = document.getElementById("messageInput");
         const sendMessageBtn = document.getElementById("sendMessage");
 
-        // Load messages from Supabase
+        // ✅ Load messages
         async function loadMessages() {
             const { data, error } = await supabase
                 .from("messages")
@@ -135,10 +140,10 @@
 
             chatMessages.innerHTML = "";
             data.forEach(displayMessage);
-            chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // Display a message in chat
+        // ✅ Display a message
         function displayMessage(message) {
             const div = document.createElement("div");
             div.classList.add("message");
@@ -154,10 +159,16 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // Send a new message
+        // ✅ Send a message
         sendMessageBtn.addEventListener("click", async () => {
             const text = messageInput.value.trim();
             if (!text) return;
+
+            if (!sellerId) {
+                console.error("❌ Error: seller_id is missing.");
+                alert("Error: Missing seller ID.");
+                return;
+            }
 
             const { data, error } = await supabase
                 .from("messages")
@@ -169,6 +180,7 @@
 
             if (error) {
                 console.error("❌ Error sending message:", error.message);
+                alert("Error sending message. Please try again.");
                 return;
             }
 
@@ -176,16 +188,17 @@
             loadMessages(); // Reload messages after sending
         });
 
-        // Listen for new messages in real time
+        // ✅ Listen for new messages in real-time
         supabase.channel("messages_channel")
             .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (payload) => {
                 displayMessage(payload.new);
             })
             .subscribe();
 
-        // Load messages initially
+        // ✅ Load messages initially
         loadMessages();
     </script>
 
 </body>
 </html>
+
