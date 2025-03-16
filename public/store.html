@@ -73,66 +73,67 @@
         </form>
     </div>
 
-    <!-- Load Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        // Initialize Supabase
-        const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
-        const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
+    <!-- ✅ Load Supabase -->
+    <script type="module">
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const exitIcon = document.getElementById('exitIcon');
-            const storeForm = document.getElementById('storeForm');
+        // ✅ Initialize Supabase
+        const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
+        const SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const supabase = createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
-            // Exit button functionality
-            exitIcon.addEventListener('click', () => {
-                if (confirm('Are you sure you want to exit?')) {
-                    window.location.href = 'index.html'; // Redirect to main page
+        document.addEventListener("DOMContentLoaded", () => {
+            const exitIcon = document.getElementById("exitIcon");
+            const storeForm = document.getElementById("storeForm");
+
+            // ✅ Exit button functionality
+            exitIcon.addEventListener("click", () => {
+                if (confirm("Are you sure you want to exit?")) {
+                    window.location.href = "index.html"; // Redirect to main page
                 }
             });
 
-            // Handle form submission
-            storeForm.addEventListener('submit', async (event) => {
+            // ✅ Handle form submission
+            storeForm.addEventListener("submit", async (event) => {
                 event.preventDefault();
 
-                // Gather form data
+                // ✅ Collect form data
                 const formData = new FormData(storeForm);
                 const payload = {
-                    first_name: formData.get('firstName'),
-                    last_name: formData.get('lastName'),
-                    email: formData.get('email'),
-                    phone_number: formData.get('phoneNumber'),
-                    password: formData.get('password'),
+                    first_name: formData.get("firstName"),
+                    last_name: formData.get("lastName"),
+                    email: formData.get("email"),
+                    phone_number: formData.get("phoneNumber"),
+                    password: formData.get("password"),
                     created_at: new Date().toISOString()
                 };
 
                 try {
-                    // Insert user into Supabase
+                    // ✅ Insert user into Supabase
                     const { data, error } = await supabase
-                        .from('users')
+                        .from("users")
                         .insert([payload])
-                        .select(); // Fetch inserted data
+                        .select();
 
                     if (error) {
-                        console.error('Error:', error.message);
-                        alert('Failed to create store. Please try again.');
-                    } else if (data && data.length > 0) {
-                        const userId = data[0].id; // Get the new user ID
+                        console.error("Error:", error.message);
+                        alert("Failed to create store. Please try again.");
+                    } else if (data.length > 0) {
+                        const userId = data[0].id;
 
-                        // ✅ Save user data in local storage
-                        localStorage.setItem('user_id', userId);
-                        localStorage.setItem('user_name', `${payload.first_name} ${payload.last_name}`);
+                        // ✅ Save user ID in localStorage (Fixes profile issue)
+                        localStorage.setItem("user_id", userId);
 
-                        alert('Store created successfully! Redirecting...');
-                        window.location.href = `profile.html`; // Redirect to profile.html (no need to pass ID in URL)
+                        alert("Store created successfully! Redirecting...");
+                        window.location.href = `profile.html?user_id=${userId}`;
                     }
                 } catch (error) {
-                    console.error('Unexpected error:', error.message);
-                    alert('An unexpected error occurred. Please try again.');
+                    console.error("Unexpected error:", error.message);
+                    alert("An unexpected error occurred. Please try again.");
                 }
             });
         });
     </script>
 </body>
 </html>
+
