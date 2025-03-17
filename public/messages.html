@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messages</title>
     <style>
-        /* Basic styling for the messages */
         #messages {
             margin-bottom: 20px;
             padding: 10px;
@@ -19,7 +18,7 @@
             margin-bottom: 10px;
             padding: 8px;
             border-radius: 5px;
-            background-color: #d0f0c0; /* Light green for sent messages */
+            background-color: #d0f0c0; 
         }
         .message .sender {
             font-weight: bold;
@@ -48,114 +47,78 @@
 </head>
 <body>
     <h1>Message Seller</h1>
-    
-    <!-- Messages container where messages will appear -->
+
     <div id="messages"></div>
-    
-    <!-- Form to send a new message -->
+
     <form id="message-form">
         <input type="text" id="message-input" placeholder="Type your message..." required>
         <button type="submit">Send</button>
     </form>
 
-    <!-- Load Supabase library before using it -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
     <script>
-        // Initialize Supabase first
+        // ✅ Fully included Supabase URL & API Key
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_API_KEY);
 
-        // Extract URL parameters (seller_id and product_id)
-        const params = new URLSearchParams(window.location.search);
-        const sellerId = params.get('seller_id');
-        const productId = params.get('product_id');
-        const buyerId = "generated-buyer-id"; // Replace this with your logic to generate or fetch buyer's ID
+        document.addEventListener("DOMContentLoaded", async function () {
+            const params = new URLSearchParams(window.location.search);
+            const sellerId = params.get("seller_id");
+            const productId = params.get("product_id");
+            const buyerId = localStorage.getItem("buyer_id") || `buyer_${Math.random().toString(36).substring(7)}`;
 
-        console.log("Seller ID:", sellerId);
-        console.log("Product ID:", productId);
-        console.log("Buyer ID:", buyerId);
+            localStorage.setItem("buyer_id", buyerId); 
 
-        // Step 1: Get or create a conversation
-        async function getOrCreateConversation(buyerId, sellerId, productId) {
-            try {
-                console.log("Fetching or creating conversation...");
+            console.log("Seller ID:", sellerId);
+            console.log("Product ID:", productId);
+            console.log("Buyer ID:", buyerId);
+
+            async function getOrCreateConversation(buyerId, sellerId, productId) {
                 let { data: conversation, error } = await supabase
-                    .from('conversations')
-                    .select('*')
-                    .eq('buyer_id', buyerId)
-                    .eq('seller_id', sellerId)
-                    .eq('product_id', productId)
-                    .single(); // Expect one result
+                    .from("conversations")
+                    .select("*")
+                    .eq("buyer_id", buyerId)
+                    .eq("seller_id", sellerId)
+                    .eq("product_id", productId)
+                    .single();
 
-                // If no conversation exists, create one
                 if (error || !conversation) {
-                    console.log("Conversation not found. Creating a new one...");
                     const { data, error: createError } = await supabase
-                        .from('conversations')
-                        .insert([
-                            {
-                                buyer_id: buyerId,
-                                seller_id: sellerId,
-                                product_id: productId,
-                                created_at: new Date().toISOString()
-                            }
-                        ]);
+                        .from("conversations")
+                        .insert([{ buyer_id: buyerId, seller_id: sellerId, product_id: productId }])
+                        .select()
+                        .single();
 
                     if (createError) {
                         console.error("Error creating conversation:", createError);
                         return null;
                     }
 
-                    conversation = data[0]; // Get the created conversation
+                    conversation = data;
                 }
 
-                console.log("Conversation data:", conversation);
                 return conversation;
-            } catch (error) {
-                console.error("Error in getOrCreateConversation:", error);
-                return null;
             }
-        }
 
-        // Step 2: Send a message in the conversation
-        async function sendMessage(conversationId, senderId, messageText) {
-            try {
-                console.log("Sending message...");
-                const { data, error } = await supabase
-                    .from('messages')
-                    .insert([
-                        {
-                            conversation_id: conversationId,
-                            sender_id: senderId,
-                            text: messageText,
-                            created_at: new Date().toISOString()
-                        }
-                    ]);
+            async function sendMessage(conversationId, senderId, messageText) {
+                const { error } = await supabase.from("messages").insert([
+                    { conversation_id: conversationId, sender_id: senderId, text: messageText },
+                ]);
 
                 if (error) {
                     console.error("Error sending message:", error);
-                    return;
+                } else {
+                    fetchMessages(conversationId);
                 }
-
-                console.log("Message sent successfully:", data);
-                // After sending the message, fetch and display all messages
-                fetchMessages(conversationId);
-            } catch (error) {
-                console.error("Error in sendMessage:", error);
             }
-        }
 
-        // Step 3: Fetch all messages for the conversation
-        async function fetchMessages(conversationId) {
-            try {
-                console.log("Fetching messages...");
+            async function fetchMessages(conversationId) {
                 const { data, error } = await supabase
-                    .from('messages')
-                    .select('*')
-                    .eq('conversation_id', conversationId)
-                    .order('created_at', { ascending: true });
+                    .from("messages")
+                    .select("*")
+                    .eq("conversation_id", conversationId)
+                    .order("created_at", { ascending: true });
 
                 if (error) {
                     console.error("Error fetching messages:", error);
@@ -163,51 +126,33 @@
                 }
 
                 const messagesContainer = document.getElementById("messages");
-                messagesContainer.innerHTML = ''; // Clear previous messages
+                messagesContainer.innerHTML = "";
 
-                // Display messages
                 data.forEach((message) => {
                     const messageElement = document.createElement("div");
-                    messageElement.classList.add('message');
+                    messageElement.classList.add("message");
                     messageElement.innerHTML = `<span class="sender">${message.sender_id}</span>: ${message.text}`;
                     messagesContainer.appendChild(messageElement);
                 });
-
-                console.log("Messages fetched:", data);
-            } catch (error) {
-                console.error("Error in fetchMessages:", error);
             }
-        }
 
-        // Step 4: Handle sending a message (on form submit)
-        document.getElementById('message-form').addEventListener('submit', async function(event) {
-            event.preventDefault();
+            document.getElementById("message-form").addEventListener("submit", async function (event) {
+                event.preventDefault();
 
-            const messageText = document.getElementById("message-input").value;
-            console.log("Message text:", messageText);
+                const messageText = document.getElementById("message-input").value;
+                const conversation = await getOrCreateConversation(buyerId, sellerId, productId);
 
-            const conversation = await getOrCreateConversation(buyerId, sellerId, productId);
+                if (conversation) {
+                    await sendMessage(conversation.id, buyerId, messageText);
+                    document.getElementById("message-input").value = "";
+                }
+            });
 
-            if (conversation) {
-                // Send message as buyer
-                await sendMessage(conversation.id, buyerId, messageText);
-                document.getElementById("message-input").value = ''; // Clear the input field
-            } else {
-                alert("Error creating conversation");
-            }
-        });
-
-        // Step 5: Load the conversation when the page loads
-        async function loadConversation() {
-            console.log("Loading conversation...");
             const conversation = await getOrCreateConversation(buyerId, sellerId, productId);
             if (conversation) {
                 fetchMessages(conversation.id);
             }
-        }
-
-        // Load conversation on page load
-        loadConversation();
+        });
     </script>
 </body>
 </html>
