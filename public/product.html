@@ -34,21 +34,20 @@
         <p>&copy; The Pink Closet 2024. All rights reserved.</p>
     </footer>
 
-    <!-- Load Supabase Library -->
+    <!-- Load Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
         console.log("✅ Script Loaded");
 
-        // ✅ Initialize Supabase
-        const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co'; // Your Supabase URL
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'; // Your Supabase Anon Key
+        // ✅ Supabase Credentials
+        const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener('DOMContentLoaded', async () => {
             console.log("✅ Page loaded, fetching product...");
 
-            // Get product ID from URL
             const urlParams = new URLSearchParams(window.location.search);
             const productId = urlParams.get('id');
 
@@ -58,22 +57,17 @@
             }
 
             try {
-                // ✅ Fetch product details
+                // ✅ Fetch Product
                 const { data: product, error } = await supabase
                     .from('products')
                     .select('*')
                     .eq('id', productId)
                     .single();
 
-                if (error || !product) {
-                    throw error || new Error("Product not found.");
-                }
+                if (error || !product) throw error || new Error("Product not found.");
+                if (!product.seller_id) throw new Error("❌ Error: Missing seller ID.");
 
-                if (!product.seller_id) {
-                    throw new Error("❌ Error: Missing seller ID.");
-                }
-
-                // ✅ Display product details
+                // ✅ Display Product
                 document.getElementById('product-container').innerHTML = `
                     <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
                     <div class="product-details">
@@ -84,51 +78,53 @@
                         <button class="buy-btn" onclick="startConversation('${product.id}', '${product.seller_id}')">Buy</button>
                     </div>
                 `;
-
-                console.log("✅ Product displayed successfully.");
             } catch (err) {
                 console.error('❌ Error fetching product:', err.message);
                 document.getElementById('product-container').innerHTML = '<p>❌ Failed to load product details.</p>';
             }
         });
 
-        // ✅ Function to generate anonymous buyer ID
         function generateBuyerId() {
             let buyerId = localStorage.getItem('buyer_id');
             if (!buyerId) {
-                // Generate a unique buyer ID if it doesn't exist
-                buyerId = Date.now().toString(); // Use current timestamp for uniqueness
-                localStorage.setItem('buyer_id', buyerId); // Save to localStorage for later
+                buyerId = Date.now().toString();
+                localStorage.setItem('buyer_id', buyerId);
             }
             return buyerId;
         }
 
-        // ✅ Function to start a conversation (with Buyer ID)
         async function startConversation(productId, sellerId) {
-            console.log(`📩 Starting conversation with seller ${sellerId} for product ${productId}`);
+            console.log(`📩 Checking conversation for seller ${sellerId} and product ${productId}`);
 
-            // Get the buyer ID
             const buyerId = generateBuyerId();
 
             try {
-                // ✅ Insert message to start the conversation
-                const { data, error } = await supabase
-                    .from('messages')
-                    .insert([{ 
-                        product_id: productId, 
-                        seller_id: sellerId, 
-                        buyer_id: buyerId, // Include buyer_id now
-                        message: "Hi, I'm interested in this product!" 
-                    }])
-                    .select()
+                let { data: conversation, error: existingError } = await supabase
+                    .from('conversations')
+                    .select('id')
+                    .eq('product_id', productId)
+                    .eq('buyer_id', buyerId)
+                    .eq('seller_id', sellerId)
                     .single();
 
-                if (error) {
-                    throw error;
+                if (!conversation) {
+                    console.log("❌ No existing conversation. Creating a new one...");
+                    let { data: newConversation, error: createError } = await supabase
+                        .from('conversations')
+                        .insert([{ 
+                            product_id: productId, 
+                            seller_id: sellerId, 
+                            buyer_id: buyerId 
+                        }])
+                        .select()
+                        .single();
+
+                    if (createError) throw createError;
+                    conversation = newConversation;
                 }
 
-                console.log("✅ Conversation started, redirecting...");
-                window.location.href = `messages.html?conversation_id=${data.id}`; // Redirect to the conversation
+                console.log("✅ Conversation ready:", conversation.id);
+                window.location.href = `messages.html?conversation_id=${conversation.id}&buyer_id=${buyerId}&seller_id=${sellerId}`;
             } catch (err) {
                 console.error("❌ Error creating conversation:", err.message);
                 alert("Error starting conversation. Please try again.");
