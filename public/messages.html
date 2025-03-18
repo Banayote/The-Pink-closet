@@ -7,127 +7,140 @@
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }
         header { background-color: #ff6347; color: white; padding: 10px; text-align: center; }
-        .message-container { display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #fff; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin: 20px auto; border-radius: 8px; max-width: 600px; }
-        .messages { width: 100%; max-height: 400px; overflow-y: scroll; padding: 10px; margin-top: 20px; background-color: #f1f1f1; border-radius: 8px; }
-        .message { padding: 10px; margin: 10px 0; border-radius: 5px; }
-        .sender { font-weight: bold; color: #ff6347; }
-        .message-input { width: 100%; padding: 10px; margin-top: 20px; border-radius: 5px; border: 1px solid #ccc; }
-        .send-btn { background-color: #ff6347; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-top: 10px; border-radius: 5px; }
-        .send-btn:hover { background-color: #e5533b; }
+        .chat-container { max-width: 600px; margin: 20px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); }
+        .message-box { margin-bottom: 10px; padding: 10px; border-radius: 5px; }
+        .buyer-message { background-color: #d1f0ff; text-align: left; }
+        .seller-message { background-color: #ffd1d1; text-align: right; }
+        .message-input { width: calc(100% - 50px); padding: 10px; margin-top: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        .send-btn { background-color: #ff6347; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Conversation</h1>
+        <h1>Chat</h1>
     </header>
 
-    <main>
-        <div id="message-container" class="message-container">
-            <div id="messages" class="messages">
-                <p>Loading messages...</p>
-            </div>
-            <input id="message-input" class="message-input" type="text" placeholder="Type your message...">
-            <button id="send-btn" class="send-btn">Send</button>
+    <div class="chat-container">
+        <div id="chat-box">
+            <p>Loading messages...</p>
         </div>
-    </main>
 
-    <footer>
-        <p>&copy; The Pink Closet 2024. All rights reserved.</p>
-    </footer>
+        <input type="text" id="messageInput" class="message-input" placeholder="Type a message...">
+        <button id="sendMessageBtn" class="send-btn">Send</button>
+    </div>
 
     <!-- Load Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <script>
-        console.log("✅ Script Loaded");
-
-        // ✅ Supabase Credentials
-        const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+        const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log("✅ Page loaded, fetching conversation...");
+        // Get query params
+        const urlParams = new URLSearchParams(window.location.search);
+        let buyerId = urlParams.get("buyer_id");
+        let sellerId = urlParams.get("seller_id");
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const conversationId = urlParams.get('conversation_id');
-            const buyerId = urlParams.get('buyer_id');
-            const sellerId = urlParams.get('seller_id');
+        if (!buyerId || !sellerId) {
+            alert("❌ Error: Missing buyer or seller information.");
+            window.location.href = "index.html"; 
+        }
 
-            if (!conversationId || !buyerId || !sellerId) {
-                document.getElementById('messages').innerHTML = '<p>❌ Missing conversation or user IDs.</p>';
-                return;
-            }
+        let conversationId = null;
 
+        async function checkOrCreateConversation() {
             try {
-                // ✅ Fetch Messages
-                const { data: messages, error } = await supabase
-                    .from('messages')
-                    .select('*')
-                    .eq('conversation_id', conversationId)
-                    .order('timestamp', { ascending: true });
+                console.log(`🔎 Checking conversation between Buyer: ${buyerId} & Seller: ${sellerId}`);
+
+                let { data: conversation, error } = await supabase
+                    .from("conversations")
+                    .select("id")
+                    .eq("buyer_id", buyerId)
+                    .eq("seller_id", sellerId)
+                    .single();
+
+                if (conversation) {
+                    console.log("✅ Existing conversation found:", conversation.id);
+                    conversationId = conversation.id;
+                    loadMessages();
+                } else {
+                    console.log("❌ No conversation found. Creating a new one...");
+
+                    let { data: newConversation, error: createError } = await supabase
+                        .from("conversations")
+                        .insert([{ buyer_id: buyerId, seller_id: sellerId }])
+                        .select()
+                        .single();
+
+                    if (createError) throw createError;
+                    conversationId = newConversation.id;
+                    console.log("✅ New conversation created:", conversationId);
+                }
+            } catch (err) {
+                console.error("❌ Error checking conversation:", err.message);
+                alert("Error loading conversation.");
+            }
+        }
+
+        async function loadMessages() {
+            try {
+                let { data: messages, error } = await supabase
+                    .from("messages")
+                    .select("*")
+                    .eq("conversation_id", conversationId)
+                    .order("timestamp", { ascending: true });
 
                 if (error) throw error;
 
-                if (messages && messages.length > 0) {
-                    displayMessages(messages);
-                } else {
-                    document.getElementById('messages').innerHTML = '<p>No messages yet.</p>';
-                }
-
-                // ✅ Send message
-                document.getElementById('send-btn').addEventListener('click', async () => {
-                    const messageContent = document.getElementById('message-input').value.trim();
-                    if (!messageContent) return;
-
-                    const { error: sendError } = await supabase
-                        .from('messages')
-                        .insert([
-                            {
-                                conversation_id: conversationId,  // conversation_id (text)
-                                buyer_id: buyerId,  // buyer_id (text)
-                                seller_id: sellerId,  // seller_id (text)
-                                message: messageContent,  // message (text)
-                                sender: 'Buyer',  // Assuming the buyer is sending the message, adjust as needed
-                                sender_email: 'buyer@example.com',  // Replace with dynamic email
-                                read_status: false  // Message is unread
-                            }
-                        ]);
-
-                    if (sendError) {
-                        console.error("❌ Error sending message:", sendError.message);
-                        alert("Failed to send message. Please try again.");
-                    } else {
-                        document.getElementById('message-input').value = ''; // Clear input
-                        fetchMessages(); // Refresh messages
-                    }
+                const chatBox = document.getElementById("chat-box");
+                chatBox.innerHTML = "";
+                messages.forEach(msg => {
+                    const messageElement = document.createElement("div");
+                    messageElement.classList.add("message-box", msg.sender === "buyer" ? "buyer-message" : "seller-message");
+                    messageElement.innerHTML = `<strong>${msg.sender}:</strong> ${msg.message}`;
+                    chatBox.appendChild(messageElement);
                 });
-
             } catch (err) {
-                console.error('❌ Error fetching conversation:', err.message);
-                document.getElementById('messages').innerHTML = '<p>❌ Failed to load messages.</p>';
+                console.error("❌ Error loading messages:", err.message);
             }
-        });
-
-        // ✅ Display messages
-        function displayMessages(messages) {
-            const messagesContainer = document.getElementById('messages');
-            messagesContainer.innerHTML = ''; // Clear loading message
-
-            messages.forEach(message => {
-                const messageElement = document.createElement('div');
-                messageElement.classList.add('message');
-                const sender = message.sender === 'Buyer' ? 'You' : 'Seller';
-                messageElement.innerHTML = `
-                    <p class="sender">${sender}:</p>
-                    <p>${message.message}</p>
-                    <p class="timestamp">${new Date(message.timestamp).toLocaleString()}</p>
-                `;
-                messagesContainer.appendChild(messageElement);
-            });
         }
 
+        async function sendMessage() {
+            const messageInput = document.getElementById("messageInput");
+            const messageText = messageInput.value.trim();
+
+            if (!messageText) return;
+            try {
+                const senderRole = buyerId ? "buyer" : "seller";
+                const senderId = buyerId || sellerId;
+
+                let { error } = await supabase
+                    .from("messages")
+                    .insert([{
+                        conversation_id: conversationId,
+                        message: messageText,
+                        sender: senderRole,
+                        timestamp: new Date().toISOString()
+                    }]);
+
+                if (error) throw error;
+
+                console.log("✅ Message sent:", messageText);
+                messageInput.value = "";
+                loadMessages();
+            } catch (err) {
+                console.error("❌ Error sending message:", err.message);
+            }
+        }
+
+        document.getElementById("sendMessageBtn").addEventListener("click", sendMessage);
+        document.addEventListener("keypress", function (e) {
+            if (e.key === "Enter") sendMessage();
+        });
+
+        checkOrCreateConversation();
     </script>
+
 </body>
 </html>
