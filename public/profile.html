@@ -3,115 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile</title>
-    <link rel="stylesheet" href="profile.css">
+    <title>Product Details</title>
+
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }
+        header { background-color: #ff6347; color: white; padding: 10px; text-align: center; }
+        .product-container { display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #fff; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin: 20px auto; border-radius: 8px; max-width: 600px; }
+        .product-container img { max-width: 100%; height: auto; border-radius: 8px; }
+        .product-details { margin-top: 20px; text-align: center; }
+        .product-name { font-size: 2rem; font-weight: bold; }
+        .product-description { color: #555; margin-top: 10px; }
+        .product-price { color: #ff6347; font-size: 1.5rem; margin-top: 15px; }
+        .visit-store-btn, .buy-btn { background-color: #ff6347; color: white; padding: 10px 20px; font-size: 1rem; border: none; cursor: pointer; margin-top: 20px; text-decoration: none; border-radius: 5px; display: inline-block; }
+        .visit-store-btn:hover, .buy-btn:hover { background-color: #e5533b; }
+    </style>
 </head>
 <body>
-    <div class="profile-container">
-        <div class="exit-icon">
-            <a href="index.html" id="exitIcon"><span>&larr;</span></a>
+
+    <header>
+        <h1>Product Details</h1>
+    </header>
+
+    <main>
+        <div id="product-container" class="product-container">
+            <p>Loading product...</p>
         </div>
+    </main>
 
-        <div class="banner">
-            <div id="banner-images" class="banner-images">
-                <img id="banner-img-1" src="image1.jpg" alt="Banner Image 1" class="banner-img">
-                <img id="banner-img-2" src="image2.jpg" alt="Banner Image 2" class="banner-img">
-                <img id="banner-img-3" src="image3.jpg" alt="Banner Image 3" class="banner-img">
-            </div>
-        </div>
-
-        <div class="profile-picture">
-            <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture">
-        </div>
-
-        <div class="profile-info">
-            <h1 id="username">Loading...</h1>
-            <p>Banayote</p>
-
-            <div class="profile-actions">
-                <button id="message"><span class="icon">✉️</span> Message</button>
-                <button id="add-product"><span class="icon">➕</span> Add Product</button>
-                <button id="edit"><span class="icon">🔧</span> Edit</button>
-                <button id="copy-link"><span class="icon">🔗</span> Link</button>
-            </div>
-        </div>
-
-        <div class="profile-dashboard">
-            <div class="stats">
-                <div class="stat">
-                    <h2>Sales</h2>
-                    <p id="sales-count">0</p>
-                </div>
-                <div class="stat">
-                    <h2>Visitors</h2>
-                    <p id="visitors-count">0</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-list-button">
-            <button>View Product List</button>
-        </div>
-
-        <div class="user-products"></div>
-    </div>
-
-    <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
-    <input type="file" id="banner-upload" accept="image/*" multiple style="display:none;">
-
-    <div id="image-modal" class="modal">
-        <span class="close">&times;</span>
-        <img class="modal-content" id="modal-img">
-    </div>
+    <footer>
+        <p>&copy; The Pink Closet 2024. All rights reserved.</p>
+    </footer>
 
     <!-- ✅ Load Supabase -->
-    <script type="module">
-        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-        const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    <script>
+        console.log("✅ Script Loaded");
 
-        document.addEventListener("DOMContentLoaded", async () => {
-            console.log("Loading profile...");
+        // ✅ Supabase Credentials
+        const SUPABASE_URL = 'https://fjlqkjwnelkamealhtyr.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-            // ✅ Step 1: Get User ID from Local Storage
-            const userId = localStorage.getItem("user_id");
-            if (!userId) {
-                alert("No profile found. Please create a store first.");
-                window.location.href = "store.html"; // Redirect to store page
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("✅ Page loaded, fetching product...");
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+
+            if (!productId) {
+                document.getElementById('product-container').innerHTML = '<p>❌ Product ID is missing.</p>';
                 return;
             }
 
             try {
-                // ✅ Step 2: Fetch User Data from Supabase
-                const { data: profile, error } = await supabase
-                    .from("users")
-                    .select("*")
-                    .eq("id", userId) // Ensure we get the correct user
+                // ✅ Fetch Product
+                const { data: product, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .eq('id', productId)
                     .single();
 
-                if (error) throw error;
+                if (error || !product) throw error || new Error("Product not found.");
+                if (!product.seller_id) throw new Error("❌ Error: Missing seller ID.");
 
-                // ✅ Step 3: Display User Details
-                document.getElementById("username").textContent = `${profile.first_name} ${profile.last_name}`;
-                document.getElementById("profile-img").src = profile.profile_image || "profile-picture.jpg";
+                // ✅ Validate seller ID is a UUID
+                const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+                if (!uuidRegex.test(product.seller_id)) throw new Error("Invalid Seller ID format.");
 
-                // ✅ Store Seller ID for Add Product
-                document.getElementById("add-product").addEventListener("click", () => {
-                    window.location.href = `add-product.html?seller_id=${encodeURIComponent(userId)}`;
-                });
+                // ✅ Display Product
+                document.getElementById('product-container').innerHTML = `
+                    <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
+                    <div class="product-details">
+                        <h2 class="product-name">${product.name}</h2>
+                        <p class="product-description">${product.description}</p>
+                        <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
+                        <a href="profile.html?id=${product.seller_id}" class="visit-store-btn">Visit Store</a>
+                        <button class="buy-btn" onclick="startConversation('${product.id}', '${product.seller_id}')">Buy</button>
+                    </div>
+                `;
 
-                // ✅ Redirect to Messages Page
-                document.getElementById("message").addEventListener("click", () => {
-                    window.location.href = `messages.html?seller_id=${encodeURIComponent(userId)}`;
-                });
-
-            } catch (error) {
-                console.error("Error fetching user profile:", error);
-                alert("Failed to load profile. Please try again.");
+            } catch (err) {
+                console.error('❌ Error fetching product:', err.message);
+                document.getElementById('product-container').innerHTML = '<p>❌ Failed to load product details.</p>';
             }
         });
+
+        // ✅ Generate a UUID for buyer
+        function generateBuyerId() {
+            let buyerId = localStorage.getItem('buyer_id');
+
+            if (!buyerId) {
+                buyerId = crypto.randomUUID(); // ✅ Generate a valid UUID
+                localStorage.setItem('buyer_id', buyerId);
+            }
+
+            return buyerId;
+        }
+
+        // ✅ Start a conversation
+        async function startConversation(productId, sellerId) {
+            console.log(`📩 Checking conversation for seller ${sellerId} and product ${productId}`);
+
+            const buyerId = generateBuyerId(); // ✅ Get the correct buyer ID
+
+            try {
+                // ✅ Check if conversation already exists
+                let { data: conversation, error: existingError } = await supabase
+                    .from('conversations')
+                    .select('id')
+                    .eq('product_id', productId)
+                    .eq('buyer_id', buyerId)
+                    .eq('seller_id', sellerId)
+                    .single();
+
+                if (existingError && existingError.code !== 'PGRST116') {
+                    throw existingError;
+                }
+
+                if (!conversation) {
+                    console.log("❌ No existing conversation. Creating a new one...");
+
+                    let { data: newConversation, error: createError } = await supabase
+                        .from('conversations')
+                        .insert([{ 
+                            product_id: productId, 
+                            seller_id: sellerId, 
+                            buyer_id: buyerId 
+                        }])
+                        .select()
+                        .single();
+
+                    if (createError) throw createError;
+                    conversation = newConversation;
+                }
+
+                console.log("✅ Conversation ready:", conversation.id);
+
+                // ✅ Redirect to messages.html
+                window.location.href = `messages.html?conversation_id=${conversation.id}&buyer_id=${buyerId}&seller_id=${sellerId}`;
+
+            } catch (err) {
+                console.error("❌ Error creating conversation:", err.message);
+                alert("Error starting conversation. Please try again.");
+            }
+        }
     </script>
 
 </body>
