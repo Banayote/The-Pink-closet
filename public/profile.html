@@ -93,10 +93,11 @@
             try {
                 // ✅ Step 2: Fetch User Data from Supabase
                 const { data: profile, error } = await supabase
-                    .from("users")
-                    .select("id, first_name, last_name, profile_image") // Select only necessary fields
-                    .eq("id", sellerId)
-                    .single();
+    .from("users")
+    .select("id, first_name, last_name, profile_image") // ✅ Only get needed fields
+    .eq("id", sellerId)
+    .single();
+
 
                 if (error) {
                     console.error("❌ Supabase Error:", error);
