@@ -121,7 +121,6 @@
                     userData.seller_id = crypto.randomUUID(); // Generate unique seller ID
                 } else {
                     userData.buyer_id = crypto.randomUUID(); // Generate unique buyer ID
-                    localStorage.setItem("buyer_id", userData.buyer_id); // Save buyer ID locally
                 }
 
                 try {
@@ -129,19 +128,24 @@
                     const { data, error } = await supabase
                         .from("users")
                         .insert([userData])
-                        .select();
+                        .select(); // Get inserted row
 
                     if (error) {
                         console.error("Error:", error.message);
                         alert("Failed to create store. Please try again.");
-                    } else if (data.length > 0) {
-                        const userId = data[0].id;
+                        return;
+                    }
 
-                        // ✅ Redirect based on role
+                    if (data.length > 0) {
+                        const userId = data[0].id; // Get the generated ID from Supabase
+
+                        localStorage.setItem("user_id", userId); // Store user ID for profile retrieval
+
                         if (role === "seller") {
-                            window.location.href = `profile.html?seller_id=${userData.seller_id}`;
+                            localStorage.setItem("seller_id", userData.seller_id); // Store seller ID
+                            window.location.href = "profile.html"; // Redirect seller to profile
                         } else {
-                            window.location.href = "index.html"; // Buyers stay on main page
+                            window.location.href = "index.html"; // Buyers stay on the main page
                         }
                     }
                 } catch (error) {
