@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details</title>
+
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }
         header { background-color: #ff6347; color: white; padding: 10px; text-align: center; }
@@ -17,6 +19,7 @@
         .visit-store-btn:hover, .buy-btn:hover { background-color: #e5533b; }
     </style>
 </head>
+
 <body>
 
     <header>
@@ -74,7 +77,7 @@
                         <p class="product-description">${product.description}</p>
                         <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
                         <a href="profile.html?id=${product.seller_id}" class="visit-store-btn">Visit Store</a>
-                        <button class="buy-btn" onclick="startConversation('${product.id}', '${product.seller_id}')">Buy</button>
+                        <button class="buy-btn" onclick="startConversation('${product.seller_id}')">Buy</button>
                     </div>
                 `;
 
@@ -88,50 +91,33 @@
         function generateBuyerId() {
             let buyerId = localStorage.getItem('buyer_id');
             if (!buyerId) {
-                buyerId = crypto.randomUUID();
+                buyerId = crypto.randomUUID(); // Generate unique ID
                 localStorage.setItem('buyer_id', buyerId);
             }
             return buyerId;
         }
 
-        // ✅ Start a conversation
-        async function startConversation(productId, sellerId) {
-            console.log(`📩 Checking conversation for seller ${sellerId} and product ${productId}`);
+        // ✅ Start a conversation (Only between Buyer & Seller)
+        async function startConversation(sellerId) {
+            console.log(`📩 Checking conversation for seller ${sellerId}`);
 
-            const buyerId = generateBuyerId(); // Get or create buyer UUID
-
-            // ✅ Validate UUIDs
-            if (!productId || !sellerId || !buyerId) {
-                alert("❌ Error: Missing necessary IDs.");
-                return;
-            }
+            const buyerId = generateBuyerId(); // Get or generate buyer UUID
 
             try {
-                // ✅ Check if conversation already exists
+                // ✅ Check if a conversation already exists
                 let { data: conversation, error: existingError } = await supabase
                     .from('conversations')
                     .select('id')
-                    .eq('product_id', productId)  
                     .eq('buyer_id', buyerId)
                     .eq('seller_id', sellerId)
                     .single();
 
-                if (existingError && existingError.code !== "PGRST116") {
-                    console.error("❌ Error checking conversation:", existingError.message);
-                    return;
-                }
-
                 if (!conversation) {
                     console.log("❌ No existing conversation. Creating a new one...");
 
-                    // ✅ Insert new conversation
                     let { data: newConversation, error: createError } = await supabase
                         .from('conversations')
-                        .insert([{ 
-                            product_id: productId.toString(), 
-                            seller_id: sellerId, 
-                            buyer_id: buyerId 
-                        }])
+                        .insert([{ seller_id: sellerId, buyer_id: buyerId }])
                         .select()
                         .single();
 
