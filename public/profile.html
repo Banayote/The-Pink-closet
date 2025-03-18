@@ -77,20 +77,20 @@
 
             // ✅ Step 1: Get User ID from Local Storage
             const userId = localStorage.getItem("user_id");
+            console.log("✅ Retrieved User ID from LocalStorage:", userId);  // Log to check the user ID
+
             if (!userId) {
                 alert("⚠️ No profile found. Please create a store first.");
                 window.location.href = "store.html";  // Redirect if no user ID is found
                 return;
             }
 
-            console.log("✅ User ID from LocalStorage:", userId);
-
             try {
                 // ✅ Step 2: Fetch User Data from Supabase
                 const { data: profile, error } = await supabase
                     .from("users")
                     .select("*")
-                    .eq("id", userId)  // Ensure the 'id' column is being queried
+                    .eq("id", userId)  // Ensure 'id' is correct
                     .maybeSingle();    // Prevent errors when no data is returned
 
                 if (error) {
@@ -137,5 +137,6 @@
             }
         });
     </script>
+
 </body>
 </html>
