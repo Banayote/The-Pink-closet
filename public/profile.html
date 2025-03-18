@@ -26,7 +26,7 @@
 
         <div class="profile-info">
             <h1 id="username">Loading...</h1>
-            <p>Banayote</p>
+            <p id="seller-id">Loading seller id...</p>
 
             <div class="profile-actions">
                 <button id="message"><span class="icon">✉️</span> Message</button>
@@ -73,53 +73,46 @@
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener("DOMContentLoaded", async () => {
-            console.log("✅ Loading profile...");
+            console.log("Loading profile...");
 
-            // ✅ Step 1: Get User ID from URL or Local Storage
-            const urlParams = new URLSearchParams(window.location.search);
-            let sellerId = urlParams.get("seller_id") || localStorage.getItem("seller_id");
-
-            console.log("👤 Seller ID:", sellerId); // Debugging output
-
-            if (!sellerId) {
+            // ✅ Step 1: Get User ID from Local Storage (Ensure User is Logged In)
+            const userId = localStorage.getItem("user_id");
+            if (!userId) {
                 alert("No profile found. Please create a store first.");
-                window.location.href = "store.html"; // Redirect if no user found
+                window.location.href = "store.html"; // Redirect to store page
                 return;
             }
 
-            // ✅ Store seller ID locally
-            localStorage.setItem("seller_id", sellerId);
-
             try {
-                // ✅ Step 2: Fetch User Data from Supabase
+                // ✅ Step 2: Fetch User Data from Supabase (Retrieve Seller Profile)
                 const { data: profile, error } = await supabase
-    .from("users")
-    .select("id, first_name, last_name, profile_image") // ✅ Only get needed fields
-    .eq("id", sellerId)
-    .single();
-
+                    .from("users")
+                    .select("*")
+                    .eq("id", userId) // Ensure we get the correct user
+                    .single();
 
                 if (error) {
-                    console.error("❌ Supabase Error:", error);
-                    alert("Failed to load profile. Please check your connection.");
-                    return;
+                    console.error("Error fetching user profile:", error);
+                    throw error;
                 }
 
-                // ✅ Step 3: Display User Details
+                // ✅ Step 3: Display User Details (Set User Information in Profile)
                 document.getElementById("username").textContent = `${profile.first_name} ${profile.last_name}`;
                 document.getElementById("profile-img").src = profile.profile_image || "profile-picture.jpg";
+                document.getElementById("seller-id").textContent = `Seller ID: ${profile.id}`;
 
-                // ✅ Step 4: Handle Buttons
+                // ✅ Store Seller ID for Add Product
                 document.getElementById("add-product").addEventListener("click", () => {
                     window.location.href = `add-product.html?seller_id=${encodeURIComponent(profile.id)}`;
                 });
 
+                // ✅ Redirect to Messages Page with Seller ID
                 document.getElementById("message").addEventListener("click", () => {
                     window.location.href = `messages.html?seller_id=${encodeURIComponent(profile.id)}`;
                 });
 
             } catch (error) {
-                console.error("❌ Error fetching user profile:", error);
+                console.error("Error fetching user profile:", error);
                 alert("Failed to load profile. Please try again.");
             }
         });
