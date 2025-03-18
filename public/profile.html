@@ -27,7 +27,7 @@
 
         <div class="profile-info">
             <h1 id="username">Loading...</h1>
-            <p>Banayote</p>
+            <p id="role"></p> <!-- Add this line to display role (buyer/seller) -->
 
             <div class="profile-actions">
                 <button id="message"><span class="icon">✉️</span> Message</button>
@@ -113,11 +113,17 @@
                 document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
                 document.getElementById("profile-img").src = profile.profile_image || "profile-picture.jpg";
 
-                // Step 4: Handle Profile Actions (Add Product, Message, etc.)
-                document.getElementById("add-product").addEventListener("click", () => {
-                    window.location.href = `add-product.html?seller_id=${encodeURIComponent(userId)}`;
-                });
+                // Display the role (buyer/seller)
+                document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
 
+                // If the user is a seller, allow adding products
+                if (profile.role === "seller") {
+                    document.getElementById("add-product").addEventListener("click", () => {
+                        window.location.href = `add-product.html?seller_id=${encodeURIComponent(userId)}`;
+                    });
+                }
+
+                // Step 4: Handle Message Action
                 document.getElementById("message").addEventListener("click", () => {
                     window.location.href = `messages.html?seller_id=${encodeURIComponent(userId)}`;
                 });
