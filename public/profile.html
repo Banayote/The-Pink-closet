@@ -79,19 +79,19 @@
             const userId = localStorage.getItem("user_id");
             if (!userId) {
                 alert("⚠️ No profile found. Please create a store first.");
-                window.location.href = "store.html";
+                window.location.href = "store.html";  // Redirect if no user ID is found
                 return;
             }
 
-            console.log("✅ User ID:", userId);
+            console.log("✅ User ID from LocalStorage:", userId);
 
             try {
                 // ✅ Step 2: Fetch User Data from Supabase
                 const { data: profile, error } = await supabase
                     .from("users")
                     .select("*")
-                    .eq("id", userId)
-                    .maybeSingle(); // This prevents errors if 0 or multiple rows exist
+                    .eq("id", userId)  // Query by the user ID (verify column name in Supabase)
+                    .maybeSingle();
 
                 if (error) {
                     console.error("❌ Supabase Error:", error);
@@ -100,7 +100,7 @@
                 }
 
                 if (!profile) {
-                    alert("⚠️ No profile found. Please check your user data.");
+                    alert("⚠️ No profile found for this user.");
                     return;
                 }
 
@@ -126,6 +126,5 @@
             }
         });
     </script>
-
 </body>
 </html>
