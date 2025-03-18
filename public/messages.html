@@ -66,7 +66,7 @@
                     .from('messages')
                     .select('*')
                     .eq('conversation_id', conversationId)
-                    .order('created_at', { ascending: true });
+                    .order('timestamp', { ascending: true });
 
                 if (error) throw error;
 
@@ -85,10 +85,13 @@
                         .from('messages')
                         .insert([
                             {
-                                conversation_id: conversationId,
-                                sender_id: buyerId, // Assuming buyer is sending the message
-                                recipient_id: sellerId,
-                                content: messageContent
+                                conversation_id: conversationId,  // conversation_id (text)
+                                buyer_id: buyerId,  // buyer_id (text)
+                                seller_id: sellerId,  // seller_id (text)
+                                message: messageContent,  // message (text)
+                                sender: 'Buyer',  // Assuming the buyer is sending the message, adjust as needed
+                                sender_email: 'buyer@example.com',  // Replace with dynamic email
+                                read_status: false  // Message is unread
                             }
                         ]);
 
@@ -115,11 +118,11 @@
             messages.forEach(message => {
                 const messageElement = document.createElement('div');
                 messageElement.classList.add('message');
-                const sender = message.sender_id === buyerId ? 'You' : 'Seller';
+                const sender = message.sender === 'Buyer' ? 'You' : 'Seller';
                 messageElement.innerHTML = `
                     <p class="sender">${sender}:</p>
-                    <p>${message.content}</p>
-                    <p class="timestamp">${new Date(message.created_at).toLocaleString()}</p>
+                    <p>${message.message}</p>
+                    <p class="timestamp">${new Date(message.timestamp).toLocaleString()}</p>
                 `;
                 messagesContainer.appendChild(messageElement);
             });
