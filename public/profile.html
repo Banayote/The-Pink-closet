@@ -90,8 +90,8 @@
                 const { data: profile, error } = await supabase
                     .from("users")
                     .select("*")
-                    .eq("id", userId)  // Query by the user ID (verify column name in Supabase)
-                    .maybeSingle();
+                    .eq("id", userId)  // Ensure the 'id' column is being queried
+                    .maybeSingle();    // Prevent errors when no data is returned
 
                 if (error) {
                     console.error("❌ Supabase Error:", error);
@@ -99,16 +99,27 @@
                     return;
                 }
 
+                console.log("✅ Raw Profile Data:", profile);
+
                 if (!profile) {
-                    alert("⚠️ No profile found for this user.");
+                    alert(`⚠️ No profile found for this user with ID ${userId}. Please check the database.`);
                     return;
                 }
-
-                console.log("✅ Profile Data:", profile);
 
                 // ✅ Step 3: Display User Details
                 document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
                 document.getElementById("profile-img").src = profile.profile_image || "profile-picture.jpg";
+
+                // ✅ Step 4: Conditional actions based on role
+                if (profile.seller_id) {
+                    // This user is a seller
+                    document.getElementById("add-product").style.display = "block"; // Enable adding products
+                    document.getElementById("message").style.display = "none"; // Hide the message button for sellers
+                } else {
+                    // This user is a buyer
+                    document.getElementById("add-product").style.display = "none"; // Disable adding products
+                    document.getElementById("message").style.display = "block"; // Enable the message button for buyers
+                }
 
                 // ✅ Store Seller ID for Add Product and Message
                 document.getElementById("add-product").addEventListener("click", () => {
