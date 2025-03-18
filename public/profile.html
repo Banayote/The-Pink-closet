@@ -68,6 +68,7 @@
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
+        // Your Supabase URL and Key
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -75,23 +76,24 @@
         document.addEventListener("DOMContentLoaded", async () => {
             console.log("🔍 Loading profile...");
 
-            // ✅ Step 1: Get User ID from Local Storage
+            // ✅ Step 1: Get User ID from LocalStorage
             const userId = localStorage.getItem("user_id");
-            console.log("✅ Retrieved User ID from LocalStorage:", userId); // Log to check
 
             if (!userId) {
                 alert("⚠️ No profile found. Please create a store first.");
-                window.location.href = "store.html";  // Redirect if no user ID is found
+                window.location.href = "store.html";
                 return;
             }
 
+            console.log("✅ Retrieved User ID from LocalStorage:", userId);
+
             try {
-                // ✅ Step 2: Fetch User Data from Supabase
+                // ✅ Step 2: Fetch User Data from Supabase (including seller_id)
                 const { data: profile, error } = await supabase
                     .from("users")
                     .select("*")
-                    .eq("id", userId)  // Ensure 'id' matches the column name
-                    .maybeSingle();    // Prevent errors when no data is returned
+                    .eq("id", userId)
+                    .maybeSingle(); // This prevents errors if 0 or multiple rows exist
 
                 if (error) {
                     console.error("❌ Supabase Error:", error);
@@ -99,36 +101,32 @@
                     return;
                 }
 
-                console.log("✅ Raw Profile Data:", profile);
-
                 if (!profile) {
-                    alert(`⚠️ No profile found for this user with ID ${userId}. Please check the database.`);
+                    alert("⚠️ No profile found. Please check your user data.");
                     return;
                 }
+
+                console.log("✅ Retrieved Profile Data:", profile);
 
                 // ✅ Step 3: Display User Details
                 document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
                 document.getElementById("profile-img").src = profile.profile_image || "profile-picture.jpg";
 
-                // ✅ Display Conditional Elements Based on Role
-                if (profile.role === "seller") {
-                    // Seller: Show product-related actions
-                    document.getElementById("add-product").style.display = "block";
-                    document.getElementById("message").style.display = "none";
-                } else if (profile.role === "buyer") {
-                    // Buyer: Show messaging and hide add product actions
-                    document.getElementById("add-product").style.display = "none";
-                    document.getElementById("message").style.display = "block";
+                // ✅ Step 4: Display Seller ID and Handle Actions
+                if (profile.seller_id) {
+                    console.log("✅ Seller ID:", profile.seller_id);
+                    // You can use this seller_id for product listings or other actions.
+                } else {
+                    console.log("⚠️ No seller ID found for this user.");
                 }
 
-                // ✅ Redirect to Add Product Page with Seller ID
+                // ✅ Store Seller ID for Add Product and Message Actions
                 document.getElementById("add-product").addEventListener("click", () => {
-                    window.location.href = `add-product.html?seller_id=${encodeURIComponent(userId)}`;
+                    window.location.href = `add-product.html?seller_id=${encodeURIComponent(profile.seller_id || userId)}`;
                 });
 
-                // ✅ Redirect to Messages Page
                 document.getElementById("message").addEventListener("click", () => {
-                    window.location.href = `messages.html?seller_id=${encodeURIComponent(userId)}`;
+                    window.location.href = `messages.html?seller_id=${encodeURIComponent(profile.seller_id || userId)}`;
                 });
 
             } catch (error) {
