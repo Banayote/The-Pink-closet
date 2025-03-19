@@ -37,6 +37,11 @@
                     return;
                 }
 
+                if (isNaN(productPrice) || productPrice <= 0) {
+                    alert("Please enter a valid price.");
+                    return;
+                }
+
                 // ✅ Upload Image to Cloudinary
                 const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dnfavv3ud/upload"; 
                 const formData = new FormData();
