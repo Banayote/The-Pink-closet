@@ -4,107 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messages</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
-        }
-        .messages-container {
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .message {
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            background-color: #f1f1f1;
-        }
-        .message.sent {
-            background-color: #ff6347;
-            color: white;
-        }
-        .input-container {
-            display: flex;
-            margin-top: 20px;
-        }
-        .message-input {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .send-button {
-            padding: 10px 20px;
-            background: #ff6347;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-    </style>
+
+    <!-- Supabase SDK -->
+    <script type="module">
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
+
+        const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const messageForm = document.getElementById("message-form");
+            const conversationId = new URLSearchParams(window.location.search).get("conversation_id");
+            const buyerId = new URLSearchParams(window.location.search).get("buyer_id"); // Assuming buyer_id is passed in the URL
+            const sender = 'buyer'; // This can also be dynamically determined
+
+            if (!buyerId || !conversationId) {
+                alert("Error: Missing buyer ID or conversation ID.");
+                return;
+            }
+
+            messageForm.addEventListener("submit", async (event) => {
+                event.preventDefault();
+
+                const messageContent = document.getElementById("message-content").value;
+                
+                if (!messageContent) {
+                    alert("Message content cannot be empty.");
+                    return;
+                }
+
+                const messageData = {
+                    conversation_id: conversationId,
+                    message: messageContent,
+                    sender: sender, // Can be either 'buyer' or 'seller', based on the sender's identity
+                    buyer_id: buyerId, // Include the buyer ID here
+                    timestamp: new Date().toISOString(),
+                };
+
+                try {
+                    const { data, error } = await supabase.from('messages').insert([messageData]);
+
+                    if (error) {
+                        console.error('Error sending message:', error);
+                        alert("Error sending message: " + error.message);
+                    } else {
+                        console.log('Message sent:', data);
+                        alert("Message sent successfully!");
+                        document.getElementById("message-content").value = ''; // Reset message input
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                    alert("An error occurred: " + error.message);
+                }
+            });
+        });
+    </script>
 </head>
 <body>
     <h1>Messages</h1>
-    <div id="messages-container" class="messages-container">
-        <p>Loading messages...</p>
-    </div>
-    <div class="input-container">
-        <input type="text" id="messageInput" class="message-input" placeholder="Type your message...">
-        <button class="send-button" onclick="sendMessage()">Send</button>
-    </div>
-
-    <script>
-        // Supabase credentials
-        const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const conversationId = urlParams.get("conversation_id");
-
-        document.addEventListener("DOMContentLoaded", async () => {
-            if (!conversationId) {
-                document.getElementById("messages-container").innerHTML = "<p>❌ Missing conversation ID.</p>";
-                return;
-            }
-
-            const { data: messages, error } = await supabase
-                .from("messages")
-                .select("*")
-                .eq("conversation_id", conversationId)
-                .order("timestamp", { ascending: true });
-
-            if (error) throw error;
-
-            const messagesContainer = document.getElementById("messages-container");
-            messagesContainer.innerHTML = messages.length 
-                ? messages.map(msg => `<div class="message">${msg.message}</div>`).join("")
-                : "<p>No messages yet.</p>";
-        });
-
-        async function sendMessage() {
-            const messageText = document.getElementById("messageInput").value;
-            if (!messageText || !conversationId) return;
-
-            const { error } = await supabase
-                .from("messages")
-                .insert([{ conversation_id: conversationId, message: messageText, sender: "buyer" }]);
-
-            if (error) {
-                console.error("❌ Error sending message:", error);
-                return;
-            }
-
-            document.getElementById("messages-container").innerHTML += `<div class="message sent">${messageText}</div>`;
-            document.getElementById("messageInput").value = "";
-        }
-    </script>
+    <form id="message-form">
+        <textarea id="message-content" placeholder="Type your message here..." required></textarea>
+        <button type="submit">Send Message</button>
+    </form>
 </body>
 </html>
