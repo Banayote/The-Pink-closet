@@ -13,56 +13,122 @@
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", async () => {
             const messageForm = document.getElementById("message-form");
-            const conversationId = new URLSearchParams(window.location.search).get("conversation_id");
-            const buyerId = new URLSearchParams(window.location.search).get("buyer_id"); // Assuming buyer_id is passed in the URL
-            const sender = 'buyer'; // This can also be dynamically determined
+            const messageContainer = document.getElementById("messages-container");
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            const buyerId = urlParams.get("buyer_id");
+            const sellerId = urlParams.get("seller_id"); // Added seller_id to ensure correct messaging
+            let conversationId = urlParams.get("conversation_id");
 
-            if (!buyerId || !conversationId) {
-                alert("Error: Missing buyer ID or conversation ID.");
+            if (!buyerId || !sellerId) {
+                alert("Error: Missing buyer ID or seller ID.");
                 return;
             }
 
+            // ✅ If conversation_id is missing, find or create a conversation
+            if (!conversationId) {
+                const { data: existingConversations, error } = await supabase
+                    .from("conversations")
+                    .select("id")
+                    .eq("buyer_id", buyerId)
+                    .eq("seller_id", sellerId)
+                    .single();
+                
+                if (error && error.code !== "PGRST116") { // Ignore 'no rows found' error
+                    console.error("Error checking conversation:", error);
+                    alert("Failed to check conversation: " + error.message);
+                    return;
+                }
+
+                if (existingConversations) {
+                    conversationId = existingConversations.id;
+                } else {
+                    // ✅ Create a new conversation if one doesn't exist
+                    const { data: newConversation, error: newConversationError } = await supabase
+                        .from("conversations")
+                        .insert([{ buyer_id: buyerId, seller_id: sellerId }])
+                        .select("id")
+                        .single();
+
+                    if (newConversationError) {
+                        console.error("Error creating conversation:", newConversationError);
+                        alert("Failed to create conversation: " + newConversationError.message);
+                        return;
+                    }
+
+                    conversationId = newConversation.id;
+                }
+
+                // ✅ Update URL with conversation_id
+                window.history.replaceState({}, "", `?conversation_id=${conversationId}&buyer_id=${buyerId}&seller_id=${sellerId}`);
+            }
+
+            // ✅ Load messages for this conversation
+            async function loadMessages() {
+                const { data: messages, error } = await supabase
+                    .from("messages")
+                    .select("*")
+                    .eq("conversation_id", conversationId)
+                    .order("timestamp", { ascending: true });
+
+                if (error) {
+                    console.error("Error loading messages:", error);
+                    alert("Error loading messages: " + error.message);
+                    return;
+                }
+
+                messageContainer.innerHTML = "";
+                messages.forEach(msg => {
+                    const messageElement = document.createElement("div");
+                    messageElement.textContent = `${msg.sender}: ${msg.message}`;
+                    messageContainer.appendChild(messageElement);
+                });
+            }
+
+            await loadMessages();
+
+            // ✅ Handle sending messages
             messageForm.addEventListener("submit", async (event) => {
                 event.preventDefault();
 
-                const messageContent = document.getElementById("message-content").value;
-                
+                const messageContent = document.getElementById("message-content").value.trim();
                 if (!messageContent) {
-                    alert("Message content cannot be empty.");
+                    alert("Message cannot be empty.");
                     return;
                 }
 
                 const messageData = {
                     conversation_id: conversationId,
                     message: messageContent,
-                    sender: sender, // Can be either 'buyer' or 'seller', based on the sender's identity
-                    buyer_id: buyerId, // Include the buyer ID here
+                    sender: "buyer", // You can change this dynamically
+                    buyer_id: buyerId,
+                    seller_id: sellerId, // ✅ Ensure seller_id is included
                     timestamp: new Date().toISOString(),
                 };
 
-                try {
-                    const { data, error } = await supabase.from('messages').insert([messageData]);
+                const { error } = await supabase.from("messages").insert([messageData]);
 
-                    if (error) {
-                        console.error('Error sending message:', error);
-                        alert("Error sending message: " + error.message);
-                    } else {
-                        console.log('Message sent:', data);
-                        alert("Message sent successfully!");
-                        document.getElementById("message-content").value = ''; // Reset message input
-                    }
-                } catch (error) {
-                    console.error("Error:", error);
-                    alert("An error occurred: " + error.message);
+                if (error) {
+                    console.error("Error sending message:", error);
+                    alert("Error sending message: " + error.message);
+                } else {
+                    document.getElementById("message-content").value = "";
+                    await loadMessages(); // Reload messages after sending
                 }
             });
+
+            // ✅ Real-time message updates
+            supabase.channel("messages")
+                .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, loadMessages)
+                .subscribe();
         });
     </script>
 </head>
 <body>
     <h1>Messages</h1>
+    <div id="messages-container"></div>
     <form id="message-form">
         <textarea id="message-content" placeholder="Type your message here..." required></textarea>
         <button type="submit">Send Message</button>
