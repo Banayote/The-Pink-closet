@@ -139,14 +139,15 @@
                     if (data.length > 0) {
                         const userId = data[0].id; // Get the generated ID from Supabase
 
-                        localStorage.setItem("user_id", userId); // Store user ID for profile retrieval
+                        localStorage.setItem("user_role", role); // ✅ Store user role
 
                         if (role === "seller") {
-                            localStorage.setItem("seller_id", userData.seller_id); // Store seller ID
-                            window.location.href = "profile.html"; // Redirect seller to profile
+                            localStorage.setItem("seller_id", userData.seller_id); // ✅ Store seller ID
                         } else {
-                            window.location.href = "index.html"; // Buyers stay on the main page
+                            localStorage.setItem("buyer_id", userData.buyer_id); // ✅ Store buyer ID
                         }
+
+                        window.location.href = "profile.html"; // Redirect both buyers and sellers to profile
                     }
                 } catch (error) {
                     console.error("Unexpected error:", error.message);
