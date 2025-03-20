@@ -15,11 +15,22 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             const form = document.getElementById("add-product-form");
+
+            // 🔹 Get seller ID from URL or LocalStorage
             const urlParams = new URLSearchParams(window.location.search);
-            const sellerId = urlParams.get("seller_id");
+            let sellerId = urlParams.get("seller_id");
 
             if (!sellerId) {
-                alert("Error: Missing seller ID.");
+                sellerId = localStorage.getItem("seller_id"); // Get from LocalStorage
+            } else {
+                localStorage.setItem("seller_id", sellerId); // Save to LocalStorage
+            }
+
+            console.log("📌 Seller ID Retrieved:", sellerId); // Debugging
+
+            if (!sellerId) {
+                alert("Error: Seller ID is missing. Redirecting to profile...");
+                window.location.href = "profile.html"; // Redirect back if missing
                 return;
             }
 
@@ -42,43 +53,45 @@
                     return;
                 }
 
-                // ✅ Upload Image to Cloudinary
-                const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dnfavv3ud/upload"; 
-                const formData = new FormData();
-                formData.append("file", productImage);
-                formData.append("upload_preset", "BANYOTE");
-
                 try {
+                    // 🔹 Upload Image to Cloudinary
+                    const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dnfavv3ud/upload"; 
+                    const formData = new FormData();
+                    formData.append("file", productImage);
+                    formData.append("upload_preset", "BANYOTE");
+
                     const imageResponse = await fetch(cloudinaryUrl, { method: "POST", body: formData });
                     const imageData = await imageResponse.json();
 
                     if (!imageData.secure_url) throw new Error("Image upload failed");
 
+                    // 🔹 Insert product into Supabase
                     const product = {
                         name: productName,
                         description: productDescription,
                         price: productPrice,
                         category: productCategory,
                         image_url: imageData.secure_url,
-                        seller_id: sellerId // ✅ Associate product with the seller
+                        seller_id: sellerId  // ✅ Ensure it's using the seller_id
                     };
 
                     const { error } = await supabase.from("products").insert([product]);
 
                     if (error) {
-                        console.error("Supabase Insert Error:", error);
+                        console.error("❌ Supabase Insert Error:", error);
                         alert("Failed to add product: " + error.message);
                     } else {
                         alert("✅ Product added successfully!");
                         form.reset();
                     }
                 } catch (error) {
-                    console.error("Error:", error);
+                    console.error("❌ Error:", error);
                     alert("An error occurred: " + error.message);
                 }
             });
         });
     </script>
+
 </head>
 <body>
     <h1>Add Product</h1>
