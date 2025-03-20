@@ -14,38 +14,49 @@
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener("DOMContentLoaded", async () => {
+            console.log("✅ Page loaded. Retrieving URL parameters...");
+
             const messageForm = document.getElementById("message-form");
             const messageContainer = document.getElementById("messages-container");
             const urlParams = new URLSearchParams(window.location.search);
             
             const buyerId = urlParams.get("buyer_id");
-            const sellerId = urlParams.get("seller_id"); // Added seller_id to ensure correct messaging
+            const sellerId = urlParams.get("seller_id");
             let conversationId = urlParams.get("conversation_id");
 
+            console.log("🔍 Extracted buyer_id:", buyerId);
+            console.log("🔍 Extracted seller_id:", sellerId);
+            console.log("🔍 Extracted conversation_id:", conversationId);
+
             if (!buyerId || !sellerId) {
-                alert("Error: Missing buyer ID or seller ID.");
+                alert("❌ Missing buyer ID or seller ID.");
+                console.error("❌ Error: Missing buyer ID or seller ID.");
                 return;
             }
 
-            // ✅ If conversation_id is missing, find or create a conversation
+            // ✅ Find or create conversation
             if (!conversationId) {
-                const { data: existingConversations, error } = await supabase
+                console.log("ℹ️ No conversation_id found. Checking database...");
+
+                const { data: existingConversation, error } = await supabase
                     .from("conversations")
                     .select("id")
                     .eq("buyer_id", buyerId)
                     .eq("seller_id", sellerId)
                     .single();
-                
+
                 if (error && error.code !== "PGRST116") { // Ignore 'no rows found' error
-                    console.error("Error checking conversation:", error);
-                    alert("Failed to check conversation: " + error.message);
+                    console.error("❌ Error checking conversation:", error);
+                    alert("Error checking conversation: " + error.message);
                     return;
                 }
 
-                if (existingConversations) {
-                    conversationId = existingConversations.id;
+                if (existingConversation) {
+                    conversationId = existingConversation.id;
+                    console.log("✅ Found existing conversation:", conversationId);
                 } else {
-                    // ✅ Create a new conversation if one doesn't exist
+                    console.log("🆕 No conversation found. Creating new conversation...");
+
                     const { data: newConversation, error: newConversationError } = await supabase
                         .from("conversations")
                         .insert([{ buyer_id: buyerId, seller_id: sellerId }])
@@ -53,20 +64,23 @@
                         .single();
 
                     if (newConversationError) {
-                        console.error("Error creating conversation:", newConversationError);
-                        alert("Failed to create conversation: " + newConversationError.message);
+                        console.error("❌ Error creating conversation:", newConversationError);
+                        alert("Error creating conversation: " + newConversationError.message);
                         return;
                     }
 
                     conversationId = newConversation.id;
+                    console.log("✅ New conversation created:", conversationId);
                 }
 
                 // ✅ Update URL with conversation_id
                 window.history.replaceState({}, "", `?conversation_id=${conversationId}&buyer_id=${buyerId}&seller_id=${sellerId}`);
             }
 
-            // ✅ Load messages for this conversation
+            // ✅ Load messages
             async function loadMessages() {
+                console.log("ℹ️ Loading messages for conversation:", conversationId);
+
                 const { data: messages, error } = await supabase
                     .from("messages")
                     .select("*")
@@ -74,10 +88,12 @@
                     .order("timestamp", { ascending: true });
 
                 if (error) {
-                    console.error("Error loading messages:", error);
+                    console.error("❌ Error loading messages:", error);
                     alert("Error loading messages: " + error.message);
                     return;
                 }
+
+                console.log("✅ Loaded messages:", messages);
 
                 messageContainer.innerHTML = "";
                 messages.forEach(msg => {
@@ -95,7 +111,7 @@
 
                 const messageContent = document.getElementById("message-content").value.trim();
                 if (!messageContent) {
-                    alert("Message cannot be empty.");
+                    alert("❌ Message cannot be empty.");
                     return;
                 }
 
@@ -104,16 +120,19 @@
                     message: messageContent,
                     sender: "buyer", // You can change this dynamically
                     buyer_id: buyerId,
-                    seller_id: sellerId, // ✅ Ensure seller_id is included
+                    seller_id: sellerId,
                     timestamp: new Date().toISOString(),
                 };
+
+                console.log("📤 Sending message:", messageData);
 
                 const { error } = await supabase.from("messages").insert([messageData]);
 
                 if (error) {
-                    console.error("Error sending message:", error);
+                    console.error("❌ Error sending message:", error);
                     alert("Error sending message: " + error.message);
                 } else {
+                    console.log("✅ Message sent successfully!");
                     document.getElementById("message-content").value = "";
                     await loadMessages(); // Reload messages after sending
                 }
@@ -135,3 +154,4 @@
     </form>
 </body>
 </html>
+
