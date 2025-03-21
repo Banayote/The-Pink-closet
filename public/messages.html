@@ -20,61 +20,14 @@
             const messageContainer = document.getElementById("messages-container");
             const urlParams = new URLSearchParams(window.location.search);
             
-            const buyerId = urlParams.get("buyer_id");
-            const sellerId = urlParams.get("seller_id");
-            let conversationId = urlParams.get("conversation_id");
+            const conversationId = urlParams.get("conversation_id");
 
-            console.log("🔍 Extracted buyer_id:", buyerId);
-            console.log("🔍 Extracted seller_id:", sellerId);
             console.log("🔍 Extracted conversation_id:", conversationId);
 
-            if (!buyerId || !sellerId) {
-                alert("❌ Missing buyer ID or seller ID.");
-                console.error("❌ Error: Missing buyer ID or seller ID.");
-                return;
-            }
-
-            // ✅ Find or create conversation
             if (!conversationId) {
-                console.log("ℹ️ No conversation_id found. Checking database...");
-
-                const { data: existingConversation, error } = await supabase
-                    .from("conversations")
-                    .select("id")
-                    .eq("buyer_id", buyerId)
-                    .eq("seller_id", sellerId)
-                    .single();
-
-                if (error && error.code !== "PGRST116") { // Ignore 'no rows found' error
-                    console.error("❌ Error checking conversation:", error);
-                    alert("Error checking conversation: " + error.message);
-                    return;
-                }
-
-                if (existingConversation) {
-                    conversationId = existingConversation.id;
-                    console.log("✅ Found existing conversation:", conversationId);
-                } else {
-                    console.log("🆕 No conversation found. Creating new conversation...");
-
-                    const { data: newConversation, error: newConversationError } = await supabase
-                        .from("conversations")
-                        .insert([{ buyer_id: buyerId, seller_id: sellerId }])
-                        .select("id")
-                        .single();
-
-                    if (newConversationError) {
-                        console.error("❌ Error creating conversation:", newConversationError);
-                        alert("Error creating conversation: " + newConversationError.message);
-                        return;
-                    }
-
-                    conversationId = newConversation.id;
-                    console.log("✅ New conversation created:", conversationId);
-                }
-
-                // ✅ Update URL with conversation_id
-                window.history.replaceState({}, "", `?conversation_id=${conversationId}&buyer_id=${buyerId}&seller_id=${sellerId}`);
+                alert("❌ Missing conversation ID.");
+                console.error("❌ Error: Missing conversation ID.");
+                return;
             }
 
             // ✅ Load messages
@@ -119,8 +72,6 @@
                     conversation_id: conversationId,
                     message: messageContent,
                     sender: "buyer", // You can change this dynamically
-                    buyer_id: buyerId,
-                    seller_id: sellerId,
                     timestamp: new Date().toISOString(),
                 };
 
@@ -154,4 +105,3 @@
     </form>
 </body>
 </html>
-
