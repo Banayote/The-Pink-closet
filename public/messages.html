@@ -4,51 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messages</title>
-
-    <!-- Supabase SDK -->
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
+        // ✅ Your Supabase Credentials
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener("DOMContentLoaded", async () => {
-            console.log("✅ Page loaded. Retrieving URL parameters...");
+            console.log("✅ Page loaded.");
 
-            const messageForm = document.getElementById("message-form");
-            const messageContainer = document.getElementById("messages-container");
-            const urlParams = new URLSearchParams(window.location.search);
-
-            const userId = urlParams.get("user_id"); // The ID of the person using the chat
-            const otherUserId = urlParams.get("other_user_id"); // The other person's ID
-
-            console.log("🔍 User ID:", userId);
-            console.log("🔍 Other User ID:", otherUserId);
-
-            if (!userId || !otherUserId) {
-                alert("❌ Missing user ID or other user ID.");
-                console.error("❌ Error: Missing user ID or other user ID.");
+            // 🔍 Get the logged-in user
+            const { data: userData, error: userError } = await supabase.auth.getUser();
+            if (userError || !userData.user) {
+                alert("❌ You must be logged in to send messages.");
                 return;
             }
 
-            // ✅ Load messages between these two users
+            const userId = userData.user.id;
+            console.log("🔍 Logged-in User ID:", userId);
+
+            // 🔍 Extract other user's ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            let otherUserId = urlParams.get("other_user_id");
+
+            if (!otherUserId) {
+                alert("❌ No recipient found. Please select a chat.");
+                return;
+            }
+
+            console.log("🔍 Chatting with User ID:", otherUserId);
+
+            const messageForm = document.getElementById("message-form");
+            const messageContainer = document.getElementById("messages-container");
+
+            // ✅ Load Messages
             async function loadMessages() {
-                console.log("ℹ️ Loading messages between:", userId, "and", otherUserId);
+                console.log("ℹ️ Loading messages between", userId, "and", otherUserId);
 
                 const { data: messages, error } = await supabase
                     .from("messages")
                     .select("*")
-                    .or(`(buyer_id.eq.${userId}, seller_id.eq.${otherUserId}), (buyer_id.eq.${otherUserId}, seller_id.eq.${userId})`)
+                    .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
+                    .or(`buyer_id.eq.${otherUserId},seller_id.eq.${otherUserId}`)
                     .order("timestamp", { ascending: true });
 
                 if (error) {
                     console.error("❌ Error loading messages:", error);
-                    alert("Error loading messages: " + error.message);
                     return;
                 }
-
-                console.log("✅ Loaded messages:", messages);
 
                 messageContainer.innerHTML = "";
                 messages.forEach(msg => {
@@ -60,10 +65,9 @@
 
             await loadMessages();
 
-            // ✅ Handle sending messages
+            // ✅ Send Message
             messageForm.addEventListener("submit", async (event) => {
                 event.preventDefault();
-
                 const messageContent = document.getElementById("message-content").value.trim();
                 if (!messageContent) {
                     alert("❌ Message cannot be empty.");
@@ -71,10 +75,10 @@
                 }
 
                 const messageData = {
-                    buyer_id: userId, // Can be either user
-                    seller_id: otherUserId, // The recipient
+                    buyer_id: userId,
+                    seller_id: otherUserId,
                     message: messageContent,
-                    sender: userId, // Store who sent it
+                    sender: userId,
                     timestamp: new Date().toISOString(),
                 };
 
@@ -88,11 +92,11 @@
                 } else {
                     console.log("✅ Message sent successfully!");
                     document.getElementById("message-content").value = "";
-                    await loadMessages(); // Reload messages after sending
+                    await loadMessages();
                 }
             });
 
-            // ✅ Real-time message updates
+            // ✅ Real-time Message Updates
             supabase.channel("messages")
                 .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, loadMessages)
                 .subscribe();
