@@ -19,25 +19,27 @@
             const messageForm = document.getElementById("message-form");
             const messageContainer = document.getElementById("messages-container");
             const urlParams = new URLSearchParams(window.location.search);
-            
-            const conversationId = urlParams.get("conversation_id");
 
-            console.log("🔍 Extracted conversation_id:", conversationId);
+            const userId = urlParams.get("user_id"); // The ID of the person using the chat
+            const otherUserId = urlParams.get("other_user_id"); // The other person's ID
 
-            if (!conversationId) {
-                alert("❌ Missing conversation ID.");
-                console.error("❌ Error: Missing conversation ID.");
+            console.log("🔍 User ID:", userId);
+            console.log("🔍 Other User ID:", otherUserId);
+
+            if (!userId || !otherUserId) {
+                alert("❌ Missing user ID or other user ID.");
+                console.error("❌ Error: Missing user ID or other user ID.");
                 return;
             }
 
-            // ✅ Load messages
+            // ✅ Load messages between these two users
             async function loadMessages() {
-                console.log("ℹ️ Loading messages for conversation:", conversationId);
+                console.log("ℹ️ Loading messages between:", userId, "and", otherUserId);
 
                 const { data: messages, error } = await supabase
                     .from("messages")
                     .select("*")
-                    .eq("conversation_id", conversationId)
+                    .or(`(buyer_id.eq.${userId}, seller_id.eq.${otherUserId}), (buyer_id.eq.${otherUserId}, seller_id.eq.${userId})`)
                     .order("timestamp", { ascending: true });
 
                 if (error) {
@@ -69,9 +71,10 @@
                 }
 
                 const messageData = {
-                    conversation_id: conversationId,
+                    buyer_id: userId, // Can be either user
+                    seller_id: otherUserId, // The recipient
                     message: messageContent,
-                    sender: "buyer", // You can change this dynamically
+                    sender: userId, // Store who sent it
                     timestamp: new Date().toISOString(),
                 };
 
