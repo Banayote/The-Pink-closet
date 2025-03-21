@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +12,6 @@
             padding: 0;
             background-color: #f9f9f9;
         }
-
         .product-container {
             max-width: 600px;
             margin: 20px auto;
@@ -21,35 +19,26 @@
             background: white;
             border-radius: 8px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
-
         .product-container img {
             width: 100%;
             border-radius: 8px;
         }
-
-        .product-container .product-details {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .product-container .product-name {
+        .product-name {
             font-size: 2rem;
             font-weight: bold;
         }
-
-        .product-container .product-description {
+        .product-description {
             color: #555;
             margin-top: 10px;
         }
-
-        .product-container .product-price {
+        .product-price {
             color: #ff6347;
             font-size: 1.5rem;
             margin-top: 15px;
         }
-
-        .product-container .buy-btn {
+        .buy-btn {
             background-color: #ff6347;
             color: white;
             padding: 10px 20px;
@@ -60,37 +49,31 @@
             text-decoration: none;
             border-radius: 5px;
         }
-
-        .product-container .buy-btn:hover {
+        .buy-btn:hover {
             background-color: #e5533b;
         }
     </style>
 </head>
-
 <body>
     <header>
         <h1>Product Details</h1>
     </header>
-
     <main>
         <div id="product-container" class="product-container">
             <p>Loading product...</p>
         </div>
     </main>
-
     <footer>
         <p>&copy; The Pink Closet 2024. All rights reserved.</p>
     </footer>
 
     <script>
-        // Supabase credentials
+        // ✅ Supabase credentials
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let product;
-
-        // Ensure the buyer has a UUID stored
+        let product; 
         let buyerId = localStorage.getItem('buyer_id') || generateBuyerId();
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -99,15 +82,22 @@
 
             if (!productId) {
                 document.getElementById('product-container').innerHTML = '<p>❌ Product ID is missing.</p>';
+                console.error("❌ Error: Product ID is missing from URL.");
                 return;
             }
 
+            console.log("📦 Fetching product with ID:", productId);
+
             try {
-                // Fetch product details
-                const { data, error } = await supabase.from('products').select('*').eq('id', productId).single();
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .eq('id', productId)
+                    .single();
 
                 if (error || !data) {
                     document.getElementById('product-container').innerHTML = '<p>❌ Failed to load product details.</p>';
+                    console.error("⚠️ Error fetching product:", error?.message);
                     return;
                 }
 
@@ -127,14 +117,15 @@
             }
         });
 
-        // Generate a UUID for the buyer if they don't have one
+        // ✅ Generate a buyer ID if none exists
         function generateBuyerId() {
             const newBuyerId = "buyer_" + Math.random().toString(36).substr(2, 9);
             localStorage.setItem('buyer_id', newBuyerId);
+            console.log("👤 New Buyer ID Generated:", newBuyerId);
             return newBuyerId;
         }
 
-        // Start a conversation with the seller
+        // ✅ Start a conversation with the seller
         async function startConversation() {
             if (!product || !product.seller_id) {
                 alert("❌ Error: Missing seller information.");
@@ -142,9 +133,10 @@
             }
 
             const sellerId = product.seller_id;
+            console.log("🔍 Checking conversation for Buyer:", buyerId, "and Seller:", sellerId);
 
             try {
-                // Check if a conversation already exists between the buyer and seller
+                // ✅ Check if a conversation already exists
                 let { data: conversation, error } = await supabase
                     .from('conversations')
                     .select('id')
@@ -152,7 +144,11 @@
                     .eq('seller_id', sellerId)
                     .single();
 
+                if (error) console.error("⚠️ Error checking conversation:", error.message);
+
+                // ✅ Create a new conversation if none exists
                 if (!conversation) {
+                    console.log("➕ Creating new conversation...");
                     let { data: newConversation, error: createError } = await supabase
                         .from('conversations')
                         .insert([{ seller_id: sellerId, buyer_id: buyerId }])
@@ -164,6 +160,7 @@
                     conversation = newConversation;
                 }
 
+                console.log("💬 Redirecting to conversation:", conversation.id);
                 window.location.href = `messages.html?conversation_id=${conversation.id}`;
             } catch (err) {
                 console.error("❌ Error starting conversation:", err.message);
@@ -172,5 +169,4 @@
         }
     </script>
 </body>
-
 </html>
