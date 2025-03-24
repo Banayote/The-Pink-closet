@@ -73,59 +73,52 @@
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let product; 
-        let buyerId = localStorage.getItem('buyer_id') || generateBuyerId();
+        let product;
+        let currentUserId = localStorage.getItem("user_id");
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener("DOMContentLoaded", async () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const productId = urlParams.get('id');
+            const productId = urlParams.get("id");
 
             if (!productId) {
-                document.getElementById('product-container').innerHTML = '<p>❌ Product ID is missing.</p>';
-                console.error("❌ Error: Product ID is missing from URL.");
+                document.getElementById("product-container").innerHTML = "<p>❌ Product ID is missing.</p>";
                 return;
             }
 
             console.log("📦 Fetching product with ID:", productId);
 
-            try {
-                const { data, error } = await supabase
-                    .from('products')
-                    .select('*')
-                    .eq('id', productId)
-                    .single();
+            // ✅ Fetch the product details
+            const { data, error } = await supabase
+                .from("products")
+                .select("*")
+                .eq("id", productId)
+                .single();
 
-                if (error || !data) {
-                    document.getElementById('product-container').innerHTML = '<p>❌ Failed to load product details.</p>';
-                    console.error("⚠️ Error fetching product:", error?.message);
-                    return;
-                }
+            if (error || !data) {
+                document.getElementById("product-container").innerHTML = "<p>❌ Failed to load product details.</p>";
+                return;
+            }
 
-                product = data;
-                document.getElementById('product-container').innerHTML = `
-                    <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
-                    <div class="product-details">
-                        <h2 class="product-name">${product.name}</h2>
-                        <p class="product-description">${product.description}</p>
-                        <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
-                        <button class="buy-btn" onclick="startConversation()">Buy</button>
-                    </div>
-                `;
-            } catch (err) {
-                console.error('❌ Error fetching product:', err.message);
-                document.getElementById('product-container').innerHTML = '<p>❌ Failed to load product details.</p>';
+            product = data;
+            document.getElementById("product-container").innerHTML = `
+                <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
+                <div class="product-details">
+                    <h2 class="product-name">${product.name}</h2>
+                    <p class="product-description">${product.description}</p>
+                    <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
+                    <button class="buy-btn" onclick="startConversation()">Message Seller</button>
+                </div>
+            `;
+
+            // ✅ Ensure user has a unique ID stored
+            if (!currentUserId) {
+                currentUserId = "user_" + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem("user_id", currentUserId);
+                console.log("👤 New User ID Generated:", currentUserId);
             }
         });
 
-        // ✅ Generate a buyer ID if none exists
-        function generateBuyerId() {
-            const newBuyerId = "buyer_" + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('buyer_id', newBuyerId);
-            console.log("👤 New Buyer ID Generated:", newBuyerId);
-            return newBuyerId;
-        }
-
-        // ✅ Start a conversation with the seller
+        // ✅ Start a conversation between any two users
         async function startConversation() {
             if (!product || !product.seller_id) {
                 alert("❌ Error: Missing seller information.");
@@ -133,25 +126,32 @@
             }
 
             const sellerId = product.seller_id;
-            console.log("🔍 Checking conversation for Buyer:", buyerId, "and Seller:", sellerId);
+
+            // ✅ Ensure a user cannot start a chat with themselves
+            if (currentUserId === sellerId) {
+                alert("❌ You cannot message yourself.");
+                return;
+            }
+
+            console.log("🔍 Checking conversation between:", currentUserId, "and", sellerId);
 
             try {
                 // ✅ Check if a conversation already exists
                 let { data: conversation, error } = await supabase
-                    .from('conversations')
-                    .select('id')
-                    .eq('buyer_id', buyerId)
-                    .eq('seller_id', sellerId)
+                    .from("conversations")
+                    .select("id")
+                    .or(`buyer_id.eq.${currentUserId}, seller_id.eq.${currentUserId}`)
+                    .or(`buyer_id.eq.${sellerId}, seller_id.eq.${sellerId}`)
                     .single();
 
                 if (error) console.error("⚠️ Error checking conversation:", error.message);
 
-                // ✅ Create a new conversation if none exists
+                // ✅ Create a new conversation if it doesn’t exist
                 if (!conversation) {
                     console.log("➕ Creating new conversation...");
                     let { data: newConversation, error: createError } = await supabase
-                        .from('conversations')
-                        .insert([{ seller_id: sellerId, buyer_id: buyerId }])
+                        .from("conversations")
+                        .insert([{ seller_id: sellerId, buyer_id: currentUserId }])
                         .select()
                         .single();
 
