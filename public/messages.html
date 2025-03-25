@@ -28,6 +28,8 @@
             background: #fff;
         }
         .message {
+            display: flex;
+            align-items: center;
             padding: 8px;
             margin: 5px 0;
             border-radius: 5px;
@@ -37,10 +39,18 @@
         .sent {
             background: #dcf8c6;
             align-self: flex-end;
+            justify-content: flex-end;
+            flex-direction: row-reverse;
         }
         .received {
             background: #e0e0e0;
             align-self: flex-start;
+        }
+        .message img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
         }
         .message-input {
             display: flex;
@@ -109,7 +119,7 @@
         async function fetchMessages() {
             const { data, error } = await supabase
                 .from("messages")
-                .select("*")
+                .select("*, sender:profiles(id, avatar_url)")
                 .eq("conversation_id", conversationId)
                 .order("created_at", { ascending: true });
 
@@ -123,9 +133,14 @@
 
             data.forEach(msg => {
                 const msgDiv = document.createElement("div");
-                msgDiv.classList.add("message");
-                msgDiv.classList.add(msg.sender_id === currentUserId ? "sent" : "received");
-                msgDiv.textContent = msg.message;
+                msgDiv.classList.add("message", msg.sender.id === currentUserId ? "sent" : "received");
+
+                const avatar = msg.sender.avatar_url || "default-avatar.png"; // Default if no avatar
+
+                msgDiv.innerHTML = `
+                    <img src="${avatar}" alt="User Avatar">
+                    <span>${msg.message}</span>
+                `;
                 messagesContainer.appendChild(msgDiv);
             });
 
