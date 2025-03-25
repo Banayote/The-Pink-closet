@@ -150,25 +150,39 @@
             const conversationList = document.getElementById("conversation-list");
             conversationList.innerHTML = "";
 
-            data.forEach(convo => {
+            for (let convo of data) {
                 const otherUserId = convo.seller_id === currentUserId ? convo.buyer_id : convo.seller_id;
+
+                // Fetch user details (name and avatar) based on otherUserId
+                const { data: userData, error: userError } = await supabase
+                    .from("profiles")
+                    .select("id, name, avatar_url")
+                    .eq("id", otherUserId)
+                    .single();
+
+                if (userError) {
+                    console.error("❌ Error loading user details:", userError.message);
+                    continue;
+                }
 
                 const convoItem = document.createElement("div");
                 convoItem.classList.add("conversation-item");
-                convoItem.onclick = () => openChat(convo.id, otherUserId);
+                convoItem.onclick = () => openChat(convo.id, userData.name);
 
                 convoItem.innerHTML = `
-                    <div class="chat-icon">💬</div>
-                    <div>${otherUserId}</div>
+                    <div class="chat-icon">
+                        <img src="${userData.avatar_url || 'https://via.placeholder.com/40'}" alt="${userData.name}" />
+                    </div>
+                    <div>${userData.name}</div>
                 `;
 
                 conversationList.appendChild(convoItem);
-            });
+            }
         }
 
-        async function openChat(conversationId, otherUserId) {
+        async function openChat(conversationId, userName) {
             document.getElementById("chat-box").style.display = "block";
-            document.getElementById("chat-title").innerText = `Chat with ${otherUserId}`;
+            document.getElementById("chat-title").innerText = `Chat with ${userName}`;
             document.getElementById("messages").innerHTML = "";
 
             const { data, error } = await supabase
@@ -183,7 +197,7 @@
             }
 
             data.forEach(msg => {
-                displayMessage(msg.sender_id, msg.message); // ✅ FIXED: Changed 'content' to 'message'
+                displayMessage(msg.sender_id, msg.message);  // Fixed: changed 'content' to 'message'
             });
 
             localStorage.setItem("current_conversation", conversationId);
@@ -205,7 +219,7 @@
             if (!messageText) return;
 
             const { error } = await supabase.from("messages").insert([
-                { conversation_id: conversationId, sender_id: currentUserId, message: messageText } // ✅ FIXED: Changed 'content' to 'message'
+                { conversation_id: conversationId, sender_id: currentUserId, message: messageText }
             ]);
 
             if (error) {
