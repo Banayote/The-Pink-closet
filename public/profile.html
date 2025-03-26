@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
     <link rel="stylesheet" href="profile.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
     <div class="profile-container">
         <div class="exit-icon">
-            <a href="index.html" id="exitIcon"><span>&larr;</span></a>
+            <a href="index.html" id="exitIcon"><i class="fas fa-arrow-left"></i></a>
         </div>
 
         <div class="banner">
@@ -30,13 +31,13 @@
 
         <div class="profile-info">
             <h1 id="username">Loading...</h1>
-            <p id="role"></p> <!-- Display role -->
+            <p id="role"></p>
 
             <div class="profile-actions">
-                <button id="message"><span class="icon">✉️</span> Message</button>
-                <button id="add-product"><span class="icon">➕</span> Add Product</button>
-                <button id="edit"><span class="icon">🔧</span> Edit</button>
-                <button id="copy-link"><span class="icon">🔗</span> Link</button>
+                <button id="message"><i class="fas fa-comment-dots"></i> Message</button>
+                <button id="add-product"><i class="fas fa-plus-circle"></i> Add Product</button>
+                <button id="edit"><i class="fas fa-edit"></i> Edit</button>
+                <button id="copy-link"><i class="fas fa-link"></i> Copy Link</button>
             </div>
         </div>
 
@@ -62,7 +63,6 @@
 
     <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
 
-    <!-- ✅ Supabase Integration -->
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
@@ -71,9 +71,8 @@
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener("DOMContentLoaded", async () => {
-            console.log("🔍 Loading profile...");
-
             const userId = localStorage.getItem("user_id");
+
             if (!userId) {
                 alert("⚠️ No profile found. Please create a store first.");
                 window.location.href = "store.html";
@@ -98,11 +97,13 @@
                     return;
                 }
 
-                console.log("✅ Profile data:", profile);
-
                 document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
                 document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
                 document.getElementById("profile-img").src = profile.profile_image || "default-avatar.png";
+
+                document.getElementById("message").addEventListener("click", () => {
+                    window.location.href = `messages.html?seller_id=${encodeURIComponent(userId)}`;
+                });
 
                 if (profile.role === "seller") {
                     document.getElementById("add-product").addEventListener("click", () => {
@@ -110,35 +111,27 @@
                     });
                 }
 
-                document.getElementById("message").addEventListener("click", () => {
-                    window.location.href = `messages.html?seller_id=${encodeURIComponent(userId)}`;
-                });
-
-                // Edit Profile: Update Name and Avatar
-                document.getElementById("edit").addEventListener("click", async () => {
-                    const newFirstName = prompt("Enter your first name:", profile.first_name);
-                    const newLastName = prompt("Enter your last name:", profile.last_name);
-                    if (newFirstName && newLastName) {
-                        await updateProfile({ first_name: newFirstName, last_name: newLastName });
+                // Enable editing profile
+                document.getElementById("edit").addEventListener("click", () => {
+                    const newName = prompt("Enter your new name:", profile.first_name);
+                    if (newName) {
+                        updateProfile(userId, { first_name: newName });
                     }
-                });
-
-                document.getElementById("profile-img").addEventListener("click", () => {
-                    document.getElementById("profile-pic-upload").click();
                 });
 
                 document.getElementById("profile-pic-upload").addEventListener("change", async (event) => {
                     const file = event.target.files[0];
                     if (file) {
-                        const filePath = `avatars/${Date.now()}-${file.name}`;
-                        const { data, error } = await supabase.storage.from("avatars").upload(filePath, file);
-                        
+                        const filePath = `avatars/${userId}/${file.name}`;
+                        const { data, error } = await supabase.storage
+                            .from("avatars")
+                            .upload(filePath, file, { upsert: true });
+
                         if (error) {
                             console.error("❌ Error uploading image:", error);
-                            alert("⚠️ Image upload failed. Try again.");
                         } else {
-                            const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${filePath}`;
-                            await updateProfile({ profile_image: imageUrl });
+                            const publicURL = `${SUPABASE_URL}/storage/v1/object/public/${data.path}`;
+                            updateProfile(userId, { profile_image: publicURL });
                         }
                     }
                 });
@@ -149,19 +142,17 @@
             }
         });
 
-        async function updateProfile(updates) {
-            const userId = localStorage.getItem("user_id");
-
-            const { data, error } = await supabase
+        async function updateProfile(userId, updates) {
+            const { error } = await supabase
                 .from("users")
                 .update(updates)
                 .eq("id", userId);
 
             if (error) {
                 console.error("❌ Error updating profile:", error);
-                alert("⚠️ Update failed. Try again.");
+                alert("⚠️ Failed to update profile.");
             } else {
-                alert("✅ Profile updated!");
+                alert("✅ Profile updated successfully.");
                 location.reload();
             }
         }
