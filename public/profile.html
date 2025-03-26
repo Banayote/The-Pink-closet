@@ -16,15 +16,15 @@
 
         <div class="banner">
             <div id="banner-images" class="banner-images">
-                <img id="banner-img-1" src="default-banner.jpg" alt="Banner Image 1" class="banner-img">
-                <img id="banner-img-2" src="default-banner.jpg" alt="Banner Image 2" class="banner-img">
-                <img id="banner-img-3" src="default-banner.jpg" alt="Banner Image 3" class="banner-img">
+                <img id="banner-img-1" src="./default-banner.jpg" alt="Banner Image 1" class="banner-img">
+                <img id="banner-img-2" src="./default-banner.jpg" alt="Banner Image 2" class="banner-img">
+                <img id="banner-img-3" src="./default-banner.jpg" alt="Banner Image 3" class="banner-img">
             </div>
         </div>
 
         <div class="profile-picture">
             <label for="profile-pic-upload">
-                <img id="profile-img" src="default-avatar.png" alt="Profile Picture">
+                <img id="profile-img" src="./default-avatar.png" alt="Profile Picture">
                 <i class="fas fa-camera upload-icon"></i>
             </label>
         </div>
@@ -99,7 +99,7 @@
 
                 document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
                 document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
-                document.getElementById("profile-img").src = profile.profile_image || "default-avatar.png";
+                document.getElementById("profile-img").src = profile.profile_image || "./default-avatar.png";
 
                 document.getElementById("message").addEventListener("click", () => {
                     window.location.href = `messages.html?seller_id=${encodeURIComponent(userId)}`;
