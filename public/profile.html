@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
     <link rel="stylesheet" href="profile.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
     <div class="profile-container">
         <div class="exit-icon">
-            <a href="index.html" id="exitIcon"><span>&larr;</span></a>
+            <a href="index.html" id="exitIcon"><i class="fas fa-arrow-left"></i></a>
         </div>
 
         <div class="banner">
@@ -22,18 +23,21 @@
         </div>
 
         <div class="profile-picture">
-            <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture">
+            <label for="profile-pic-upload">
+                <img id="profile-img" src="default-avatar.png" alt="Profile Picture">
+                <i class="fas fa-camera upload-icon"></i>
+            </label>
         </div>
 
         <div class="profile-info">
             <h1 id="username">Loading...</h1>
-            <p id="role"></p> <!-- Add this line to display role (buyer/seller) -->
+            <p id="role"></p>
 
             <div class="profile-actions">
-                <button id="message"><span class="icon">✉️</span> Message</button>
-                <button id="add-product"><span class="icon">➕</span> Add Product</button>
-                <button id="edit"><span class="icon">🔧</span> Edit</button>
-                <button id="copy-link"><span class="icon">🔗</span> Link</button>
+                <button id="message"><i class="fas fa-comment"></i> Message</button>
+                <button id="add-product"><i class="fas fa-plus"></i> Add Product</button>
+                <button id="edit"><i class="fas fa-edit"></i> Edit</button>
+                <button id="copy-link"><i class="fas fa-link"></i> Link</button>
             </div>
         </div>
 
@@ -58,26 +62,16 @@
     </div>
 
     <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
-    <input type="file" id="banner-upload" accept="image/*" multiple style="display:none;">
 
-    <div id="image-modal" class="modal">
-        <span class="close">&times;</span>
-        <img class="modal-content" id="modal-img">
-    </div>
-
-    <!-- ✅ Load Supabase -->
+    <!-- ✅ Supabase Integration -->
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
-        // Your Supabase URL and Key
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoiZmpscWtqd25lbGthbWVhbGh0eXIiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTczNzIwNTIwNiwiZXhwIjoyMDUyNzgxMjA2fQ.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener("DOMContentLoaded", async () => {
-            console.log("🔍 Loading profile...");
-
-            // Step 1: Get user_id from LocalStorage
             const userId = localStorage.getItem("user_id");
 
             if (!userId) {
@@ -86,19 +80,16 @@
                 return;
             }
 
-            console.log("✅ Retrieved User ID from LocalStorage:", userId);
-
             try {
-                // Step 2: Fetch user profile data from Supabase
                 const { data: profile, error } = await supabase
                     .from("users")
                     .select("*")
                     .eq("id", userId)
-                    .maybeSingle(); // Ensure we get a single result or null
+                    .maybeSingle();
 
                 if (error) {
                     console.error("❌ Error fetching profile:", error);
-                    alert("⚠️ There was an error loading your profile. Please try again.");
+                    alert("⚠️ There was an error loading your profile.");
                     return;
                 }
 
@@ -107,27 +98,23 @@
                     return;
                 }
 
-                console.log("✅ Profile data:", profile);
-
-                // Step 3: Display Profile Data
                 document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
-                document.getElementById("profile-img").src = profile.profile_image || "profile-picture.jpg";
-
-                // Display the role (buyer/seller)
                 document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
+                
+                const profileImg = document.getElementById("profile-img");
+                profileImg.src = profile.profile_image || "default-avatar.png";
 
-                // If the user is a seller, allow adding products
+                // Message button action
+                document.getElementById("message").addEventListener("click", () => {
+                    window.location.href = `messages.html?user_id=${encodeURIComponent(userId)}`;
+                });
+
+                // Add product button (only for sellers)
                 if (profile.role === "seller") {
                     document.getElementById("add-product").addEventListener("click", () => {
                         window.location.href = `add-product.html?seller_id=${encodeURIComponent(userId)}`;
                     });
                 }
-
-                // Step 4: Handle Message Action
-                document.getElementById("message").addEventListener("click", () => {
-                    window.location.href = `messages.html?seller_id=${encodeURIComponent(userId)}`;
-                });
-
             } catch (error) {
                 console.error("❌ Unexpected Error:", error);
                 alert("⚠️ An unexpected error occurred. Please try again.");
