@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
     <link rel="stylesheet" href="profile.css">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
 
@@ -16,15 +16,15 @@
 
         <div class="banner">
             <div id="banner-images" class="banner-images">
-                <img id="banner-img-1" src="https://via.placeholder.com/600x200" alt="Banner Image 1" class="banner-img">
-                <img id="banner-img-2" src="https://via.placeholder.com/600x200" alt="Banner Image 2" class="banner-img">
-                <img id="banner-img-3" src="https://via.placeholder.com/600x200" alt="Banner Image 3" class="banner-img">
+                <img id="banner-img-1" src="default-banner.jpg" alt="Banner Image 1" class="banner-img">
+                <img id="banner-img-2" src="default-banner.jpg" alt="Banner Image 2" class="banner-img">
+                <img id="banner-img-3" src="default-banner.jpg" alt="Banner Image 3" class="banner-img">
             </div>
         </div>
 
         <div class="profile-picture">
             <label for="profile-pic-upload">
-                <img id="profile-img" src="https://via.placeholder.com/150" alt="Profile Picture">
+                <img id="profile-img" src="default-avatar.png" alt="Profile Picture">
                 <i class="fas fa-camera upload-icon"></i>
             </label>
         </div>
@@ -34,8 +34,8 @@
             <p id="role"></p>
 
             <div class="profile-actions">
-                <button id="message"><i class="fas fa-comment-dots"></i> Message</button>
-                <button id="add-product"><i class="fas fa-plus-circle"></i> Add Product</button>
+                <button id="message"><i class="fas fa-comment"></i> Message</button>
+                <button id="add-product"><i class="fas fa-plus"></i> Add Product</button>
                 <button id="edit"><i class="fas fa-edit"></i> Edit</button>
                 <button id="copy-link"><i class="fas fa-link"></i> Copy Link</button>
             </div>
@@ -99,7 +99,7 @@
 
                 document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
                 document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
-                document.getElementById("profile-img").src = profile.profile_image || "https://via.placeholder.com/150";
+                document.getElementById("profile-img").src = profile.profile_image || "default-avatar.png";
 
                 document.getElementById("message").addEventListener("click", () => {
                     window.location.href = `messages.html?seller_id=${encodeURIComponent(userId)}`;
@@ -111,12 +111,11 @@
                     });
                 }
 
-                // **Edit/Save Button Toggle**
-                let isEditing = false;  // Track whether the user is in "edit" mode
+                // Edit/Save Button Toggle
+                let isEditing = false;
 
                 document.getElementById("edit").addEventListener("click", () => {
                     if (isEditing) {
-                        // **Save Changes** when in "edit" mode
                         const newFirstName = prompt("Enter your new first name:", profile.first_name);
                         const newLastName = prompt("Enter your new last name:", profile.last_name);
 
@@ -124,16 +123,13 @@
                             updateProfile(userId, { first_name: newFirstName, last_name: newLastName });
                         }
 
-                        // Change the button back to "Edit"
                         document.getElementById("edit").innerHTML = `<i class="fas fa-edit"></i> Edit`;
                     } else {
-                        // Change button text to "Save"
                         document.getElementById("edit").innerHTML = `<i class="fas fa-save"></i> Save`;
                     }
-                    isEditing = !isEditing;  // Toggle the edit state
+                    isEditing = !isEditing;
                 });
 
-                // **Change Profile Picture**
                 document.getElementById("profile-img").addEventListener("click", () => {
                     document.getElementById("profile-pic-upload").click();
                 });
