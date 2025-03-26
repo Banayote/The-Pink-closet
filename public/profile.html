@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
     <link rel="stylesheet" href="profile.css">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -27,6 +27,7 @@
                 <img id="profile-img" src="default-avatar.png" alt="Profile Picture">
                 <i class="fas fa-camera upload-icon"></i>
             </label>
+            <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
         </div>
 
         <div class="profile-info">
@@ -60,8 +61,6 @@
 
         <div class="user-products"></div>
     </div>
-
-    <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
 
     <!-- ✅ Supabase Integration -->
     <script type="module">
@@ -104,12 +103,41 @@
                 const profileImg = document.getElementById("profile-img");
                 profileImg.src = profile.profile_image || "default-avatar.png";
 
-                // Message button action
+                // ✅ Upload Profile Picture
+                document.getElementById("profile-pic-upload").addEventListener("change", async (event) => {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    const filePath = `avatars/${userId}/${file.name}`;
+                    const { data, error: uploadError } = await supabase.storage
+                        .from("profile-pictures")
+                        .upload(filePath, file, { upsert: true });
+
+                    if (uploadError) {
+                        console.error("❌ Error uploading profile picture:", uploadError);
+                        alert("⚠️ Failed to upload profile picture.");
+                        return;
+                    }
+
+                    // Get public URL of the uploaded image
+                    const { data: publicURL } = supabase.storage
+                        .from("profile-pictures")
+                        .getPublicUrl(filePath);
+
+                    if (publicURL) {
+                        profileImg.src = publicURL.publicUrl;
+
+                        // Update user profile with new image URL
+                        await supabase.from("users").update({ profile_image: publicURL.publicUrl }).eq("id", userId);
+                    }
+                });
+
+                // ✅ Messaging button
                 document.getElementById("message").addEventListener("click", () => {
                     window.location.href = `messages.html?user_id=${encodeURIComponent(userId)}`;
                 });
 
-                // Add product button (only for sellers)
+                // ✅ Add product button (only for sellers)
                 if (profile.role === "seller") {
                     document.getElementById("add-product").addEventListener("click", () => {
                         window.location.href = `add-product.html?seller_id=${encodeURIComponent(userId)}`;
