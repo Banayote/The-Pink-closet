@@ -63,13 +63,11 @@
 
     <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
 
-    <!-- ✅ Supabase Integration -->
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
-        // Your Supabase URL and Key
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoiZmpscWtqd25lbGthbWVhbGh0eXIiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTczNzIwNTIwNiwiZXhwIjoyMDUyNzgxMjA2fQ.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener("DOMContentLoaded", async () => {
@@ -113,14 +111,29 @@
                     });
                 }
 
-                // Enable editing profile
-                document.getElementById("edit").addEventListener("click", async () => {
-                    const newFirstName = prompt("Enter your new name:", profile.first_name);
-                    if (newFirstName) {
-                        await updateProfile(userId, { first_name: newFirstName });
+                // **Edit/Save Button Toggle**
+                let isEditing = false;  // Track whether the user is in "edit" mode
+
+                document.getElementById("edit").addEventListener("click", () => {
+                    if (isEditing) {
+                        // **Save Changes** when in "edit" mode
+                        const newFirstName = prompt("Enter your new first name:", profile.first_name);
+                        const newLastName = prompt("Enter your new last name:", profile.last_name);
+
+                        if (newFirstName && newLastName) {
+                            updateProfile(userId, { first_name: newFirstName, last_name: newLastName });
+                        }
+
+                        // Change the button back to "Edit"
+                        document.getElementById("edit").innerHTML = `<i class="fas fa-edit"></i> Edit`;
+                    } else {
+                        // Change button text to "Save"
+                        document.getElementById("edit").innerHTML = `<i class="fas fa-save"></i> Save`;
                     }
+                    isEditing = !isEditing;  // Toggle the edit state
                 });
 
+                // **Change Profile Picture**
                 document.getElementById("profile-img").addEventListener("click", () => {
                     document.getElementById("profile-pic-upload").click();
                 });
