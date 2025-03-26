@@ -137,7 +137,7 @@
         let currentUserId = localStorage.getItem("user_id");
 
         async function loadConversations() {
-            const { data, error } = await supabase
+            const { data: conversations, error } = await supabase
                 .from("conversations")
                 .select("*")
                 .or(`buyer_id.eq.${currentUserId},seller_id.eq.${currentUserId}`);
@@ -150,13 +150,13 @@
             const conversationList = document.getElementById("conversation-list");
             conversationList.innerHTML = "";
 
-            for (let convo of data) {
+            for (const convo of conversations) {
                 const otherUserId = convo.seller_id === currentUserId ? convo.buyer_id : convo.seller_id;
 
-                // Fetch user details (name and avatar) based on otherUserId
-                const { data: userData, error: userError } = await supabase
-                    .from("profiles")
-                    .select("id, name, avatar_url")
+                // Fetch user details (first_name & last_name)
+                const { data: user, error: userError } = await supabase
+                    .from("users")
+                    .select("first_name, last_name")
                     .eq("id", otherUserId)
                     .single();
 
@@ -165,24 +165,27 @@
                     continue;
                 }
 
+                const fullName = `${user.first_name} ${user.last_name}`;
+
+                // Create conversation item
                 const convoItem = document.createElement("div");
                 convoItem.classList.add("conversation-item");
-                convoItem.onclick = () => openChat(convo.id, userData.name);
+                convoItem.onclick = () => openChat(convo.id, fullName);
 
                 convoItem.innerHTML = `
                     <div class="chat-icon">
-                        <img src="${userData.avatar_url || 'https://via.placeholder.com/40'}" alt="${userData.name}" />
+                        <img src="${user.avatar_url || 'https://via.placeholder.com/40'}" alt="${user.first_name}" />
                     </div>
-                    <div>${userData.name}</div>
+                    <div>${fullName}</div>
                 `;
 
                 conversationList.appendChild(convoItem);
             }
         }
 
-        async function openChat(conversationId, userName) {
+        async function openChat(conversationId, fullName) {
             document.getElementById("chat-box").style.display = "block";
-            document.getElementById("chat-title").innerText = `Chat with ${userName}`;
+            document.getElementById("chat-title").innerText = `Chat with ${fullName}`;
             document.getElementById("messages").innerHTML = "";
 
             const { data, error } = await supabase
@@ -197,7 +200,7 @@
             }
 
             data.forEach(msg => {
-                displayMessage(msg.sender_id, msg.message);  // Fixed: changed 'content' to 'message'
+                displayMessage(msg.sender_id, msg.message);  // Changed 'content' to 'message'
             });
 
             localStorage.setItem("current_conversation", conversationId);
@@ -219,7 +222,7 @@
             if (!messageText) return;
 
             const { error } = await supabase.from("messages").insert([
-                { conversation_id: conversationId, sender_id: currentUserId, message: messageText }
+                { conversation_id: conversationId, sender_id: currentUserId, message: messageText }  // Changed 'content' to 'message'
             ]);
 
             if (error) {
@@ -233,5 +236,6 @@
 
         document.addEventListener("DOMContentLoaded", loadConversations);
     </script>
+
 </body>
 </html>
