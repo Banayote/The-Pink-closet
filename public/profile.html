@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
     <link rel="stylesheet" href="profile.css">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 
@@ -19,7 +19,8 @@
         </div>
 
         <div class="profile-picture">
-            <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture" onclick="document.getElementById('profile-pic-upload').click();">
+            <img id="profile-img" src="default-avatar.png" alt="Profile Picture" onclick="document.getElementById('profile-pic-upload').click();">
+            <span class="add-pic-text">Add Pic</span>
         </div>
 
         <div class="profile-info">
@@ -87,7 +88,9 @@
 
             document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
             document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
-            document.getElementById("profile-img").src = profile.avatar_url || "profile-picture.jpg";
+
+            // Fix avatar URL issue
+            document.getElementById("profile-img").src = profile.avatar_url || "default-avatar.png";
             document.getElementById("banner-img").src = profile.banner_image || "default-banner.jpg";
 
             document.getElementById("edit").addEventListener("click", async () => {
