@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
     <link rel="stylesheet" href="profile.css">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> <!-- Font Awesome for icons -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -14,22 +14,17 @@
             <a href="index.html" id="exitIcon"><i class="fas fa-arrow-left"></i></a>
         </div>
 
-        <div class="banner">
-            <div id="banner-images" class="banner-images">
-                <img id="banner-img-1" src="image1.jpg" alt="Banner Image 1" class="banner-img">
-                <img id="banner-img-2" src="image2.jpg" alt="Banner Image 2" class="banner-img">
-                <img id="banner-img-3" src="image3.jpg" alt="Banner Image 3" class="banner-img">
-            </div>
+        <div class="banner" onclick="document.getElementById('banner-upload').click();">
+            <img id="banner-img" src="default-banner.jpg" alt="Banner Image">
         </div>
 
         <div class="profile-picture">
-            <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture" onerror="this.onerror=null; this.src='profile-picture.jpg'; document.getElementById('add-pic-text').style.display = 'block';">
-            <span id="add-pic-text" style="display:none; font-size:14px; color:#666;">Add Pic</span>
+            <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture" onclick="document.getElementById('profile-pic-upload').click();">
         </div>
 
         <div class="profile-info">
-            <h1 id="username">Loading...</h1>
-            <p id="role"></p> <!-- Display role (buyer/seller) -->
+            <h1 id="username" contenteditable="false">Loading...</h1>
+            <p id="role"></p>
 
             <div class="profile-actions">
                 <button id="message"><i class="fas fa-envelope"></i> Message</button>
@@ -60,90 +55,116 @@
     </div>
 
     <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
-    <input type="file" id="banner-upload" accept="image/*" multiple style="display:none;">
+    <input type="file" id="banner-upload" accept="image/*" style="display:none;">
 
-    <div id="image-modal" class="modal">
-        <span class="close">&times;</span>
-        <img class="modal-content" id="modal-img">
-    </div>
-
-    <!-- ✅ Load Supabase -->
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
-        // Your Supabase URL and Key
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        let isEditing = false;
+        let userId = localStorage.getItem("user_id");
+
         document.addEventListener("DOMContentLoaded", async () => {
-            console.log("🔍 Loading profile...");
-
-            // Step 1: Get user_id from LocalStorage
-            const userId = localStorage.getItem("user_id");
-
             if (!userId) {
                 alert("⚠️ No profile found. Please create a store first.");
                 window.location.href = "store.html";
                 return;
             }
 
-            console.log("✅ Retrieved User ID from LocalStorage:", userId);
+            const { data: profile, error } = await supabase
+                .from("users")
+                .select("first_name, last_name, role, avatar_url, banner_image")
+                .eq("id", userId)
+                .maybeSingle();
 
-            try {
-                // Step 2: Fetch user profile data from Supabase
-                const { data: profile, error } = await supabase
-                    .from("users")
-                    .select("*")
-                    .eq("id", userId)
-                    .maybeSingle(); // Ensure we get a single result or null
-
-                if (error) {
-                    console.error("❌ Error fetching profile:", error);
-                    alert("⚠️ There was an error loading your profile. Please try again.");
-                    return;
-                }
-
-                if (!profile) {
-                    alert("⚠️ No profile found for this user.");
-                    return;
-                }
-
-                console.log("✅ Profile data:", profile);
-
-                // Step 3: Display Profile Data
-                document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
-                
-                const profileImg = document.getElementById("profile-img");
-                const addPicText = document.getElementById("add-pic-text");
-
-                if (profile.profile_image) {
-                    profileImg.src = profile.profile_image;
-                    addPicText.style.display = "none";
-                } else {
-                    profileImg.src = "profile-picture.jpg";
-                    addPicText.style.display = "block";
-                }
-
-                // Display the role (buyer/seller)
-                document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
-
-                // If the user is a seller, allow adding products
-                if (profile.role === "seller") {
-                    document.getElementById("add-product").addEventListener("click", () => {
-                        window.location.href = `add-product.html?seller_id=${encodeURIComponent(userId)}`;
-                    });
-                }
-
-                // Step 4: Handle Message Action
-                document.getElementById("message").addEventListener("click", () => {
-                    window.location.href = `messages.html?seller_id=${encodeURIComponent(userId)}`;
-                });
-
-            } catch (error) {
-                console.error("❌ Unexpected Error:", error);
-                alert("⚠️ An unexpected error occurred. Please try again.");
+            if (error || !profile) {
+                alert("⚠️ Error loading profile.");
+                return;
             }
+
+            document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
+            document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
+            document.getElementById("profile-img").src = profile.avatar_url || "profile-picture.jpg";
+            document.getElementById("banner-img").src = profile.banner_image || "default-banner.jpg";
+
+            document.getElementById("edit").addEventListener("click", async () => {
+                const usernameField = document.getElementById("username");
+                const editButton = document.getElementById("edit");
+
+                if (!isEditing) {
+                    usernameField.contentEditable = "true";
+                    usernameField.style.borderBottom = "1px solid gray";
+                    editButton.innerHTML = '<i class="fas fa-save"></i> Save';
+                    usernameField.focus();
+                } else {
+                    usernameField.contentEditable = "false";
+                    usernameField.style.borderBottom = "none";
+                    editButton.innerHTML = '<i class="fas fa-edit"></i> Edit';
+
+                    const [firstName, ...lastName] = usernameField.textContent.split(" ");
+                    const { error: updateError } = await supabase
+                        .from("users")
+                        .update({ first_name: firstName, last_name: lastName.join(" ") })
+                        .eq("id", userId);
+
+                    if (updateError) {
+                        alert("⚠️ Failed to update name.");
+                    }
+                }
+
+                isEditing = !isEditing;
+            });
+
+            document.getElementById("profile-pic-upload").addEventListener("change", async (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const filePath = `avatars/${userId}/${file.name}`;
+                const { data, error: uploadError } = await supabase
+                    .storage
+                    .from("avatars")
+                    .upload(filePath, file, { upsert: true });
+
+                if (uploadError) {
+                    alert("⚠️ Failed to upload image.");
+                    return;
+                }
+
+                const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
+                document.getElementById("profile-img").src = urlData.publicUrl;
+
+                await supabase
+                    .from("users")
+                    .update({ avatar_url: urlData.publicUrl })
+                    .eq("id", userId);
+            });
+
+            document.getElementById("banner-upload").addEventListener("change", async (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const filePath = `banners/${userId}/${file.name}`;
+                const { data, error: uploadError } = await supabase
+                    .storage
+                    .from("banners")
+                    .upload(filePath, file, { upsert: true });
+
+                if (uploadError) {
+                    alert("⚠️ Failed to upload banner.");
+                    return;
+                }
+
+                const { data: urlData } = supabase.storage.from("banners").getPublicUrl(filePath);
+                document.getElementById("banner-img").src = urlData.publicUrl;
+
+                await supabase
+                    .from("users")
+                    .update({ banner_image: urlData.publicUrl })
+                    .eq("id", userId);
+            });
         });
     </script>
 
