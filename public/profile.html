@@ -22,12 +22,13 @@
         </div>
 
         <div class="profile-picture">
-            <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture">
+            <!-- Profile Picture -->
+            <img id="profile-img" src="default-avatar.png" alt="Profile Picture">
         </div>
 
         <div class="profile-info">
             <h1 id="username">Loading...</h1>
-            <p id="role"></p> <!-- Add this line to display role (buyer/seller) -->
+            <p id="role"></p>
 
             <div class="profile-actions">
                 <button id="message"><span class="icon">✉️</span> Message</button>
@@ -111,7 +112,11 @@
 
                 // Step 3: Display Profile Data
                 document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
-                document.getElementById("profile-img").src = profile.profile_image || "profile-picture.jpg";
+                
+                // Step 4: Handle Avatar Image
+                // Use avatar_url or default image if not available
+                const avatarUrl = profile.avatar_url;
+                document.getElementById("profile-img").src = avatarUrl ? avatarUrl : "default-avatar.png";
 
                 // Display the role (buyer/seller)
                 document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
@@ -123,77 +128,10 @@
                     });
                 }
 
-                // Step 4: Handle Message Action
+                // Step 5: Handle Message Action
                 document.getElementById("message").addEventListener("click", () => {
                     window.location.href = `messages.html?seller_id=${encodeURIComponent(userId)}`;
                 });
-
-                // Enable edit profile functionality
-                const editButton = document.getElementById("edit");
-                const usernameElement = document.getElementById("username");
-                const profileImgElement = document.getElementById("profile-img");
-                const profilePicUpload = document.getElementById("profile-pic-upload");
-
-                let isEditing = false;
-
-                editButton.addEventListener("click", () => {
-                    if (!isEditing) {
-                        // Start editing
-                        editButton.innerHTML = '<span class="icon">💾</span> Save';
-                        usernameElement.contentEditable = "true";
-                        usernameElement.style.border = "1px solid gray";
-                        profileImgElement.addEventListener("click", () => profilePicUpload.click());
-                    } else {
-                        // Save changes
-                        saveProfileChanges(profile);
-                    }
-                    isEditing = !isEditing;
-                });
-
-                async function saveProfileChanges(profile) {
-                    editButton.innerHTML = '<span class="icon">🔧</span> Edit';
-                    usernameElement.contentEditable = "false";
-                    usernameElement.style.border = "none";
-
-                    const updatedFirstName = usernameElement.textContent.split(" ")[0];
-                    const updatedLastName = usernameElement.textContent.split(" ")[1] || "";
-
-                    let profileImageUrl = profile.profile_image;
-                    if (profilePicUpload.files.length > 0) {
-                        const file = profilePicUpload.files[0];
-                        const { data, error } = await supabase.storage
-                            .from("avatars")
-                            .upload(`profiles/${userId}/${file.name}`, file);
-
-                        if (error) {
-                            console.error("❌ Error uploading image:", error);
-                            alert("⚠️ There was an error uploading your image.");
-                            return;
-                        }
-
-                        profileImageUrl = data?.Key;
-                    }
-
-                    // Update profile info in Supabase
-                    const { error: updateError } = await supabase
-                        .from("users")
-                        .update({
-                            first_name: updatedFirstName,
-                            last_name: updatedLastName,
-                            profile_image: profileImageUrl
-                        })
-                        .eq("id", userId);
-
-                    if (updateError) {
-                        console.error("❌ Error updating profile:", updateError);
-                        alert("⚠️ There was an error updating your profile.");
-                        return;
-                    }
-
-                    // Update the UI with the new profile info
-                    document.getElementById("username").textContent = `${updatedFirstName} ${updatedLastName}`;
-                    document.getElementById("profile-img").src = profileImageUrl || "profile-picture.jpg";
-                }
 
             } catch (error) {
                 console.error("❌ Unexpected Error:", error);
