@@ -5,12 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
     <link rel="stylesheet" href="profile.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
     <div class="profile-container">
         <div class="exit-icon">
             <a href="index.html" id="exitIcon"><span>&larr;</span></a>
+        </div>
+
+        <div class="banner">
+            <div id="banner-images" class="banner-images">
+                <img id="banner-img-1" src="image1.jpg" alt="Banner Image 1" class="banner-img">
+                <img id="banner-img-2" src="image2.jpg" alt="Banner Image 2" class="banner-img">
+                <img id="banner-img-3" src="image3.jpg" alt="Banner Image 3" class="banner-img">
+            </div>
         </div>
 
         <div class="profile-picture">
@@ -25,40 +34,30 @@
         </div>
 
         <div class="profile-actions">
-            <button id="message"><span class="icon">✉️</span> Message</button>
-            <button id="add-product"><span class="icon">➕</span> Add Product</button>
             <button id="edit"><span class="icon">💾</span> Save</button>
         </div>
     </div>
 
-    <script type="module">
-        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
-
-        // Your Supabase URL and Anon Key
+    <script>
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        document.addEventListener("DOMContentLoaded", async () => {
-            const userId = localStorage.getItem("user_id");
+        let currentUserId = localStorage.getItem("user_id");
 
-            if (!userId) {
-                alert("⚠️ No profile found. Redirecting...");
-                window.location.href = "store.html";
-                return;
-            }
-
-            const { data: profile, error } = await supabase
+        async function loadProfile() {
+            const { data, error } = await supabase
                 .from("users")
                 .select("*")
-                .eq("id", userId)
-                .maybeSingle();
+                .eq("id", currentUserId)
+                .single();
 
-            if (error || !profile) {
+            if (error || !data) {
                 alert("⚠️ Error loading profile.");
                 return;
             }
 
+            const profile = data;
             const usernameEl = document.getElementById("username");
             const usernameInput = document.getElementById("username-input");
             const profileImg = document.getElementById("profile-img");
@@ -91,7 +90,7 @@
                 if (!file) return;
 
                 const fileExt = file.name.split(".").pop();
-                const fileName = `avatars/${userId}.${fileExt}`;
+                const fileName = `avatars/${currentUserId}.${fileExt}`;
 
                 const { data, error: uploadError } = await supabase
                     .storage
@@ -114,7 +113,7 @@
                 await supabase
                     .from("users")
                     .update({ avatar_url: avatarUrl })
-                    .eq("id", userId);
+                    .eq("id", currentUserId);
 
                 alert("✅ Profile picture updated!");
             });
@@ -130,7 +129,7 @@
                         first_name: firstName || profile.first_name,
                         last_name: lastName.join(" ") || profile.last_name,
                     })
-                    .eq("id", userId);
+                    .eq("id", currentUserId);
 
                 if (error) {
                     alert("❌ Failed to update profile.");
@@ -138,7 +137,9 @@
                     alert("✅ Profile updated!");
                 }
             });
-        });
+        }
+
+        document.addEventListener("DOMContentLoaded", loadProfile);
     </script>
 
 </body>
