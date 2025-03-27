@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
-    <link rel="stylesheet" href="profile.css">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> 
+    <!-- Use a reliable CDN for FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
 
@@ -16,14 +16,15 @@
 
         <div class="banner">
             <div id="banner-images" class="banner-images">
-                <img id="banner-img-1" src="image1.jpg" alt="Banner Image 1" class="banner-img">
-                <img id="banner-img-2" src="image2.jpg" alt="Banner Image 2" class="banner-img">
-                <img id="banner-img-3" src="image3.jpg" alt="Banner Image 3" class="banner-img">
+                <!-- Replace these with default or public image URLs -->
+                <img id="banner-img-1" src="https://via.placeholder.com/600x200" alt="Banner Image 1" class="banner-img">
+                <img id="banner-img-2" src="https://via.placeholder.com/600x200" alt="Banner Image 2" class="banner-img">
+                <img id="banner-img-3" src="https://via.placeholder.com/600x200" alt="Banner Image 3" class="banner-img">
             </div>
         </div>
 
         <div class="profile-picture">
-            <img id="profile-img" src="default-avatar.png" alt="Profile Picture">
+            <img id="profile-img" src="https://via.placeholder.com/150" alt="Profile Picture">
             <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
         </div>
 
@@ -65,7 +66,7 @@
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoiZmpscWtqd25lbGthbWVhbGh0eXIiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTczNzIwNTIwNiwiZXhwIjoyMDUyNzgxMjA2fQ.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener("DOMContentLoaded", async () => {
@@ -100,7 +101,7 @@
 
                 console.log("✅ Profile data:", profile);
                 document.getElementById("username").textContent = profile.first_name || "Unknown";
-                document.getElementById("profile-img").src = profile.profile_image || "default-avatar.png";
+                document.getElementById("profile-img").src = profile.profile_image || "https://via.placeholder.com/150";
                 document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
 
                 if (profile.role === "seller") {
