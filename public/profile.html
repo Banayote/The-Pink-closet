@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
-    <!-- Use a reliable CDN for FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="profile.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> <!-- Font Awesome for icons -->
 </head>
 <body>
 
@@ -16,27 +16,26 @@
 
         <div class="banner">
             <div id="banner-images" class="banner-images">
-                <!-- Replace these with default or public image URLs -->
-                <img id="banner-img-1" src="https://via.placeholder.com/600x200" alt="Banner Image 1" class="banner-img">
-                <img id="banner-img-2" src="https://via.placeholder.com/600x200" alt="Banner Image 2" class="banner-img">
-                <img id="banner-img-3" src="https://via.placeholder.com/600x200" alt="Banner Image 3" class="banner-img">
+                <img id="banner-img-1" src="image1.jpg" alt="Banner Image 1" class="banner-img">
+                <img id="banner-img-2" src="image2.jpg" alt="Banner Image 2" class="banner-img">
+                <img id="banner-img-3" src="image3.jpg" alt="Banner Image 3" class="banner-img">
             </div>
         </div>
 
         <div class="profile-picture">
-            <img id="profile-img" src="https://via.placeholder.com/150" alt="Profile Picture">
-            <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
+            <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture" onerror="this.onerror=null; this.src='profile-picture.jpg'; document.getElementById('add-pic-text').style.display = 'block';">
+            <span id="add-pic-text" style="display:none; font-size:14px; color:#666;">Add Pic</span>
         </div>
 
         <div class="profile-info">
-            <h1 id="username" contenteditable="false">Loading...</h1>
-            <p id="role"></p>
+            <h1 id="username">Loading...</h1>
+            <p id="role"></p> <!-- Display role (buyer/seller) -->
 
             <div class="profile-actions">
                 <button id="message"><i class="fas fa-envelope"></i> Message</button>
                 <button id="add-product"><i class="fas fa-plus"></i> Add Product</button>
                 <button id="edit"><i class="fas fa-edit"></i> Edit</button>
-                <button id="copy-link"><i class="fas fa-link"></i> Copy Link</button>
+                <button id="copy-link"><i class="fas fa-link"></i> Link</button>
             </div>
         </div>
 
@@ -60,17 +59,27 @@
         <div class="user-products"></div>
     </div>
 
+    <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
     <input type="file" id="banner-upload" accept="image/*" multiple style="display:none;">
 
+    <div id="image-modal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modal-img">
+    </div>
+
+    <!-- ✅ Load Supabase -->
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
+        // Your Supabase URL and Key
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoiZmpscWtqd25lbGthbWVhbGh0eXIiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTczNzIwNTIwNiwiZXhwIjoyMDUyNzgxMjA2fQ.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener("DOMContentLoaded", async () => {
             console.log("🔍 Loading profile...");
+
+            // Step 1: Get user_id from LocalStorage
             const userId = localStorage.getItem("user_id");
 
             if (!userId) {
@@ -82,111 +91,60 @@
             console.log("✅ Retrieved User ID from LocalStorage:", userId);
 
             try {
+                // Step 2: Fetch user profile data from Supabase
                 const { data: profile, error } = await supabase
                     .from("users")
                     .select("*")
                     .eq("id", userId)
-                    .maybeSingle();
+                    .maybeSingle(); // Ensure we get a single result or null
 
                 if (error) {
                     console.error("❌ Error fetching profile:", error);
-                    alert("⚠️ Error loading profile.");
+                    alert("⚠️ There was an error loading your profile. Please try again.");
                     return;
                 }
 
                 if (!profile) {
-                    alert("⚠️ No profile found.");
+                    alert("⚠️ No profile found for this user.");
                     return;
                 }
 
                 console.log("✅ Profile data:", profile);
-                document.getElementById("username").textContent = profile.first_name || "Unknown";
-                document.getElementById("profile-img").src = profile.profile_image || "https://via.placeholder.com/150";
+
+                // Step 3: Display Profile Data
+                document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
+                
+                const profileImg = document.getElementById("profile-img");
+                const addPicText = document.getElementById("add-pic-text");
+
+                if (profile.profile_image) {
+                    profileImg.src = profile.profile_image;
+                    addPicText.style.display = "none";
+                } else {
+                    profileImg.src = "profile-picture.jpg";
+                    addPicText.style.display = "block";
+                }
+
+                // Display the role (buyer/seller)
                 document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
 
+                // If the user is a seller, allow adding products
                 if (profile.role === "seller") {
                     document.getElementById("add-product").addEventListener("click", () => {
                         window.location.href = `add-product.html?seller_id=${encodeURIComponent(userId)}`;
                     });
                 }
 
+                // Step 4: Handle Message Action
                 document.getElementById("message").addEventListener("click", () => {
                     window.location.href = `messages.html?seller_id=${encodeURIComponent(userId)}`;
                 });
 
             } catch (error) {
                 console.error("❌ Unexpected Error:", error);
-                alert("⚠️ Unexpected error occurred.");
+                alert("⚠️ An unexpected error occurred. Please try again.");
             }
         });
-
-        document.getElementById("edit").addEventListener("click", async () => {
-            const editButton = document.getElementById("edit");
-            const usernameElement = document.getElementById("username");
-
-            if (editButton.textContent.includes("Edit")) {
-                editButton.innerHTML = '<i class="fas fa-save"></i> Save';
-                usernameElement.contentEditable = "true";
-                usernameElement.focus();
-            } else {
-                editButton.innerHTML = '<i class="fas fa-edit"></i> Edit';
-                usernameElement.contentEditable = "false";
-
-                const newName = usernameElement.textContent;
-                const userId = localStorage.getItem("user_id");
-
-                if (userId) {
-                    const { error } = await supabase
-                        .from("users")
-                        .update({ first_name: newName })
-                        .eq("id", userId);
-
-                    if (error) {
-                        console.error("❌ Error updating name:", error);
-                        alert("⚠️ Error saving name.");
-                    } else {
-                        console.log("✅ Name updated successfully.");
-                    }
-                }
-            }
-        });
-
-        document.getElementById("profile-img").addEventListener("click", () => {
-            document.getElementById("profile-pic-upload").click();
-        });
-
-        document.getElementById("profile-pic-upload").addEventListener("change", async (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                const userId = localStorage.getItem("user_id");
-                const filePath = `profile-pictures/${userId}-${file.name}`;
-
-                const { data, error } = await supabase.storage
-                    .from("avatars")
-                    .upload(filePath, file, { upsert: true });
-
-                if (error) {
-                    console.error("❌ Error uploading image:", error);
-                    alert("⚠️ Error uploading image.");
-                    return;
-                }
-
-                const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${filePath}`;
-                document.getElementById("profile-img").src = imageUrl;
-
-                const { error: updateError } = await supabase
-                    .from("users")
-                    .update({ profile_image: imageUrl })
-                    .eq("id", userId);
-
-                if (updateError) {
-                    console.error("❌ Error saving image:", updateError);
-                } else {
-                    console.log("✅ Profile image updated successfully.");
-                }
-            }
-        });
-
     </script>
 
 </body>
