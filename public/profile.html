@@ -20,8 +20,8 @@
             </div>
         </div>
 
-        <div class="profile-picture" onclick="document.getElementById('profile-pic-upload').click()">
-            <img id="profile-img" src="" alt="Profile Picture" style="background: white;">
+        <div class="profile-picture">
+            <img id="profile-img" src="" alt="Profile Picture" onclick="document.getElementById('profile-pic-upload').click()">
         </div>
 
         <div class="profile-info">
@@ -62,6 +62,7 @@
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
+        // ✅ Supabase Configuration (YOUR Supabase URL and Key)
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -83,16 +84,16 @@
             }
 
             document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
-            document.getElementById("profile-img").src = profile.avatar_url || "";
+            document.getElementById("profile-img").src = profile.avatar_url || "profile-picture.jpg";
             document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
 
-            // Load banner from Local Storage
+            // ✅ Load banner from Local Storage
             const banner = localStorage.getItem("banner");
             if (banner) {
                 document.getElementById("banner-img").src = banner;
             }
 
-            // Edit button toggles edit mode
+            // ✅ Edit button toggles edit mode
             const editButton = document.getElementById("edit");
             let isEditing = false;
 
@@ -116,7 +117,7 @@
                 isEditing = !isEditing;
             });
 
-            // Profile picture upload
+            // ✅ Profile picture upload to Supabase
             document.getElementById("profile-pic-upload").addEventListener("change", async (event) => {
                 const file = event.target.files[0];
                 if (!file) return;
@@ -136,7 +137,7 @@
                 await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", userId);
             });
 
-            // Banner upload
+            // ✅ Banner upload (Local Storage)
             document.getElementById("banner-images").addEventListener("click", () => {
                 document.getElementById("banner-upload").click();
             });
