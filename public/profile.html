@@ -14,11 +14,7 @@
         </div>
 
         <div class="banner">
-            <div id="banner-images" class="banner-images">
-                <img id="banner-img-1" src="image1.jpg" alt="Banner Image 1" class="banner-img">
-                <img id="banner-img-2" src="image2.jpg" alt="Banner Image 2" class="banner-img">
-                <img id="banner-img-3" src="image3.jpg" alt="Banner Image 3" class="banner-img">
-            </div>
+            <img id="banner-img" src="image1.jpg" alt="Banner Image">
         </div>
 
         <div class="profile-picture">
@@ -28,7 +24,7 @@
         <div class="profile-info">
             <h1 id="username">Loading...</h1>
             <p id="role"></p>
-
+            
             <div class="profile-actions">
                 <button id="message"><span class="icon">✉️</span> Message</button>
                 <button id="add-product"><span class="icon">➕</span> Add Product</button>
@@ -37,35 +33,11 @@
             </div>
         </div>
 
-        <div class="profile-dashboard">
-            <div class="stats">
-                <div class="stat">
-                    <h2>Sales</h2>
-                    <p id="sales-count">0</p>
-                </div>
-                <div class="stat">
-                    <h2>Visitors</h2>
-                    <p id="visitors-count">0</p>
-                </div>
-            </div>
-        </div>
+        <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
+        <input type="file" id="banner-upload" accept="image/*" style="display:none;">
 
-        <div class="product-list-button">
-            <button>View Product List</button>
-        </div>
-
-        <div class="user-products"></div>
     </div>
 
-    <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
-    <input type="file" id="banner-upload" accept="image/*" multiple style="display:none;">
-
-    <div id="image-modal" class="modal">
-        <span class="close">&times;</span>
-        <img class="modal-content" id="modal-img">
-    </div>
-
-    <!-- ✅ Load Supabase -->
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
@@ -73,101 +45,110 @@
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        document.addEventListener("DOMContentLoaded", async () => {
-            console.log("🔍 Loading profile...");
+        const profileImg = document.getElementById("profile-img");
+        const profilePicUpload = document.getElementById("profile-pic-upload");
+        const bannerImg = document.getElementById("banner-img");
+        const bannerUpload = document.getElementById("banner-upload");
+        const username = document.getElementById("username");
+        const editButton = document.getElementById("edit");
 
-            const userId = localStorage.getItem("user_id");
+        let editing = false;
+        let userId = localStorage.getItem("user_id");
 
+        async function fetchProfile() {
             if (!userId) {
-                alert("⚠️ No profile found. Please create a store first.");
-                window.location.href = "store.html";
+                alert("⚠️ No profile found.");
                 return;
             }
 
-            console.log("✅ Retrieved User ID from LocalStorage:", userId);
+            const { data: profile, error } = await supabase
+                .from("users")
+                .select("*")
+                .eq("id", userId)
+                .maybeSingle();
 
-            try {
-                const { data: profile, error } = await supabase
-                    .from("users")
-                    .select("*")
-                    .eq("id", userId)
-                    .maybeSingle();
+            if (error || !profile) {
+                alert("⚠️ Error loading profile.");
+                return;
+            }
 
-                if (error) {
-                    console.error("❌ Error fetching profile:", error);
-                    alert("⚠️ There was an error loading your profile. Please try again.");
-                    return;
-                }
+            username.textContent = profile.first_name || "Unknown";
+            profileImg.src = profile.avatar_url || "profile-picture.jpg";
 
-                if (!profile) {
-                    alert("⚠️ No profile found for this user.");
-                    return;
-                }
+            const storedBanner = localStorage.getItem(`banner_${userId}`);
+            if (storedBanner) {
+                bannerImg.src = storedBanner;
+            }
+        }
 
-                console.log("✅ Profile data:", profile);
+        profileImg.addEventListener("click", () => {
+            if (editing) profilePicUpload.click();
+        });
 
-                document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
-                document.getElementById("profile-img").src = profile.profile_image || "profile-picture.jpg";
-                document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
+        bannerImg.addEventListener("click", () => {
+            if (editing) bannerUpload.click();
+        });
 
-                // Step 4: Handle Message Action
-                document.getElementById("message").addEventListener("click", () => {
-                    window.location.href = `messages.html?seller_id=${encodeURIComponent(userId)}`;
-                });
-
-                // Edit button functionality
-                document.getElementById("edit").addEventListener("click", () => {
-                    // Make the name and avatar editable
-                    const name = document.getElementById("username");
-                    name.innerHTML = `
-                        <input type="text" id="first-name" value="${profile.first_name || ''}" placeholder="First Name">
-                        <input type="text" id="last-name" value="${profile.last_name || ''}" placeholder="Last Name">
-                    `;
-
-                    const profileImg = document.getElementById("profile-img");
-                    profileImg.outerHTML = `
-                        <input type="text" id="profile-image-url" value="${profile.profile_image || ''}" placeholder="Enter Image URL">
-                    `;
-
-                    // Change Edit button to Save button
-                    const editButton = document.getElementById("edit");
-                    editButton.innerHTML = '<span class="icon">💾</span> Save';
-
-                    // Save the changes
-                    editButton.addEventListener("click", async () => {
-                        const firstName = document.getElementById("first-name").value;
-                        const lastName = document.getElementById("last-name").value;
-                        const avatarUrl = document.getElementById("profile-image-url").value;
-
-                        // Update the profile in Supabase
-                        const { error: updateError } = await supabase
-                            .from("users")
-                            .update({
-                                first_name: firstName,
-                                last_name: lastName,
-                                profile_image: avatarUrl,
-                            })
-                            .eq("id", userId);
-
-                        if (updateError) {
-                            console.error("❌ Error updating profile:", updateError);
-                            alert("⚠️ Error updating profile. Please try again.");
-                        } else {
-                            // If successful, update the profile UI
-                            document.getElementById("username").textContent = `${firstName} ${lastName}`;
-                            document.getElementById("profile-img").src = avatarUrl;
-
-                            // Reset to the Edit button
-                            editButton.innerHTML = '<span class="icon">🔧</span> Edit';
-                        }
-                    });
-                });
-
-            } catch (error) {
-                console.error("❌ Unexpected Error:", error);
-                alert("⚠️ An unexpected error occurred. Please try again.");
+        username.addEventListener("click", () => {
+            if (editing) {
+                const input = document.createElement("input");
+                input.type = "text";
+                input.value = username.textContent;
+                input.id = "username-input";
+                username.replaceWith(input);
+                input.focus();
             }
         });
+
+        profilePicUpload.addEventListener("change", async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const { data, error } = await supabase.storage
+                .from("avatars")
+                .upload(`public/${userId}`, file, { upsert: true });
+
+            if (error) {
+                alert("❌ Upload failed.");
+                return;
+            }
+
+            const { publicURL } = supabase.storage.from("avatars").getPublicUrl(`public/${userId}`);
+            await supabase.from("users").update({ avatar_url: publicURL }).eq("id", userId);
+            profileImg.src = publicURL;
+        });
+
+        bannerUpload.addEventListener("change", (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                localStorage.setItem(`banner_${userId}`, reader.result);
+                bannerImg.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        editButton.addEventListener("click", async () => {
+            if (!editing) {
+                editing = true;
+                editButton.textContent = "Save";
+            } else {
+                editing = false;
+                editButton.textContent = "Edit";
+
+                const usernameInput = document.getElementById("username-input");
+                if (usernameInput) {
+                    const newName = usernameInput.value;
+                    await supabase.from("users").update({ first_name: newName }).eq("id", userId);
+                    usernameInput.replaceWith(username);
+                    username.textContent = newName;
+                }
+            }
+        });
+
+        fetchProfile();
     </script>
 
 </body>
