@@ -111,6 +111,23 @@
             cursor: pointer;
             border-radius: 5px;
         }
+        .avatar-section {
+            text-align: center;
+            margin: 20px;
+        }
+        .avatar-input {
+            margin-top: 10px;
+            padding: 8px;
+            width: 60%;
+        }
+        .save-avatar-btn {
+            background-color: #ff6347;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -132,10 +149,10 @@
     </div>
 
     <!-- Avatar Update Section -->
-    <div class="header">
+    <div class="avatar-section">
         <h3>Update Avatar</h3>
-        <input type="text" id="avatarUrl" placeholder="Enter Avatar URL">
-        <button id="save-avatar-btn">Save Avatar</button>
+        <input type="text" id="avatarUrl" class="avatar-input" placeholder="Enter Avatar URL">
+        <button id="save-avatar-btn" class="save-avatar-btn">Save Avatar</button>
     </div>
 
     <script>
@@ -264,8 +281,13 @@
             }
 
             alert("Avatar URL saved successfully!");
+            // Update the displayed avatar immediately after saving
+            document.querySelectorAll('.chat-icon').forEach(icon => {
+                icon.style.backgroundImage = `url(${avatarUrl})`;
+            });
         });
 
+        // Load conversations on page load
         document.addEventListener("DOMContentLoaded", loadConversations);
     </script>
 </body>
