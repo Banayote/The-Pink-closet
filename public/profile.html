@@ -109,10 +109,15 @@
                     const updatedFirstName = document.getElementById("first-name").textContent.trim();
                     const updatedLastName = document.getElementById("last-name").textContent.trim();
 
-                    await supabase
+                    const { error: updateError } = await supabase
                         .from("users")
-                        .update({ first_name: updatedFirstName, last_name: updatedLastName })
+                        .update({ first_name: updatedFirstName, last_name: updatedLastName }) 
                         .eq("id", userId);
+
+                    if (updateError) {
+                        alert("⚠️ Failed to save name.");
+                        return;
+                    }
 
                     document.getElementById("first-name").contentEditable = "false";
                     document.getElementById("last-name").contentEditable = "false";
@@ -128,24 +133,21 @@
                 if (isEditing) document.getElementById("profile-pic-upload").click();
             }
 
-            // Profile Picture upload and save the avatar URL
             document.getElementById("profile-pic-upload").addEventListener("change", async (event) => {
                 if (!isEditing) return;
 
                 const file = event.target.files[0];
                 if (!file) return;
 
-                // Upload the profile picture to Supabase storage
                 const { data, error: uploadError } = await supabase.storage.from("avatars").upload(`avatars/${userId}`, file, { upsert: true });
+
                 if (uploadError) {
                     alert("⚠️ Error uploading profile picture.");
                     return;
                 }
 
-                // Construct avatar URL and update profile
                 const avatarUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${userId}`;
                 document.getElementById("profile-img").src = avatarUrl;
-
                 await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", userId);
             });
 
@@ -153,7 +155,6 @@
                 if (isEditing) document.getElementById("banner-upload").click();
             }
 
-            // Banner upload
             document.getElementById("banner-upload").addEventListener("change", (event) => {
                 if (!isEditing) return;
 
@@ -168,15 +169,13 @@
                 reader.readAsDataURL(file);
             });
 
-            // **NEW: Redirect "Message" and "Add Product" to proper pages**
             document.getElementById("message").addEventListener("click", () => {
-                window.location.href = `messages.html?user=${userId}`;
+                alert("Messaging feature coming soon!");
             });
 
             document.getElementById("add-product").addEventListener("click", () => {
-                window.location.href = "add-product.html";
+                alert("Adding products coming soon!");
             });
-
         });
     </script>
 
