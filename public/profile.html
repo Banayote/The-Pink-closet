@@ -109,15 +109,10 @@
                     const updatedFirstName = document.getElementById("first-name").textContent.trim();
                     const updatedLastName = document.getElementById("last-name").textContent.trim();
 
-                    const { error: updateError } = await supabase
+                    await supabase
                         .from("users")
-                        .update({ first_name: updatedFirstName, last_name: updatedLastName }) 
+                        .update({ first_name: updatedFirstName, last_name: updatedLastName })
                         .eq("id", userId);
-
-                    if (updateError) {
-                        alert("⚠️ Failed to save name.");
-                        return;
-                    }
 
                     document.getElementById("first-name").contentEditable = "false";
                     document.getElementById("last-name").contentEditable = "false";
@@ -139,12 +134,7 @@
                 const file = event.target.files[0];
                 if (!file) return;
 
-                const { data, error: uploadError } = await supabase.storage.from("avatars").upload(`avatars/${userId}`, file, { upsert: true });
-
-                if (uploadError) {
-                    alert("⚠️ Error uploading profile picture.");
-                    return;
-                }
+                await supabase.storage.from("avatars").upload(`avatars/${userId}`, file, { upsert: true });
 
                 const avatarUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${userId}`;
                 document.getElementById("profile-img").src = avatarUrl;
@@ -169,13 +159,15 @@
                 reader.readAsDataURL(file);
             });
 
+            // **NEW: Redirect "Message" and "Add Product" to proper pages**
             document.getElementById("message").addEventListener("click", () => {
-                alert("Messaging feature coming soon!");
+                window.location.href = `messages.html?user=${userId}`;
             });
 
             document.getElementById("add-product").addEventListener("click", () => {
-                alert("Adding products coming soon!");
+                window.location.href = "add-product.html";
             });
+
         });
     </script>
 
