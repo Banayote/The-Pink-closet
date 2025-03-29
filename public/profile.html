@@ -23,7 +23,10 @@
         </div>
 
         <div class="profile-info">
-            <h1 id="username" contenteditable="false">Loading...</h1>
+            <h1>
+                <span id="first-name" contenteditable="false">Loading...</span>
+                <span id="last-name" contenteditable="false"></span>
+            </h1>
             <p id="role"></p>
 
             <div class="profile-actions">
@@ -82,7 +85,8 @@
                 return;
             }
 
-            document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
+            document.getElementById("first-name").textContent = profile.first_name || "Unknown";
+            document.getElementById("last-name").textContent = profile.last_name || "";
             document.getElementById("profile-img").src = profile.avatar_url || "";
             document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
 
@@ -95,20 +99,19 @@
             // Handle Edit Button
             document.getElementById("edit").addEventListener("click", async () => {
                 if (!isEditing) {
-                    document.getElementById("username").contentEditable = "true";
+                    document.getElementById("first-name").contentEditable = "true";
+                    document.getElementById("last-name").contentEditable = "true";
                     document.getElementById("edit").innerHTML = '<i class="fa-solid fa-save"></i> Save';
-                    
-                    // Enable profile & banner upload on click
+
                     document.getElementById("profile-picture").addEventListener("click", openProfileUpload);
                     document.getElementById("banner-container").addEventListener("click", openBannerUpload);
                 } else {
-                    let updatedName = document.getElementById("username").textContent.trim();
-                    const nameParts = updatedName.split(" ");
-                    updatedName = nameParts[0] + (nameParts[1] ? " " + nameParts[1] : ""); 
+                    const updatedFirstName = document.getElementById("first-name").textContent.trim();
+                    const updatedLastName = document.getElementById("last-name").textContent.trim();
 
                     const { error: updateError } = await supabase
                         .from("users")
-                        .update({ first_name: updatedName }) 
+                        .update({ first_name: updatedFirstName, last_name: updatedLastName }) 
                         .eq("id", userId);
 
                     if (updateError) {
@@ -116,18 +119,16 @@
                         return;
                     }
 
-                    document.getElementById("username").textContent = updatedName;
-                    document.getElementById("username").contentEditable = "false";
+                    document.getElementById("first-name").contentEditable = "false";
+                    document.getElementById("last-name").contentEditable = "false";
                     document.getElementById("edit").innerHTML = '<i class="fa-solid fa-wrench"></i> Edit';
 
-                    // Disable profile & banner upload
                     document.getElementById("profile-picture").removeEventListener("click", openProfileUpload);
                     document.getElementById("banner-container").removeEventListener("click", openBannerUpload);
                 }
                 isEditing = !isEditing;
             });
 
-            // Profile picture upload
             function openProfileUpload() {
                 if (isEditing) document.getElementById("profile-pic-upload").click();
             }
@@ -150,7 +151,6 @@
                 await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", userId);
             });
 
-            // Banner upload
             function openBannerUpload() {
                 if (isEditing) document.getElementById("banner-upload").click();
             }
@@ -167,6 +167,14 @@
                     localStorage.setItem("banner", reader.result);
                 };
                 reader.readAsDataURL(file);
+            });
+
+            document.getElementById("message").addEventListener("click", () => {
+                alert("Messaging feature coming soon!");
+            });
+
+            document.getElementById("add-product").addEventListener("click", () => {
+                alert("Adding products coming soon!");
             });
         });
     </script>
