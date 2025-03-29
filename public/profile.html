@@ -3,144 +3,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile</title>
-    <link rel="stylesheet" href="profile.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"> 
+    <title>Messages</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .header {
+            background: #ff6347;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 20px;
+            position: relative;
+        }
+        .back-btn {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            background: white;
+            color: #ff6347;
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .conversation-list {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .conversation-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+        }
+        .conversation-item:hover {
+            background: #f2f2f2;
+        }
+        .chat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ff6347;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 10px;
+            background-size: cover;
+            background-position: center;
+        }
+        .chat-box {
+            display: none;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .messages {
+            max-height: 300px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ddd;
+            padding: 10px;
+        }
+        .message {
+            padding: 8px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .sent {
+            background: #ff6347;
+            color: white;
+            text-align: right;
+        }
+        .received {
+            background: #ddd;
+            text-align: left;
+        }
+        .input-container {
+            display: flex;
+            margin-top: 10px;
+        }
+        .message-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .send-btn {
+            background: #ff6347;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin-left: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
 
-    <div class="profile-container">
-        <div class="exit-icon">
-            <a href="index.html" id="exitIcon"><i class="fa-solid fa-arrow-left"></i></a>
-        </div>
+    <div class="header">
+        <button class="back-btn" onclick="window.location.href='profile.html'">⬅ Back</button>
+        Messages
+    </div>
 
-        <div class="banner" id="banner">
-            <img id="banner-img" src="image1.jpg" alt="Banner Image">
-        </div>
+    <div id="conversation-list" class="conversation-list"></div>
 
-        <div class="profile-picture">
-            <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture">
-        </div>
-
-        <div class="profile-info">
-            <h1 id="username">Loading...</h1>
-            <p id="role"></p> 
-
-            <div class="profile-actions">
-                <button id="message"><i class="fa-solid fa-envelope"></i> Message</button>
-                <button id="add-product"><i class="fa-solid fa-plus"></i> Add Product</button>
-                <button id="edit"><i class="fa-solid fa-wrench"></i> Edit</button>
-                <button id="save" style="display: none;"><i class="fa-solid fa-check"></i> Save</button>
-            </div>
+    <div id="chat-box" class="chat-box">
+        <h3 id="chat-title"></h3>
+        <div id="messages" class="messages"></div>
+        <div class="input-container">
+            <input id="message-input" type="text" class="message-input" placeholder="Type a message...">
+            <button class="send-btn" onclick="sendMessage()">Send</button>
         </div>
     </div>
 
-    <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
-    <input type="file" id="banner-upload" accept="image/*" style="display:none;">
+    <!-- Avatar Update Section -->
+    <div class="header">
+        <h3>Update Avatar</h3>
+        <input type="text" id="avatarUrl" placeholder="Enter Avatar URL">
+        <button id="save-avatar-btn">Save Avatar</button>
+    </div>
 
-    <script type="module">
-        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
-
+    <script>
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        document.addEventListener("DOMContentLoaded", async () => {
-            const userId = localStorage.getItem("user_id");
-            if (!userId) {
-                alert("⚠️ No profile found.");
-                window.location.href = "store.html";
+        let currentUserId = localStorage.getItem("user_id");
+
+        // Load conversations and display them
+        async function loadConversations() {
+            const { data, error } = await supabase
+                .from("conversations")
+                .select("*")
+                .or(`buyer_id.eq.${currentUserId},seller_id.eq.${currentUserId}`);
+
+            if (error) {
+                console.error("❌ Error loading conversations:", error.message);
                 return;
             }
 
-            // Fetch user profile from Supabase
-            const { data: profile, error } = await supabase.from("users").select("*").eq("id", userId).maybeSingle();
-            if (error || !profile) {
-                alert("⚠️ Error loading profile.");
+            const conversationList = document.getElementById("conversation-list");
+            conversationList.innerHTML = "";
+
+            data.forEach(convo => {
+                const otherUserId = convo.seller_id === currentUserId ? convo.buyer_id : convo.seller_id;
+
+                // Fetch the avatar URL for the other user
+                supabase
+                    .from("users")
+                    .select("avatar_url")
+                    .eq("id", otherUserId)
+                    .single()
+                    .then(({ data, error }) => {
+                        if (error) {
+                            console.error("❌ Error fetching avatar URL:", error.message);
+                            return;
+                        }
+
+                        const avatarUrl = data.avatar_url || "default-avatar-url"; // Provide a default if no avatar
+
+                        const convoItem = document.createElement("div");
+                        convoItem.classList.add("conversation-item");
+                        convoItem.onclick = () => openChat(convo.id, otherUserId);
+
+                        convoItem.innerHTML = `
+                            <div class="chat-icon" style="background-image: url(${avatarUrl});"></div>
+                            <div>${otherUserId}</div>
+                        `;
+
+                        conversationList.appendChild(convoItem);
+                    });
+            });
+        }
+
+        // Open a chat window for a selected conversation
+        async function openChat(conversationId, otherUserId) {
+            document.getElementById("chat-box").style.display = "block";
+            document.getElementById("chat-title").innerText = `Chat with ${otherUserId}`;
+            document.getElementById("messages").innerHTML = "";
+
+            const { data, error } = await supabase
+                .from("messages")
+                .select("*")
+                .eq("conversation_id", conversationId)
+                .order("created_at", { ascending: true });
+
+            if (error) {
+                console.error("❌ Error loading messages:", error.message);
                 return;
             }
 
-            // Display profile data
-            document.getElementById("username").textContent = profile.first_name || "Unknown";
-            document.getElementById("profile-img").src = profile.avatar_url || "profile-picture.jpg";
-            document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
+            data.forEach(msg => {
+                displayMessage(msg.sender_id, msg.message); // ✅ FIXED: Changed 'content' to 'message'
+            });
 
-            // Load banner image from Local Storage
-            const storedBanner = localStorage.getItem("banner-img");
-            if (storedBanner) {
-                document.getElementById("banner-img").src = storedBanner;
+            localStorage.setItem("current_conversation", conversationId);
+        }
+
+        // Display messages
+        function displayMessage(sender, text) {
+            const msgContainer = document.getElementById("messages");
+            const msgDiv = document.createElement("div");
+            msgDiv.classList.add("message", sender === currentUserId ? "sent" : "received");
+            msgDiv.innerText = text;
+            msgContainer.appendChild(msgDiv);
+        }
+
+        // Send a new message
+        async function sendMessage() {
+            const conversationId = localStorage.getItem("current_conversation");
+            const input = document.getElementById("message-input");
+            const messageText = input.value.trim();
+
+            if (!messageText) return;
+
+            const { error } = await supabase.from("messages").insert([
+                { conversation_id: conversationId, sender_id: currentUserId, message: messageText } // ✅ FIXED: Changed 'content' to 'message'
+            ]);
+
+            if (error) {
+                console.error("❌ Error sending message:", error.message);
+                return;
             }
 
-            // Enable Editing when clicking on Name, Profile Pic, or Banner
-            document.getElementById("username").addEventListener("click", () => {
-                document.getElementById("username").contentEditable = "true";
-                document.getElementById("save").style.display = "inline-block";
-            });
+            displayMessage(currentUserId, messageText);
+            input.value = "";
+        }
 
-            document.getElementById("profile-img").addEventListener("click", () => {
-                document.getElementById("profile-pic-upload").click();
-            });
+        // Save the avatar URL when updated
+        document.getElementById("save-avatar-btn").addEventListener("click", async () => {
+            const avatarUrl = document.getElementById("avatarUrl").value;
 
-            document.getElementById("banner").addEventListener("click", () => {
-                document.getElementById("banner-upload").click();
-            });
+            if (!avatarUrl) {
+                alert("Please enter a valid avatar URL.");
+                return;
+            }
 
-            // Handle Profile Picture Upload
-            document.getElementById("profile-pic-upload").addEventListener("change", async (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
+            const { error } = await supabase
+                .from("users")
+                .upsert({ id: currentUserId, avatar_url: avatarUrl });
 
-                const filePath = `avatars/${userId}.jpg`;
-                const { data, error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true });
+            if (error) {
+                console.error("❌ Error saving avatar URL:", error.message);
+                return;
+            }
 
-                if (uploadError) {
-                    alert("⚠️ Error uploading profile picture.");
-                    console.error(uploadError);
-                    return;
-                }
-
-                const { data: publicUrlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
-                const avatarUrl = publicUrlData.publicUrl;
-
-                const { error: updateError } = await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", userId);
-                if (updateError) {
-                    alert("⚠️ Failed to save profile picture URL.");
-                    return;
-                }
-
-                document.getElementById("profile-img").src = avatarUrl;
-            });
-
-            // Handle Banner Upload (Stored in Local Storage)
-            document.getElementById("banner-upload").addEventListener("change", (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = () => {
-                    localStorage.setItem("banner-img", reader.result);
-                    document.getElementById("banner-img").src = reader.result;
-                };
-                reader.readAsDataURL(file);
-            });
-
-            // Save Changes when clicking "Save"
-            document.getElementById("save").addEventListener("click", async () => {
-                const updatedName = document.getElementById("username").textContent;
-
-                const { error: nameError } = await supabase.from("users").update({ first_name: updatedName }).eq("id", userId);
-                if (nameError) {
-                    alert("⚠️ Error saving name.");
-                    return;
-                }
-
-                document.getElementById("username").contentEditable = "false";
-                document.getElementById("save").style.display = "none";
-                alert("✅ Profile updated successfully!");
-            });
-
+            alert("Avatar URL saved successfully!");
         });
-    </script>
 
+        document.addEventListener("DOMContentLoaded", loadConversations);
+    </script>
 </body>
 </html>
