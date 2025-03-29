@@ -14,11 +14,13 @@
             <a href="index.html" id="exitIcon"><i class="fa-solid fa-arrow-left"></i></a>
         </div>
 
-        <div class="banner" onclick="document.getElementById('banner-upload').click()">
+        <!-- Banner Section -->
+        <div class="banner">
             <img id="banner-img" src="image1.jpg" alt="Banner Image" class="banner-img">
         </div>
 
-        <div class="profile-picture" onclick="document.getElementById('profile-pic-upload').click()">
+        <!-- Profile Picture -->
+        <div class="profile-picture">
             <img id="profile-img" src="" alt="Profile Picture" style="background: white;">
         </div>
 
@@ -54,6 +56,7 @@
         <div class="user-products"></div>
     </div>
 
+    <!-- Hidden File Inputs -->
     <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
     <input type="file" id="banner-upload" accept="image/*" style="display:none;">
 
@@ -115,6 +118,10 @@
             });
 
             // Profile picture upload
+            document.getElementById("profile-picture").addEventListener("click", () => {
+                document.getElementById("profile-pic-upload").click();
+            });
+
             document.getElementById("profile-pic-upload").addEventListener("change", async (event) => {
                 const file = event.target.files[0];
                 if (!file) return;
@@ -151,6 +158,18 @@
                 };
                 reader.readAsDataURL(file);
             });
+
+            // Fix: Prevent message/add-product buttons from triggering profile pic upload
+            document.getElementById("message").addEventListener("click", (e) => {
+                e.stopPropagation();
+                window.location.href = `messages.html?seller_id=${encodeURIComponent(userId)}`;
+            });
+
+            document.getElementById("add-product").addEventListener("click", (e) => {
+                e.stopPropagation();
+                window.location.href = `add-product.html?seller_id=${encodeURIComponent(userId)}`;
+            });
+
         });
     </script>
 
