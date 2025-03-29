@@ -128,16 +128,24 @@
                 if (isEditing) document.getElementById("profile-pic-upload").click();
             }
 
+            // Profile Picture upload and save the avatar URL
             document.getElementById("profile-pic-upload").addEventListener("change", async (event) => {
                 if (!isEditing) return;
 
                 const file = event.target.files[0];
                 if (!file) return;
 
-                await supabase.storage.from("avatars").upload(`avatars/${userId}`, file, { upsert: true });
+                // Upload the profile picture to Supabase storage
+                const { data, error: uploadError } = await supabase.storage.from("avatars").upload(`avatars/${userId}`, file, { upsert: true });
+                if (uploadError) {
+                    alert("⚠️ Error uploading profile picture.");
+                    return;
+                }
 
+                // Construct avatar URL and update profile
                 const avatarUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${userId}`;
                 document.getElementById("profile-img").src = avatarUrl;
+
                 await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", userId);
             });
 
@@ -145,6 +153,7 @@
                 if (isEditing) document.getElementById("banner-upload").click();
             }
 
+            // Banner upload
             document.getElementById("banner-upload").addEventListener("change", (event) => {
                 if (!isEditing) return;
 
