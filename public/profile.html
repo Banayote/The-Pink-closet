@@ -14,51 +14,25 @@
             <a href="index.html" id="exitIcon"><i class="fa-solid fa-arrow-left"></i></a>
         </div>
 
-        <!-- Banner Section (Clickable for Upload) -->
-        <div class="banner" id="banner-container">
-            <img id="banner-img" src="image1.jpg" alt="Banner Image" class="banner-img">
-        </div>
-
-        <!-- Profile Picture (Clickable for Upload) -->
-        <div class="profile-picture" id="profile-picture">
+        <div class="profile-picture">
             <img id="profile-img" src="" alt="Profile Picture" style="background: white;">
         </div>
 
         <div class="profile-info">
-            <h1 id="username" contenteditable="false">Loading...</h1>
+            <h1 id="username">Loading...</h1>
             <p id="role"></p>
 
             <div class="profile-actions">
                 <button id="message"><i class="fa-solid fa-envelope"></i> Message</button>
                 <button id="add-product"><i class="fa-solid fa-plus"></i> Add Product</button>
                 <button id="edit"><i class="fa-solid fa-wrench"></i> Edit</button>
-                <button id="copy-link"><i class="fa-solid fa-link"></i> Link</button>
+                <button id="save" style="display: none;"><i class="fa-solid fa-save"></i> Save</button>
             </div>
         </div>
 
-        <div class="profile-dashboard">
-            <div class="stats">
-                <div class="stat">
-                    <h2>Sales</h2>
-                    <p id="sales-count">0</p>
-                </div>
-                <div class="stat">
-                    <h2>Visitors</h2>
-                    <p id="visitors-count">0</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-list-button">
-            <button>View Product List</button>
-        </div>
-
-        <div class="user-products"></div>
     </div>
 
-    <!-- Hidden File Inputs -->
     <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
-    <input type="file" id="banner-upload" accept="image/*" style="display:none;">
 
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
@@ -69,103 +43,94 @@
 
         document.addEventListener("DOMContentLoaded", async () => {
             const userId = localStorage.getItem("user_id");
-
             if (!userId) {
                 alert("⚠️ No profile found.");
                 window.location.href = "store.html";
                 return;
             }
 
-            // Fetch profile data from Supabase
             const { data: profile, error } = await supabase.from("users").select("*").eq("id", userId).maybeSingle();
-
             if (error || !profile) {
                 alert("⚠️ Error loading profile.");
                 return;
             }
 
-            document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
+            document.getElementById("username").textContent = profile.first_name || "Unknown";
             document.getElementById("profile-img").src = profile.avatar_url || "";
-            document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
 
-            // Load banner
-            document.getElementById("banner-img").src = profile.banner_url || "image1.jpg";
-
+            // Enable Editing Mode
             let isEditing = false;
-
-            // Edit Button
-            document.getElementById("edit").addEventListener("click", async () => {
-                if (!isEditing) {
-                    document.getElementById("username").contentEditable = "true";
-                    document.getElementById("edit").innerHTML = '<i class="fa-solid fa-save"></i> Save';
-                } else {
-                    const updatedName = document.getElementById("username").textContent;
-                    const { error: updateError } = await supabase.from("users").update({ first_name: updatedName }).eq("id", userId);
-
-                    if (updateError) {
-                        alert("⚠️ Failed to save name.");
-                        return;
-                    }
-
-                    document.getElementById("username").contentEditable = "false";
-                    document.getElementById("edit").innerHTML = '<i class="fa-solid fa-wrench"></i> Edit';
-                }
+            document.getElementById("edit").addEventListener("click", () => {
                 isEditing = !isEditing;
+                document.getElementById("username").contentEditable = isEditing;
+                document.getElementById("save").style.display = isEditing ? "inline-block" : "none";
+            });
+
+            // Save Changes
+            document.getElementById("save").addEventListener("click", async () => {
+                const updatedName = document.getElementById("username").textContent;
+
+                const { error: updateError } = await supabase
+                    .from("users")
+                    .update({ first_name: updatedName })
+                    .eq("id", userId);
+
+                if (updateError) {
+                    alert("⚠️ Failed to save changes.");
+                    return;
+                }
+
+                document.getElementById("username").contentEditable = false;
+                document.getElementById("save").style.display = "none";
             });
 
             // Profile Picture Upload
-            document.getElementById("profile-picture").addEventListener("click", () => {
-                document.getElementById("profile-pic-upload").click();
+            document.getElementById("profile-img").addEventListener("click", () => {
+                if (isEditing) document.getElementById("profile-pic-upload").click();
             });
 
             document.getElementById("profile-pic-upload").addEventListener("change", async (event) => {
                 const file = event.target.files[0];
                 if (!file) return;
 
-                const { data, error: uploadError } = await supabase.storage.from("avatars").upload(`avatars/${userId}`, file, { upsert: true });
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${userId}.${fileExt}`;
+                const filePath = `avatars/${fileName}`;
+
+                // Upload image to Supabase Storage
+                const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, {
+                    upsert: true,
+                });
 
                 if (uploadError) {
                     alert("⚠️ Error uploading profile picture.");
                     return;
                 }
 
-                const avatarUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${userId}`;
-                document.getElementById("profile-img").src = avatarUrl;
-                await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", userId);
-            });
+                // Get public URL
+                const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+                const avatarUrl = data.publicUrl;
 
-            // Banner Upload
-            document.getElementById("banner-container").addEventListener("click", () => {
-                document.getElementById("banner-upload").click();
-            });
+                // Update avatar_url in users table
+                const { error: updateError } = await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", userId);
 
-            document.getElementById("banner-upload").addEventListener("change", async (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                const { data, error: uploadError } = await supabase.storage.from("banners").upload(`banners/${userId}`, file, { upsert: true });
-
-                if (uploadError) {
-                    alert("⚠️ Error uploading banner.");
+                if (updateError) {
+                    alert("⚠️ Failed to save profile picture.");
                     return;
                 }
 
-                const bannerUrl = `${SUPABASE_URL}/storage/v1/object/public/banners/${userId}`;
-                document.getElementById("banner-img").src = bannerUrl;
-                await supabase.from("users").update({ banner_url: bannerUrl }).eq("id", userId);
+                document.getElementById("profile-img").src = avatarUrl;
             });
 
-            // Prevent image upload when clicking message/add-product
-            document.getElementById("message").addEventListener("click", (e) => {
-                e.stopPropagation();
-                window.location.href = `messages.html?seller_id=${encodeURIComponent(userId)}`;
+            // Add Product Button
+            document.getElementById("add-product").addEventListener("click", () => {
+                window.location.href = `add-product.html?seller_id=${userId}`;
             });
 
-            document.getElementById("add-product").addEventListener("click", (e) => {
-                e.stopPropagation();
-                window.location.href = `add-product.html?seller_id=${encodeURIComponent(userId)}`;
+            // Message Button
+            document.getElementById("message").addEventListener("click", () => {
+                window.location.href = `messages.html?seller_id=${userId}`;
             });
-
         });
     </script>
 
