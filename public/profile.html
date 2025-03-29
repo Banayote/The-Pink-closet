@@ -14,25 +14,44 @@
             <a href="index.html" id="exitIcon"><i class="fa-solid fa-arrow-left"></i></a>
         </div>
 
-        <div class="banner" id="banner">
-            <img id="banner-img" src="image1.jpg" alt="Banner Image">
+        <div class="banner" onclick="document.getElementById('banner-upload').click()">
+            <img id="banner-img" src="image1.jpg" alt="Banner Image" class="banner-img">
         </div>
 
-        <div class="profile-picture">
-            <img id="profile-img" src="profile-picture.jpg" alt="Profile Picture">
+        <div class="profile-picture" onclick="document.getElementById('profile-pic-upload').click()">
+            <img id="profile-img" src="" alt="Profile Picture" style="background: white;">
         </div>
 
         <div class="profile-info">
-            <h1 id="username">Loading...</h1>
-            <p id="role"></p> 
+            <h1 id="username" contenteditable="false">Loading...</h1>
+            <p id="role"></p>
 
             <div class="profile-actions">
                 <button id="message"><i class="fa-solid fa-envelope"></i> Message</button>
                 <button id="add-product"><i class="fa-solid fa-plus"></i> Add Product</button>
                 <button id="edit"><i class="fa-solid fa-wrench"></i> Edit</button>
-                <button id="save" style="display: none;"><i class="fa-solid fa-check"></i> Save</button>
+                <button id="copy-link"><i class="fa-solid fa-link"></i> Link</button>
             </div>
         </div>
+
+        <div class="profile-dashboard">
+            <div class="stats">
+                <div class="stat">
+                    <h2>Sales</h2>
+                    <p id="sales-count">0</p>
+                </div>
+                <div class="stat">
+                    <h2>Visitors</h2>
+                    <p id="visitors-count">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="product-list-button">
+            <button>View Product List</button>
+        </div>
+
+        <div class="user-products"></div>
     </div>
 
     <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
@@ -47,98 +66,91 @@
 
         document.addEventListener("DOMContentLoaded", async () => {
             const userId = localStorage.getItem("user_id");
+
             if (!userId) {
                 alert("⚠️ No profile found.");
                 window.location.href = "store.html";
                 return;
             }
 
-            // Fetch user profile from Supabase
             const { data: profile, error } = await supabase.from("users").select("*").eq("id", userId).maybeSingle();
+
             if (error || !profile) {
                 alert("⚠️ Error loading profile.");
                 return;
             }
 
-            // Display profile data
-            document.getElementById("username").textContent = profile.first_name || "Unknown";
-            document.getElementById("profile-img").src = profile.avatar_url || "profile-picture.jpg";
+            document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
+            document.getElementById("profile-img").src = profile.avatar_url || "";
             document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
 
-            // Load banner image from Local Storage
-            const storedBanner = localStorage.getItem("banner-img");
-            if (storedBanner) {
-                document.getElementById("banner-img").src = storedBanner;
+            // Load banner from Local Storage
+            const banner = localStorage.getItem("banner");
+            if (banner) {
+                document.getElementById("banner-img").src = banner;
             }
 
-            // Enable Editing when clicking on Name, Profile Pic, or Banner
-            document.getElementById("username").addEventListener("click", () => {
-                document.getElementById("username").contentEditable = "true";
-                document.getElementById("save").style.display = "inline-block";
+            // Edit button toggles edit mode
+            const editButton = document.getElementById("edit");
+            let isEditing = false;
+
+            editButton.addEventListener("click", async () => {
+                if (!isEditing) {
+                    document.getElementById("username").contentEditable = "true";
+                    editButton.innerHTML = '<i class="fa-solid fa-save"></i> Save';
+                } else {
+                    const updatedName = document.getElementById("username").textContent;
+
+                    const { error: updateError } = await supabase.from("users").update({ first_name: updatedName }).eq("id", userId);
+                    if (updateError) {
+                        alert("⚠️ Failed to save name.");
+                        return;
+                    }
+
+                    document.getElementById("username").contentEditable = "false";
+                    editButton.innerHTML = '<i class="fa-solid fa-wrench"></i> Edit';
+                }
+
+                isEditing = !isEditing;
             });
 
-            document.getElementById("profile-img").addEventListener("click", () => {
-                document.getElementById("profile-pic-upload").click();
-            });
-
-            document.getElementById("banner").addEventListener("click", () => {
-                document.getElementById("banner-upload").click();
-            });
-
-            // Handle Profile Picture Upload
+            // Profile picture upload
             document.getElementById("profile-pic-upload").addEventListener("change", async (event) => {
                 const file = event.target.files[0];
                 if (!file) return;
 
-                const filePath = `avatars/${userId}.jpg`;
-                const { data, error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true });
+                const { data, error: uploadError } = await supabase.storage.from("avatars").upload(`avatars/${userId}`, file, {
+                    upsert: true,
+                });
 
                 if (uploadError) {
                     alert("⚠️ Error uploading profile picture.");
-                    console.error(uploadError);
                     return;
                 }
 
-                const { data: publicUrlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
-                const avatarUrl = publicUrlData.publicUrl;
-
-                const { error: updateError } = await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", userId);
-                if (updateError) {
-                    alert("⚠️ Failed to save profile picture URL.");
-                    return;
-                }
-
+                const avatarUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${userId}`;
                 document.getElementById("profile-img").src = avatarUrl;
+
+                await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", userId);
             });
 
-            // Handle Banner Upload (Stored in Local Storage)
+            // Banner upload
+            document.getElementById("banner").addEventListener("click", () => {
+                document.getElementById("banner-upload").click();
+            });
+
             document.getElementById("banner-upload").addEventListener("change", (event) => {
                 const file = event.target.files[0];
                 if (!file) return;
 
                 const reader = new FileReader();
                 reader.onload = () => {
-                    localStorage.setItem("banner-img", reader.result);
-                    document.getElementById("banner-img").src = reader.result;
+                    const bannerImg = document.getElementById("banner-img");
+                    bannerImg.src = reader.result;
+                    localStorage.setItem("banner", reader.result);
                 };
                 reader.readAsDataURL(file);
             });
-
-            // Save Changes when clicking "Save"
-            document.getElementById("save").addEventListener("click", async () => {
-                const updatedName = document.getElementById("username").textContent;
-
-                const { error: nameError } = await supabase.from("users").update({ first_name: updatedName }).eq("id", userId);
-                if (nameError) {
-                    alert("⚠️ Error saving name.");
-                    return;
-                }
-
-                document.getElementById("username").contentEditable = "false";
-                document.getElementById("save").style.display = "none";
-                alert("✅ Profile updated successfully!");
-            });
-
         });
     </script>
 
