@@ -29,18 +29,38 @@
             <p id="role"></p>
 
             <div class="profile-actions">
-                <!-- Message Button: Navigates to messages.html -->
                 <button id="message" onclick="window.location.href='messages.html'"><i class="fa-solid fa-envelope"></i> Message</button>
-                
-                <!-- Add Product Button: Navigates to add-product.html -->
                 <button id="add-product" onclick="window.location.href='add-product.html'"><i class="fa-solid fa-plus"></i> Add Product</button>
-                
                 <button id="edit"><i class="fa-solid fa-wrench"></i> Edit</button>
                 <button id="copy-link"><i class="fa-solid fa-link"></i> Link</button>
             </div>
         </div>
+
+        <!-- Profile Dashboard for Sales and Visitors -->
+        <div class="profile-dashboard">
+            <div class="stats">
+                <div class="stat">
+                    <h2>Sales</h2>
+                    <!-- View-only placeholder for Sales count -->
+                    <p id="sales-count">500</p> <!-- Example static value -->
+                </div>
+                <div class="stat">
+                    <h2>Visitors</h2>
+                    <!-- View-only placeholder for Visitors count -->
+                    <p id="visitors-count">1000</p> <!-- Example static value -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Button to View Product List -->
+        <div class="product-list-button">
+            <button onclick="window.location.href='product-list.html'">View Product List</button>
+        </div>
+
+        <div class="user-products"></div>
     </div>
 
+    <!-- Hidden File Inputs -->
     <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
     <input type="file" id="banner-upload" accept="image/*" style="display:none;">
 
