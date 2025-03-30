@@ -14,7 +14,7 @@
             <a href="index.html" id="exitIcon"><i class="fa-solid fa-arrow-left"></i></a>
         </div>
 
-        <div class="banner" onclick="document.getElementById('banner-upload').click()">
+        <div class="banner">
             <div id="banner-images" class="banner-images">
                 <img id="banner-img" src="image1.jpg" alt="Banner Image" class="banner-img">
             </div>
@@ -29,38 +29,33 @@
             <p id="role"></p>
 
             <div class="profile-actions">
-                <button id="message" onclick="window.location.href='messages.html'"><i class="fa-solid fa-envelope"></i> Message</button>
-                <button id="add-product" onclick="window.location.href='add-product.html'"><i class="fa-solid fa-plus"></i> Add Product</button>
+                <button id="message"><i class="fa-solid fa-envelope"></i> Message</button>
+                <button id="add-product"><i class="fa-solid fa-plus"></i> Add Product</button>
                 <button id="edit"><i class="fa-solid fa-wrench"></i> Edit</button>
                 <button id="copy-link"><i class="fa-solid fa-link"></i> Link</button>
             </div>
         </div>
 
-        <!-- Profile Dashboard for Sales and Visitors -->
         <div class="profile-dashboard">
             <div class="stats">
                 <div class="stat">
                     <h2>Sales</h2>
-                    <!-- View-only placeholder for Sales count -->
-                    <p id="sales-count">500</p> <!-- Example static value -->
+                    <p id="sales-count">0</p>
                 </div>
                 <div class="stat">
                     <h2>Visitors</h2>
-                    <!-- View-only placeholder for Visitors count -->
-                    <p id="visitors-count">1000</p> <!-- Example static value -->
+                    <p id="visitors-count">0</p>
                 </div>
             </div>
         </div>
 
-        <!-- Button to View Product List -->
         <div class="product-list-button">
-            <button onclick="window.location.href='product-list.html'">View Product List</button>
+            <button>View Product List</button>
         </div>
 
         <div class="user-products"></div>
     </div>
 
-    <!-- Hidden File Inputs -->
     <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
     <input type="file" id="banner-upload" accept="image/*" style="display:none;">
 
@@ -97,8 +92,9 @@
                 document.getElementById("banner-img").src = banner;
             }
 
-            let isEditing = false;
+            // Edit button toggles edit mode
             const editButton = document.getElementById("edit");
+            let isEditing = false;
 
             editButton.addEventListener("click", async () => {
                 if (!isEditing) {
@@ -120,28 +116,31 @@
                 isEditing = !isEditing;
             });
 
-            // Profile picture upload (Base64)
+            // Profile picture upload
             document.getElementById("profile-pic-upload").addEventListener("change", async (event) => {
                 const file = event.target.files[0];
                 if (!file) return;
 
-                const reader = new FileReader();
-                reader.onload = async () => {
-                    const base64String = reader.result;
+                const { data, error: uploadError } = await supabase.storage.from("avatars").upload(`avatars/${userId}`, file, {
+                    upsert: true,
+                });
 
-                    // Set profile picture
-                    document.getElementById("profile-img").src = base64String;
+                if (uploadError) {
+                    alert("⚠️ Error uploading profile picture.");
+                    return;
+                }
 
-                    // Save Base64 to Supabase
-                    const { error: updateError } = await supabase.from("users").update({ avatar_url: base64String }).eq("id", userId);
-                    if (updateError) {
-                        alert("⚠️ Error updating profile picture.");
-                    }
-                };
-                reader.readAsDataURL(file);
+                const avatarUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${userId}`;
+                document.getElementById("profile-img").src = avatarUrl;
+
+                await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", userId);
             });
 
-            // Banner upload (LocalStorage only)
+            // Banner upload
+            document.getElementById("banner-images").addEventListener("click", () => {
+                document.getElementById("banner-upload").click();
+            });
+
             document.getElementById("banner-upload").addEventListener("change", (event) => {
                 const file = event.target.files[0];
                 if (!file) return;
