@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"> 
 </head>
 <body>
-
     <div class="profile-container">
         <div class="exit-icon">
             <a href="index.html" id="exitIcon"><i class="fa-solid fa-arrow-left"></i></a>
@@ -27,7 +26,6 @@
         <div class="profile-info">
             <h1 id="username" contenteditable="false">Loading...</h1>
             <p id="role"></p>
-
             <div class="profile-actions">
                 <button id="message"><i class="fa-solid fa-envelope"></i> Message</button>
                 <button id="add-product"><i class="fa-solid fa-plus"></i> Add Product</button>
@@ -69,6 +67,7 @@
 
         document.addEventListener("DOMContentLoaded", async () => {
             const userId = localStorage.getItem("user_id");
+
             if (!userId) {
                 alert("⚠️ No profile found.");
                 window.location.href = "store.html";
@@ -77,15 +76,16 @@
 
             // Fetch profile data from Supabase
             const { data: profile, error } = await supabase.from("users").select("*").eq("id", userId).maybeSingle();
+
             if (error || !profile) {
                 alert("⚠️ Error loading profile.");
                 return;
             }
 
             document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
-            document.getElementById("profile-img").src = profile.avatar_url || "";
+            document.getElementById("profile-img").src = profile.avatar_url || "default-avatar.jpg"; // Ensure a default image
             document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
-            document.getElementById("banner-img").src = profile.banner_url || "image1.jpg";
+            document.getElementById("banner-img").src = profile.banner_url || "image1.jpg"; // Ensure a default banner
 
             let isEditing = false;
 
@@ -114,6 +114,7 @@
                     document.getElementById("profile-picture").removeEventListener("click", openProfileUpload);
                     document.getElementById("banner-container").removeEventListener("click", openBannerUpload);
                 }
+
                 isEditing = !isEditing;
             });
 
@@ -124,17 +125,21 @@
 
             document.getElementById("profile-pic-upload").addEventListener("change", async (event) => {
                 if (!isEditing) return;
+
                 const file = event.target.files[0];
                 if (!file) return;
 
                 const { data, error: uploadError } = await supabase.storage.from("avatars").upload(`avatars/${userId}`, file, { upsert: true });
+
                 if (uploadError) {
                     alert("⚠️ Error uploading profile picture.");
                     return;
                 }
 
                 const avatarUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${userId}`;
+
                 document.getElementById("profile-img").src = avatarUrl;
+
                 await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", userId);
             });
 
@@ -145,17 +150,21 @@
 
             document.getElementById("banner-upload").addEventListener("change", async (event) => {
                 if (!isEditing) return;
+
                 const file = event.target.files[0];
                 if (!file) return;
 
                 const { data, error: uploadError } = await supabase.storage.from("banners").upload(`banners/${userId}`, file, { upsert: true });
+
                 if (uploadError) {
                     alert("⚠️ Error uploading banner.");
                     return;
                 }
 
                 const bannerUrl = `${SUPABASE_URL}/storage/v1/object/public/banners/${userId}`;
+
                 document.getElementById("banner-img").src = bannerUrl;
+
                 await supabase.from("users").update({ banner_url: bannerUrl }).eq("id", userId);
             });
 
