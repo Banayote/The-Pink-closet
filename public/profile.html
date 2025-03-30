@@ -16,17 +16,18 @@
 
         <!-- Banner Section -->
         <div class="banner" id="banner-container">
-            <img id="banner-img" src="image1.jpg" alt="Banner Image" class="banner-img">
+            <img id="banner-img" src="https://via.placeholder.com/800x300" alt="Banner Image" class="banner-img">
         </div>
 
         <!-- Profile Picture -->
         <div class="profile-picture" id="profile-picture">
-            <img id="profile-img" src="" alt="Profile Picture" style="background: white;">
+            <img id="profile-img" src="https://ui-avatars.com/api/?name=User&background=random" alt="Profile Picture" style="background: white;">
         </div>
 
         <div class="profile-info">
             <h1 id="username" contenteditable="false">Loading...</h1>
             <p id="role"></p>
+
 
             <div class="profile-actions">
                 <button id="message"><i class="fa-solid fa-envelope"></i> Message</button>
@@ -64,8 +65,8 @@
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener("DOMContentLoaded", async () => {
             const userId = localStorage.getItem("user_id");
@@ -83,9 +84,14 @@
             }
 
             document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
-            document.getElementById("profile-img").src = profile.avatar_url || "";
-            document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
-            document.getElementById("banner-img").src = profile.banner_url || "image1.jpg";
+            
+            // Default profile image
+            const defaultAvatar = "https://ui-avatars.com/api/?name=User&background=random";
+            document.getElementById("profile-img").src = profile.avatar_url || defaultAvatar;
+
+            // Default banner image
+            const defaultBanner = "https://via.placeholder.com/800x300";
+            document.getElementById("banner-img").src = profile.banner_url || defaultBanner;
 
             let isEditing = false;
 
@@ -100,78 +106,3 @@
                     document.getElementById("banner-container").addEventListener("click", openBannerUpload);
                 } else {
                     const updatedName = document.getElementById("username").textContent;
-                    const { error: updateError } = await supabase.from("users").update({ first_name: updatedName }).eq("id", userId);
-
-                    if (updateError) {
-                        alert("⚠️ Failed to save name.");
-                        return;
-                    }
-
-                    document.getElementById("username").contentEditable = "false";
-                    document.getElementById("edit").innerHTML = '<i class="fa-solid fa-wrench"></i> Edit';
-
-                    // Disable image editing
-                    document.getElementById("profile-picture").removeEventListener("click", openProfileUpload);
-                    document.getElementById("banner-container").removeEventListener("click", openBannerUpload);
-                }
-                isEditing = !isEditing;
-            });
-
-            // Profile Picture Upload Function
-            function openProfileUpload() {
-                document.getElementById("profile-pic-upload").click();
-            }
-
-            document.getElementById("profile-pic-upload").addEventListener("change", async (event) => {
-                if (!isEditing) return;
-                const file = event.target.files[0];
-                if (!file) return;
-
-                const { data, error: uploadError } = await supabase.storage.from("avatars").upload(`avatars/${userId}`, file, { upsert: true });
-                if (uploadError) {
-                    alert("⚠️ Error uploading profile picture.");
-                    return;
-                }
-
-                const avatarUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${userId}`;
-                document.getElementById("profile-img").src = avatarUrl;
-                await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", userId);
-            });
-
-            // Banner Upload Function
-            function openBannerUpload() {
-                document.getElementById("banner-upload").click();
-            }
-
-            document.getElementById("banner-upload").addEventListener("change", async (event) => {
-                if (!isEditing) return;
-                const file = event.target.files[0];
-                if (!file) return;
-
-                const { data, error: uploadError } = await supabase.storage.from("banners").upload(`banners/${userId}`, file, { upsert: true });
-                if (uploadError) {
-                    alert("⚠️ Error uploading banner.");
-                    return;
-                }
-
-                const bannerUrl = `${SUPABASE_URL}/storage/v1/object/public/banners/${userId}`;
-                document.getElementById("banner-img").src = bannerUrl;
-                await supabase.from("users").update({ banner_url: bannerUrl }).eq("id", userId);
-            });
-
-            // Prevent image upload when clicking message/add-product
-            document.getElementById("message").addEventListener("click", (e) => {
-                e.stopPropagation();
-                window.location.href = `messages.html?seller_id=${encodeURIComponent(userId)}`;
-            });
-
-            document.getElementById("add-product").addEventListener("click", (e) => {
-                e.stopPropagation();
-                window.location.href = `add-product.html?seller_id=${encodeURIComponent(userId)}`;
-            });
-
-        });
-    </script>
-
-</body>
-</html>
