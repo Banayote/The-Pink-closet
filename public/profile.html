@@ -3,221 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messages</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
-        }
-        .header {
-            background: #ff6347;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 20px;
-            position: relative;
-        }
-        .back-btn {
-            position: absolute;
-            left: 10px;
-            top: 10px;
-            background: white;
-            color: #ff6347;
-            padding: 5px 10px;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .conversation-list {
-            max-width: 600px;
-            margin: 20px auto;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-        .conversation-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            border-bottom: 1px solid #ddd;
-            cursor: pointer;
-        }
-        .conversation-item:hover {
-            background: #f2f2f2;
-        }
-        .chat-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #ff6347;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            margin-right: 10px;
-        }
-        .chat-box {
-            display: none;
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .messages {
-            max-height: 300px;
-            overflow-y: auto;
-            border-bottom: 1px solid #ddd;
-            padding: 10px;
-        }
-        .message {
-            padding: 8px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-        .sent {
-            background: #ff6347;
-            color: white;
-            text-align: right;
-        }
-        .received {
-            background: #ddd;
-            text-align: left;
-        }
-        .input-container {
-            display: flex;
-            margin-top: 10px;
-        }
-        .message-input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        .send-btn {
-            background: #ff6347;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            margin-left: 5px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-    </style>
+    <title>User Profile</title>
+    <link rel="stylesheet" href="profile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"> 
 </head>
 <body>
 
-    <div class="header">
-        <button class="back-btn" onclick="window.location.href='profile.html'">⬅ Back</button>
-        Messages
-    </div>
-
-    <div id="conversation-list" class="conversation-list"></div>
-
-    <div id="chat-box" class="chat-box">
-        <h3 id="chat-title"></h3>
-        <div id="messages" class="messages"></div>
-        <div class="input-container">
-            <input id="message-input" type="text" class="message-input" placeholder="Type a message...">
-            <button class="send-btn" onclick="sendMessage()">Send</button>
+    <div class="profile-container">
+        <div class="exit-icon">
+            <a href="index.html" id="exitIcon"><i class="fa-solid fa-arrow-left"></i></a>
         </div>
+
+        <!-- Banner Section -->
+        <div class="banner" id="banner-container">
+            <img id="banner-img" src="image1.jpg" alt="Banner Image" class="banner-img">
+        </div>
+
+        <!-- Profile Picture -->
+        <div class="profile-picture" id="profile-picture">
+            <img id="profile-img" src="" alt="Profile Picture" style="background: white;">
+        </div>
+
+        <div class="profile-info">
+            <h1 id="username" contenteditable="false">Loading...</h1>
+            <p id="role"></p>
+
+            <div class="profile-actions">
+                <button id="message"><i class="fa-solid fa-envelope"></i> Message</button>
+                <button id="add-product"><i class="fa-solid fa-plus"></i> Add Product</button>
+                <button id="edit"><i class="fa-solid fa-wrench"></i> Edit</button>
+                <button id="copy-link"><i class="fa-solid fa-link"></i> Link</button>
+            </div>
+        </div>
+
+        <div class="profile-dashboard">
+            <div class="stats">
+                <div class="stat">
+                    <h2>Sales</h2>
+                    <p id="sales-count">0</p>
+                </div>
+                <div class="stat">
+                    <h2>Visitors</h2>
+                    <p id="visitors-count">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="product-list-button">
+            <button>View Product List</button>
+        </div>
+
+        <div class="user-products"></div>
     </div>
 
-    <script>
+    <!-- Hidden File Inputs -->
+    <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
+    <input type="file" id="banner-upload" accept="image/*" style="display:none;">
+
+    <script type="module">
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
+
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let currentUserId = localStorage.getItem("user_id");
-
-        async function loadConversations() {
-            const { data, error } = await supabase
-                .from("conversations")
-                .select("*")
-                .or(`buyer_id.eq.${currentUserId},seller_id.eq.${currentUserId}`);
-
-            if (error) {
-                console.error("❌ Error loading conversations:", error.message);
+        document.addEventListener("DOMContentLoaded", async () => {
+            const userId = localStorage.getItem("user_id");
+            if (!userId) {
+                alert("⚠️ No profile found.");
+                window.location.href = "store.html";
                 return;
             }
 
-            const conversationList = document.getElementById("conversation-list");
-            conversationList.innerHTML = "";
-
-            data.forEach(convo => {
-                const otherUserId = convo.seller_id === currentUserId ? convo.buyer_id : convo.seller_id;
-
-                const convoItem = document.createElement("div");
-                convoItem.classList.add("conversation-item");
-                convoItem.onclick = () => openChat(convo.id, otherUserId);
-
-                convoItem.innerHTML = `
-                    <div class="chat-icon">💬</div>
-                    <div>${otherUserId}</div>
-                `;
-
-                conversationList.appendChild(convoItem);
-            });
-        }
-
-        async function openChat(conversationId, otherUserId) {
-            document.getElementById("chat-box").style.display = "block";
-            document.getElementById("chat-title").innerText = `Chat with ${otherUserId}`;
-            document.getElementById("messages").innerHTML = "";
-
-            const { data, error } = await supabase
-                .from("messages")
-                .select("*")
-                .eq("conversation_id", conversationId)
-                .order("created_at", { ascending: true });
-
-            if (error) {
-                console.error("❌ Error loading messages:", error.message);
+            // Fetch profile data from Supabase
+            const { data: profile, error } = await supabase.from("users").select("*").eq("id", userId).maybeSingle();
+            if (error || !profile) {
+                alert("⚠️ Error loading profile.");
                 return;
             }
 
-            data.forEach(msg => {
-                displayMessage(msg.sender_id, msg.message); // ✅ FIXED: Changed 'content' to 'message'
+            document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
+            document.getElementById("profile-img").src = profile.avatar_url || "";
+            document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
+            document.getElementById("banner-img").src = profile.banner_url || "image1.jpg";
+
+            let isEditing = false;
+
+            // Edit Button
+            document.getElementById("edit").addEventListener("click", async () => {
+                if (!isEditing) {
+                    document.getElementById("username").contentEditable = "true";
+                    document.getElementById("edit").innerHTML = '<i class="fa-solid fa-save"></i> Save';
+
+                    // Enable image editing
+                    document.getElementById("profile-picture").addEventListener("click", openProfileUpload);
+                    document.getElementById("banner-container").addEventListener("click", openBannerUpload);
+                } else {
+                    const updatedName = document.getElementById("username").textContent;
+                    const { error: updateError } = await supabase.from("users").update({ first_name: updatedName }).eq("id", userId);
+
+                    if (updateError) {
+                        alert("⚠️ Failed to save name.");
+                        return;
+                    }
+
+                    document.getElementById("username").contentEditable = "false";
+                    document.getElementById("edit").innerHTML = '<i class="fa-solid fa-wrench"></i> Edit';
+
+                    // Disable image editing
+                    document.getElementById("profile-picture").removeEventListener("click", openProfileUpload);
+                    document.getElementById("banner-container").removeEventListener("click", openBannerUpload);
+                }
+                isEditing = !isEditing;
             });
 
-            localStorage.setItem("current_conversation", conversationId);
-        }
-
-        function displayMessage(sender, text) {
-            const msgContainer = document.getElementById("messages");
-            const msgDiv = document.createElement("div");
-            msgDiv.classList.add("message", sender === currentUserId ? "sent" : "received");
-            msgDiv.innerText = text;
-            msgContainer.appendChild(msgDiv);
-        }
-
-        async function sendMessage() {
-            const conversationId = localStorage.getItem("current_conversation");
-            const input = document.getElementById("message-input");
-            const messageText = input.value.trim();
-
-            if (!messageText) return;
-
-            const { error } = await supabase.from("messages").insert([
-                { conversation_id: conversationId, sender_id: currentUserId, message: messageText } // ✅ FIXED: Changed 'content' to 'message'
-            ]);
-
-            if (error) {
-                console.error("❌ Error sending message:", error.message);
-                return;
+            // Profile Picture Upload Function
+            function openProfileUpload() {
+                document.getElementById("profile-pic-upload").click();
             }
 
-            displayMessage(currentUserId, messageText);
-            input.value = "";
-        }
+            document.getElementById("profile-pic-upload").addEventListener("change", async (event) => {
+                if (!isEditing) return;
+                const file = event.target.files[0];
+                if (!file) return;
 
-        document.addEventListener("DOMContentLoaded", loadConversations);
+                const { data, error: uploadError } = await supabase.storage.from("avatars").upload(`avatars/${userId}`, file, { upsert: true });
+                if (uploadError) {
+                    alert("⚠️ Error uploading profile picture.");
+                    return;
+                }
+
+                const avatarUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${userId}`;
+                document.getElementById("profile-img").src = avatarUrl;
+                await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", userId);
+            });
+
+            // Banner Upload Function
+            function openBannerUpload() {
+                document.getElementById("banner-upload").click();
+            }
+
+            document.getElementById("banner-upload").addEventListener("change", async (event) => {
+                if (!isEditing) return;
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const { data, error: uploadError } = await supabase.storage.from("banners").upload(`banners/${userId}`, file, { upsert: true });
+                if (uploadError) {
+                    alert("⚠️ Error uploading banner.");
+                    return;
+                }
+
+                const bannerUrl = `${SUPABASE_URL}/storage/v1/object/public/banners/${userId}`;
+                document.getElementById("banner-img").src = bannerUrl;
+                await supabase.from("users").update({ banner_url: bannerUrl }).eq("id", userId);
+            });
+
+            // Prevent image upload when clicking message/add-product
+            document.getElementById("message").addEventListener("click", (e) => {
+                e.stopPropagation();
+                window.location.href = `messages.html?seller_id=${encodeURIComponent(userId)}`;
+            });
+
+            document.getElementById("add-product").addEventListener("click", (e) => {
+                e.stopPropagation();
+                window.location.href = `add-product.html?seller_id=${encodeURIComponent(userId)}`;
+            });
+
+        });
     </script>
+
 </body>
 </html>
