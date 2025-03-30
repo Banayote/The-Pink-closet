@@ -14,13 +14,13 @@
             <a href="index.html" id="exitIcon"><i class="fa-solid fa-arrow-left"></i></a>
         </div>
 
-        <div class="banner" onclick="document.getElementById('banner-upload').click()">
+        <div class="banner">
             <div id="banner-images" class="banner-images">
                 <img id="banner-img" src="image1.jpg" alt="Banner Image" class="banner-img">
             </div>
         </div>
 
-        <div class="profile-picture" onclick="document.getElementById('profile-pic-upload').click()">
+        <div class="profile-picture">
             <img id="profile-img" src="" alt="Profile Picture" style="background: white;">
         </div>
 
@@ -81,9 +81,16 @@
                     document.getElementById("username").contentEditable = "true";
                     editButton.innerHTML = '<i class="fa-solid fa-save"></i> Save';
                 } else {
-                    const updatedName = document.getElementById("username").textContent;
+                    const updatedName = document.getElementById("username").textContent.trim();
+                    const nameParts = updatedName.split(" ");
+                    const firstName = nameParts[0] || "";
+                    const lastName = nameParts.slice(1).join(" ") || "";
 
-                    const { error: updateError } = await supabase.from("users").update({ first_name: updatedName }).eq("id", userId);
+                    const { error: updateError } = await supabase.from("users").update({
+                        first_name: firstName,
+                        last_name: lastName
+                    }).eq("id", userId);
+
                     if (updateError) {
                         alert("⚠️ Failed to save name.");
                         return;
@@ -96,29 +103,51 @@
                 isEditing = !isEditing;
             });
 
-            // Profile picture upload (Base64)
+            // Enable profile picture and banner editing only when in edit mode
+            let canEdit = false;
+
+            editButton.addEventListener("click", () => {
+                canEdit = !canEdit;
+            });
+
+            // Profile picture upload
+            document.getElementById("profile-picture").addEventListener("click", () => {
+                if (canEdit) {
+                    document.getElementById("profile-pic-upload").click();
+                }
+            });
+
             document.getElementById("profile-pic-upload").addEventListener("change", async (event) => {
+                if (!canEdit) return;
+
                 const file = event.target.files[0];
                 if (!file) return;
 
-                const reader = new FileReader();
-                reader.onload = async () => {
-                    const base64String = reader.result;
+                const { data, error: uploadError } = await supabase.storage.from("avatars").upload(`avatars/${userId}`, file, {
+                    upsert: true,
+                });
 
-                    // Set profile picture
-                    document.getElementById("profile-img").src = base64String;
+                if (uploadError) {
+                    alert("⚠️ Error uploading profile picture.");
+                    return;
+                }
 
-                    // Save Base64 to Supabase
-                    const { error: updateError } = await supabase.from("users").update({ avatar_url: base64String }).eq("id", userId);
-                    if (updateError) {
-                        alert("⚠️ Error updating profile picture.");
-                    }
-                };
-                reader.readAsDataURL(file);
+                const avatarUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${userId}`;
+                document.getElementById("profile-img").src = avatarUrl;
+
+                await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", userId);
             });
 
-            // Banner upload (LocalStorage only)
+            // Banner upload
+            document.getElementById("banner-images").addEventListener("click", () => {
+                if (canEdit) {
+                    document.getElementById("banner-upload").click();
+                }
+            });
+
             document.getElementById("banner-upload").addEventListener("change", (event) => {
+                if (!canEdit) return;
+
                 const file = event.target.files[0];
                 if (!file) return;
 
@@ -130,6 +159,16 @@
                 };
                 reader.readAsDataURL(file);
             });
+
+            // Fix Add Product & Message Buttons
+            document.getElementById("add-product").addEventListener("click", () => {
+                alert("Add Product coming soon...");
+            });
+
+            document.getElementById("message").addEventListener("click", () => {
+                alert("Messaging coming soon...");
+            });
+
         });
     </script>
 
