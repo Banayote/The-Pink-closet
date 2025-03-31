@@ -128,19 +128,20 @@
                 const file = event.target.files[0];
                 if (!file) return;
 
-                // Upload to Supabase Storage (avatars bucket)
-                const { data, error: uploadError } = await supabase.storage.from("avatars").upload(`avatars/${userId}`, file, { upsert: true });
-                if (uploadError) {
-                    alert("⚠️ Error uploading profile picture.");
-                    return;
-                }
+                const reader = new FileReader();
+                reader.onloadend = async function () {
+                    const base64Image = reader.result;
 
-                // Get public URL of uploaded file
-                const avatarUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${userId}`;
-                document.getElementById("profile-img").src = avatarUrl;
+                    // Update the profile picture
+                    document.getElementById("profile-img").src = base64Image;
 
-                // Update the user record in Supabase
-                await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", userId);
+                    // Update the user's avatar URL in Supabase (directly with Base64 string)
+                    const { error: updateError } = await supabase.from("users").update({ avatar_url: base64Image }).eq("id", userId);
+                    if (updateError) {
+                        alert("⚠️ Error updating profile picture.");
+                    }
+                };
+                reader.readAsDataURL(file);
             });
 
             // Banner Upload Function (Local Storage only)
