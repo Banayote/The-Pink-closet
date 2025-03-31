@@ -87,7 +87,7 @@
             document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
             document.getElementById("profile-img").src = profile.avatar_url || "https://via.placeholder.com/150";
             document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
-            document.getElementById("banner-img").src = profile.banner_url || "https://via.placeholder.com/800x300/cccccc/000000?text=Default+Banner";
+            document.getElementById("banner-img").src = localStorage.getItem("banner_url") || "https://via.placeholder.com/800x300/cccccc/000000?text=Default+Banner";
 
             let isEditing = false;
 
@@ -143,28 +143,25 @@
                 await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", userId);
             });
 
-            // Banner Upload Function
+            // Banner Upload Function (Local Storage only)
             function openBannerUpload() {
                 document.getElementById("banner-upload").click();
             }
 
-            document.getElementById("banner-upload").addEventListener("change", async (event) => {
+            document.getElementById("banner-upload").addEventListener("change", (event) => {
                 const file = event.target.files[0];
                 if (!file) return;
 
-                // Upload to Supabase Storage (banners bucket)
-                const { data, error: uploadError } = await supabase.storage.from("banners").upload(`banners/${userId}`, file, { upsert: true });
-                if (uploadError) {
-                    alert("⚠️ Error uploading banner.");
-                    return;
-                }
+                const reader = new FileReader();
+                reader.onloadend = function () {
+                    const bannerUrl = reader.result;
+                    document.getElementById("banner-img").src = bannerUrl;
 
-                // Get public URL of uploaded file
-                const bannerUrl = `${SUPABASE_URL}/storage/v1/object/public/banners/${userId}`;
-                document.getElementById("banner-img").src = bannerUrl;
+                    // Save the banner image URL to localStorage
+                    localStorage.setItem("banner_url", bannerUrl);
+                };
 
-                // Update the user record in Supabase
-                await supabase.from("users").update({ banner_url: bannerUrl }).eq("id", userId);
+                reader.readAsDataURL(file);
             });
 
             // Prevent image upload when clicking message/add-product
