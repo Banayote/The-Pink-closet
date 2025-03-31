@@ -14,14 +14,14 @@
             <a href="index.html" id="exitIcon"><i class="fa-solid fa-arrow-left"></i></a>
         </div>
 
-        <div class="banner" onclick="document.getElementById('banner-upload').click()">
-            <div id="banner-images" class="banner-images">
-                <img id="banner-img" src="image1.jpg" alt="Banner Image" class="banner-img">
-            </div>
+        <!-- Banner Section -->
+        <div class="banner" id="banner-container">
+            <img id="banner-img" src="https://source.unsplash.com/800x300/?nature,water" alt="Banner Image" class="banner-img">
         </div>
 
-        <div class="profile-picture" onclick="document.getElementById('profile-pic-upload').click()">
-            <img id="profile-img" src="" alt="Profile Picture" style="background: white;">
+        <!-- Profile Picture -->
+        <div class="profile-picture" id="profile-picture">
+            <img id="profile-img" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="Profile Picture" style="background: white;">
         </div>
 
         <div class="profile-info">
@@ -35,100 +35,144 @@
                 <button id="copy-link"><i class="fa-solid fa-link"></i> Link</button>
             </div>
         </div>
+
+        <div class="profile-dashboard">
+            <div class="stats">
+                <div class="stat">
+                    <h2>Sales</h2>
+                    <p id="sales-count">0</p>
+                </div>
+                <div class="stat">
+                    <h2>Visitors</h2>
+                    <p id="visitors-count">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="product-list-button">
+            <button>View Product List</button>
+        </div>
+
+        <div class="user-products"></div>
     </div>
 
+    <!-- Hidden File Inputs for Avatar and Banner Upload -->
     <input type="file" id="profile-pic-upload" accept="image/*" style="display:none;">
     <input type="file" id="banner-upload" accept="image/*" style="display:none;">
 
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
-        const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        // Your Supabase URL and anon key
+        const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";  // Your Supabase URL
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";  // Your Supabase anon key
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener("DOMContentLoaded", async () => {
             const userId = localStorage.getItem("user_id");
-
             if (!userId) {
                 alert("⚠️ No profile found.");
                 window.location.href = "store.html";
                 return;
             }
 
+            // Fetch profile data from Supabase
             const { data: profile, error } = await supabase.from("users").select("*").eq("id", userId).maybeSingle();
-
             if (error || !profile) {
                 alert("⚠️ Error loading profile.");
                 return;
             }
 
+            // Display profile information
             document.getElementById("username").textContent = `${profile.first_name || "Unknown"} ${profile.last_name || ""}`;
-            document.getElementById("profile-img").src = profile.avatar_url || "";
+            document.getElementById("profile-img").src = profile.avatar_url || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
             document.getElementById("role").textContent = `Role: ${profile.role || "Unknown"}`;
-
-            // Load banner from Local Storage
-            const banner = localStorage.getItem("banner");
-            if (banner) {
-                document.getElementById("banner-img").src = banner;
-            }
+            document.getElementById("banner-img").src = localStorage.getItem("banner_url") || "https://source.unsplash.com/800x300/?nature,water";
 
             let isEditing = false;
-            const editButton = document.getElementById("edit");
 
-            editButton.addEventListener("click", async () => {
+            // Edit Button functionality
+            document.getElementById("edit").addEventListener("click", async () => {
                 if (!isEditing) {
                     document.getElementById("username").contentEditable = "true";
-                    editButton.innerHTML = '<i class="fa-solid fa-save"></i> Save';
+                    document.getElementById("edit").innerHTML = '<i class="fa-solid fa-save"></i> Save';
+
+                    // Enable image editing
+                    document.getElementById("profile-picture").addEventListener("click", openProfileUpload);
+                    document.getElementById("banner-container").addEventListener("click", openBannerUpload);
                 } else {
                     const updatedName = document.getElementById("username").textContent;
-
                     const { error: updateError } = await supabase.from("users").update({ first_name: updatedName }).eq("id", userId);
+
                     if (updateError) {
                         alert("⚠️ Failed to save name.");
                         return;
                     }
 
                     document.getElementById("username").contentEditable = "false";
-                    editButton.innerHTML = '<i class="fa-solid fa-wrench"></i> Edit';
-                }
+                    document.getElementById("edit").innerHTML = '<i class="fa-solid fa-wrench"></i> Edit';
 
+                    // Disable image editing
+                    document.getElementById("profile-picture").removeEventListener("click", openProfileUpload);
+                    document.getElementById("banner-container").removeEventListener("click", openBannerUpload);
+                }
                 isEditing = !isEditing;
             });
 
-            // Profile picture upload (Base64)
+            // Profile Picture Upload Function
+            function openProfileUpload() {
+                document.getElementById("profile-pic-upload").click();
+            }
+
             document.getElementById("profile-pic-upload").addEventListener("change", async (event) => {
                 const file = event.target.files[0];
                 if (!file) return;
 
-                const reader = new FileReader();
-                reader.onload = async () => {
-                    const base64String = reader.result;
+                // Upload to Supabase Storage (avatars bucket)
+                const { data, error: uploadError } = await supabase.storage.from("avatars").upload(`avatars/${userId}`, file, { upsert: true });
+                if (uploadError) {
+                    alert("⚠️ Error uploading profile picture.");
+                    return;
+                }
 
-                    // Set profile picture
-                    document.getElementById("profile-img").src = base64String;
+                // Get public URL of uploaded file
+                const avatarUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${userId}`;
+                document.getElementById("profile-img").src = avatarUrl;
 
-                    // Save Base64 to Supabase
-                    const { error: updateError } = await supabase.from("users").update({ avatar_url: base64String }).eq("id", userId);
-                    if (updateError) {
-                        alert("⚠️ Error updating profile picture.");
-                    }
-                };
-                reader.readAsDataURL(file);
+                // Update the user record in Supabase
+                await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", userId);
             });
 
-            // Banner upload (LocalStorage only)
+            // Banner Upload Function (Local Storage only)
+            function openBannerUpload() {
+                document.getElementById("banner-upload").click();
+            }
+
             document.getElementById("banner-upload").addEventListener("change", (event) => {
                 const file = event.target.files[0];
                 if (!file) return;
 
                 const reader = new FileReader();
-                reader.onload = () => {
-                    const bannerImg = document.getElementById("banner-img");
-                    bannerImg.src = reader.result;
-                    localStorage.setItem("banner", reader.result);
+                reader.onloadend = function () {
+                    const bannerUrl = reader.result;
+                    document.getElementById("banner-img").src = bannerUrl;
+
+                    // Save the banner image URL to localStorage
+                    localStorage.setItem("banner_url", bannerUrl);
                 };
+
                 reader.readAsDataURL(file);
+            });
+
+            // Prevent image upload when clicking message/add-product
+            document.getElementById("message").addEventListener("click", (e) => {
+                e.stopPropagation();
+                window.location.href = `messages.html?seller_id=${encodeURIComponent(userId)}`;
+            });
+
+            document.getElementById("add-product").addEventListener("click", (e) => {
+                e.stopPropagation();
+                window.location.href = `add-product.html?seller_id=${encodeURIComponent(userId)}`;
             });
         });
     </script>
