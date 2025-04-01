@@ -13,6 +13,7 @@
             padding: 0;
             background-color: white;
         }
+        /* Chat List */
         #chat-list, #chat-screen {
             max-width: 500px;
             height: 100vh;
@@ -39,6 +40,7 @@
             margin-right: 10px;
             border: 2px solid #f48fb1;
         }
+        /* Chat Header */
         #chat-header {
             display: flex;
             align-items: center;
@@ -58,10 +60,12 @@
             font-weight: bold;
             margin-right: 70px;
         }
+        /* Message List */
         #messages {
             flex: 1;
             padding: 10px;
             overflow-y: auto;
+            height: calc(100vh - 160px);
             background-color: white;
         }
         .message {
@@ -71,8 +75,10 @@
             max-width: 70%;
             display: inline-block;
             font-size: 16px;
+            position: relative;
             word-wrap: break-word;
             white-space: pre-wrap;
+            overflow-wrap: break-word;
         }
         .sent {
             background-color: pink;
@@ -86,6 +92,7 @@
             float: left;
             clear: both;
         }
+        /* Input Container */
         #message-input-container {
             position: fixed;
             bottom: 0;
@@ -103,6 +110,7 @@
             padding: 10px;
             border-radius: 20px;
             border: 1px solid #ddd;
+            margin-left: 10px;
             height: 34px;
         }
         #send-button {
@@ -114,15 +122,24 @@
             cursor: pointer;
             margin-left: 10px;
         }
+        #back-button {
+            font-size: 22px;
+            color: white;
+            cursor: pointer;
+            margin-left: 10px;
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 <body>
 
+    <!-- Chat List -->
     <div id="chat-list">
         <h2 style="text-align: center; padding: 10px;">Messages</h2>
         <div id="chat-list-container"></div>
     </div>
 
+    <!-- Chat Screen -->
     <div id="chat-screen" style="display: none;">
         <div id="chat-header">
             <i id="back-button" class="fas fa-arrow-left" onclick="goBack()"></i>
@@ -188,40 +205,14 @@
             loadMessages(convoId);
         }
 
-        async function loadMessages(convoId) {
-            const { data, error } = await supabase
-                .from("messages")
-                .select("*")
-                .eq("conversation_id", convoId)
-                .order("created_at", { ascending: true });
-
-            if (error) return console.error("Error loading messages:", error);
-
-            const messageContainer = document.getElementById("messages");
-            messageContainer.innerHTML = "";
-
-            data.forEach(msg => displayMessage(msg.sender_id, msg.message));
-
-            messageContainer.scrollTop = messageContainer.scrollHeight;
-        }
-
-        function displayMessage(sender, text) {
-            const msgContainer = document.getElementById("messages");
-            const msgDiv = document.createElement("div");
-            msgDiv.classList.add("message", sender === currentUserId ? "sent" : "received");
-            msgDiv.innerText = text;
-            msgContainer.appendChild(msgDiv);
-            msgContainer.scrollTop = msgContainer.scrollHeight;
-        }
-
         async function sendMessage() {
             const input = document.getElementById("message-input");
-            const messageText = input.value.trim();
-            if (!messageText) return;
+            const message = input.value.trim();
+            if (!message) return;
 
-            await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message: messageText }]);
-            displayMessage(currentUserId, messageText);
+            await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
             input.value = "";
+            input.focus();
         }
 
         function goBack() {
