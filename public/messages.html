@@ -176,7 +176,7 @@
 
                 const { data: user } = await supabase
                     .from("users")
-                    .select("first_name, last_name, avatar_url")
+                    .select("first_name, avatar_url")
                     .eq("id", otherUserId)
                     .single();
 
@@ -213,6 +213,16 @@
             await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
             input.value = "";
             input.focus();
+
+            // Instantly add the message to chat
+            displayMessage(message, "sent");
+        }
+
+        function displayMessage(text, type) {
+            const msgDiv = document.createElement("div");
+            msgDiv.className = `message ${type}`;
+            msgDiv.innerText = text;
+            document.getElementById("messages").appendChild(msgDiv);
         }
 
         function goBack() {
