@@ -7,20 +7,128 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: white; }
-        #chat-list, #chat-screen { max-width: 500px; height: 100vh; margin: auto; display: flex; flex-direction: column; background-color: white; }
-        .conversation { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #e1e1e1; cursor: pointer; transition: background 0.3s; }
-        .conversation:hover { background-color: #f8bbd0; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; border: 2px solid #f48fb1; }
-        #chat-header { display: flex; align-items: center; justify-content: space-between; padding: 10px; background-color: pink; color: white; }
-        #messages { flex: 1; padding: 10px; overflow-y: auto; height: calc(100vh - 160px); background-color: white; }
-        .message { margin: 10px 0; padding: 10px; border-radius: 15px; max-width: 70%; display: inline-block; font-size: 16px; position: relative; word-wrap: break-word; white-space: pre-wrap; overflow-wrap: break-word; }
-        .sent { background-color: pink; text-align: right; float: right; clear: both; }
-        .received { background-color: whitesmoke; text-align: left; float: left; clear: both; }
-        #message-input-container { position: fixed; bottom: 0; width: 100%; max-width: 500px; background-color: white; display: flex; align-items: center; padding: 10px; z-index: 1000; box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); }
-        #message-input { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ddd; margin-left: 10px; height: 34px; }
-        #send-button { background-color: pink; color: white; border: none; padding: 10px; border-radius: 50%; cursor: pointer; margin-left: 10px; }
-        #back-button { font-size: 22px; color: white; cursor: pointer; margin-left: 10px; transform: rotate(180deg); }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+        }
+        /* Chat List */
+        #chat-list, #chat-screen {
+            max-width: 500px;
+            height: 100vh;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+        }
+        .conversation {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #e1e1e1;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .conversation:hover {
+            background-color: #f8bbd0;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid #f48fb1;
+        }
+        /* Chat Header */
+        #chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: pink;
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+        #chat-header img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+        #chat-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-right: 70px;
+        }
+        /* Message List */
+        #messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            height: calc(100vh - 160px);
+            background-color: white;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 15px;
+            max-width: 70%;
+            display: inline-block;
+            font-size: 16px;
+            position: relative;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+        }
+        .sent {
+            background-color: pink;
+            text-align: right;
+            float: right;
+            clear: both;
+        }
+        .received {
+            background-color: whitesmoke;
+            text-align: left;
+            float: left;
+            clear: both;
+        }
+        /* Input Container */
+        #message-input-container {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 500px;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            z-index: 1000;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        }
+        #message-input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            margin-left: 10px;
+            height: 34px;
+        }
+        #send-button {
+            background-color: pink;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        #back-button {
+            font-size: 22px;
+            color: white;
+            cursor: pointer;
+            margin-left: 10px;
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 <body>
@@ -48,7 +156,7 @@
     <script>
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let currentUserId = localStorage.getItem("user_id");
         let currentConversationId = null;
 
@@ -95,38 +203,6 @@
 
             currentConversationId = convoId;
             loadMessages(convoId);
-
-            supabase.channel(`messages-${convoId}`)
-                .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, payload => {
-                    if (payload.new.conversation_id === currentConversationId) {
-                        displayMessage(payload.new.sender_id, payload.new.message);
-                    }
-                })
-                .subscribe();
-        }
-
-        async function loadMessages(convoId) {
-            const { data, error } = await supabase
-                .from("messages")
-                .select("*")
-                .eq("conversation_id", convoId)
-                .order("created_at", { ascending: true });
-
-            if (error) return console.error("Error loading messages:", error);
-
-            const messagesContainer = document.getElementById("messages");
-            messagesContainer.innerHTML = "";
-
-            data.forEach(msg => displayMessage(msg.sender_id, msg.message));
-        }
-
-        function displayMessage(senderId, message) {
-            const messagesContainer = document.getElementById("messages");
-            const msgDiv = document.createElement("div");
-            msgDiv.classList.add("message", senderId === currentUserId ? "sent" : "received");
-            msgDiv.innerText = message;
-            messagesContainer.appendChild(msgDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         async function sendMessage() {
@@ -136,6 +212,7 @@
 
             await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
             input.value = "";
+            loadMessages(currentConversationId);
         }
 
         function goBack() {
