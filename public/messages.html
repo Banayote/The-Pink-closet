@@ -3,192 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messages</title>
+    <title>Chat</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #fff;
-        }
-
-        .header {
-            background: #f48fb1;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 20px;
-            position: relative;
-        }
-
-        .back-btn {
-            position: absolute;
-            left: 10px;
-            top: 10px;
-            background: white;
-            color: #f48fb1;
-            padding: 5px 10px;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .conversation-list {
-            max-width: 600px;
-            margin: 20px auto;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .conversation-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            border-bottom: 1px solid #f0f0f0;
-            cursor: pointer;
-        }
-
-        .conversation-item:hover {
-            background: #f8bbd0;
-        }
-
-        .chat-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #f48fb1;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            margin-right: 10px;
-        }
-
-        .chat-box {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: white;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        .chat-header {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            background: #f48fb1;
-            color: white;
-        }
-
-        .chat-header h3 {
-            margin: 0;
-            flex: 1;
-            text-align: center;
-        }
-
-        .chat-header .back-btn {
-            background: white;
-            color: #f48fb1;
-            border: none;
-            font-size: 20px;
-        }
-
-        .messages {
-            flex: 1;
-            padding: 10px;
-            overflow-y: auto;
-        }
-
-        .message {
-            padding: 8px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            max-width: 80%;
-            word-wrap: break-word;
-            clear: both;
-        }
-
-        .sent {
-            background: #f48fb1;
-            color: white;
-            text-align: right;
-            float: right;
-        }
-
-        .received {
-            background: #f0f0f0;
-            text-align: left;
-            float: left;
-        }
-
-        .input-container {
-            display: flex;
-            padding: 10px;
-            background: white;
-            border-top: 1px solid #f0f0f0;
-        }
-
-        .message-input {
-            flex: 1;
-            padding: 10px;
-            border-radius: 20px;
-            border: 1px solid #e1e1e1;
-            background: #f9f9f9;
-            font-size: 16px;
-            outline: none;
-            resize: none;
-        }
-
-        .send-btn {
-            background: #f48fb1;
-            color: white;
-            border: none;
-            padding: 10px;
-            margin-left: 10px;
-            cursor: pointer;
-            border-radius: 50%;
-            font-size: 18px;
-        }
-
-        .send-btn:hover {
-            background: #f1c4d7;
-        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: white; }
+        #chat-list, #chat-screen { max-width: 500px; height: 100vh; margin: auto; display: flex; flex-direction: column; background-color: white; }
+        .conversation { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #e1e1e1; cursor: pointer; transition: background 0.3s; }
+        .conversation:hover { background-color: #f8bbd0; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; border: 2px solid #f48fb1; }
+        #chat-header { display: flex; align-items: center; justify-content: space-between; padding: 10px; background-color: pink; color: white; }
+        #messages { flex: 1; padding: 10px; overflow-y: auto; height: calc(100vh - 160px); background-color: white; }
+        .message { margin: 10px 0; padding: 10px; border-radius: 15px; max-width: 70%; display: inline-block; font-size: 16px; position: relative; word-wrap: break-word; white-space: pre-wrap; overflow-wrap: break-word; }
+        .sent { background-color: pink; text-align: right; float: right; clear: both; }
+        .received { background-color: whitesmoke; text-align: left; float: left; clear: both; }
+        #message-input-container { position: fixed; bottom: 0; width: 100%; max-width: 500px; background-color: white; display: flex; align-items: center; padding: 10px; z-index: 1000; box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); }
+        #message-input { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ddd; margin-left: 10px; height: 34px; }
+        #send-button { background-color: pink; color: white; border: none; padding: 10px; border-radius: 50%; cursor: pointer; margin-left: 10px; }
+        #back-button { font-size: 22px; color: white; cursor: pointer; margin-left: 10px; transform: rotate(180deg); }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <button class="back-btn" onclick="window.location.href='profile.html'">⬅ Back</button>
-        Messages
+    <!-- Chat List -->
+    <div id="chat-list">
+        <h2 style="text-align: center; padding: 10px;">Messages</h2>
+        <div id="chat-list-container"></div>
     </div>
 
-    <div id="conversation-list" class="conversation-list"></div>
-
-    <div id="chat-box" class="chat-box">
-        <div class="chat-header">
-            <button class="back-btn" onclick="closeChat()">⬅ Back</button>
-            <h3 id="chat-title"></h3>
+    <!-- Chat Screen -->
+    <div id="chat-screen" style="display: none;">
+        <div id="chat-header">
+            <i id="back-button" class="fas fa-arrow-left" onclick="goBack()"></i>
+            <img id="chat-avatar" src="" alt="User">
+            <span id="chat-title"></span>
         </div>
-        <div id="messages" class="messages"></div>
-        <div class="input-container">
-            <textarea id="message-input" class="message-input" placeholder="Type a message..." rows="1"></textarea>
-            <button class="send-btn" onclick="sendMessage()">Send</button>
+        <div id="messages"></div>
+        <div id="message-input-container">
+            <input id="message-input" type="text" placeholder="Type a message...">
+            <button id="send-button" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
     <script>
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let currentUserId = localStorage.getItem("user_id");
+        let currentConversationId = null;
 
         async function loadConversations() {
             const { data: conversations, error } = await supabase
@@ -198,66 +60,87 @@
 
             if (error) return console.error("Error loading conversations:", error);
 
-            const conversationList = document.getElementById("conversation-list");
-            conversationList.innerHTML = "";
+            const chatList = document.getElementById("chat-list-container");
+            chatList.innerHTML = "";
 
             for (const convo of conversations) {
                 const otherUserId = convo.seller_id === currentUserId ? convo.buyer_id : convo.seller_id;
 
-                const { data: user, error: userError } = await supabase
+                const { data: user } = await supabase
                     .from("users")
-                    .select("first_name, last_name")
+                    .select("first_name, last_name, avatar_url")
                     .eq("id", otherUserId)
                     .single();
 
-                if (userError) continue;
-
-                const fullName = `${user.first_name} ${user.last_name}`;
+                if (!user) continue;
 
                 const convoItem = document.createElement("div");
-                convoItem.classList.add("conversation-item");
-                convoItem.onclick = () => openChat(convo.id, fullName);
+                convoItem.classList.add("conversation");
+                convoItem.onclick = () => openChat(convo.id, user.first_name, user.avatar_url);
 
                 convoItem.innerHTML = `
-                    <div class="chat-icon">${user.first_name.charAt(0)}</div>
-                    <div>${fullName}</div>
+                    <img class="avatar" src="${user.avatar_url || 'https://via.placeholder.com/40'}" alt="${user.first_name}">
+                    <div>${user.first_name}</div>
                 `;
 
-                conversationList.appendChild(convoItem);
+                chatList.appendChild(convoItem);
             }
         }
 
-        async function openChat(conversationId, fullName) {
-            document.getElementById("chat-box").style.display = "flex";
-            document.getElementById("chat-title").innerText = fullName;
-            document.getElementById("messages").innerHTML = "";
+        async function openChat(convoId, name, avatarUrl) {
+            document.getElementById("chat-list").style.display = "none";
+            document.getElementById("chat-screen").style.display = "flex";
+            document.getElementById("chat-title").innerText = name;
+            document.getElementById("chat-avatar").src = avatarUrl || 'https://via.placeholder.com/40';
 
+            currentConversationId = convoId;
+            loadMessages(convoId);
+
+            supabase.channel(`messages-${convoId}`)
+                .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, payload => {
+                    if (payload.new.conversation_id === currentConversationId) {
+                        displayMessage(payload.new.sender_id, payload.new.message);
+                    }
+                })
+                .subscribe();
+        }
+
+        async function loadMessages(convoId) {
             const { data, error } = await supabase
                 .from("messages")
                 .select("*")
-                .eq("conversation_id", conversationId)
+                .eq("conversation_id", convoId)
                 .order("created_at", { ascending: true });
 
             if (error) return console.error("Error loading messages:", error);
 
-            data.forEach(msg => {
-                displayMessage(msg.sender_id, msg.message);
-            });
+            const messagesContainer = document.getElementById("messages");
+            messagesContainer.innerHTML = "";
 
-            localStorage.setItem("current_conversation", conversationId);
+            data.forEach(msg => displayMessage(msg.sender_id, msg.message));
         }
 
-        function displayMessage(sender, text) {
-            const msgContainer = document.getElementById("messages");
+        function displayMessage(senderId, message) {
+            const messagesContainer = document.getElementById("messages");
             const msgDiv = document.createElement("div");
-            msgDiv.classList.add("message", sender === currentUserId ? "sent" : "received");
-            msgDiv.innerText = text;
-            msgContainer.appendChild(msgDiv);
-            msgContainer.scrollTop = msgContainer.scrollHeight;
+            msgDiv.classList.add("message", senderId === currentUserId ? "sent" : "received");
+            msgDiv.innerText = message;
+            messagesContainer.appendChild(msgDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        function closeChat() {
-            document.getElementById("chat-box").style.display = "none";
+        async function sendMessage() {
+            const input = document.getElementById("message-input");
+            const message = input.value.trim();
+            if (!message) return;
+
+            await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
+            input.value = "";
+        }
+
+        function goBack() {
+            document.getElementById("chat-screen").style.display = "none";
+            document.getElementById("chat-list").style.display = "block";
         }
 
         document.addEventListener("DOMContentLoaded", loadConversations);
