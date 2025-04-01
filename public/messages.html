@@ -91,7 +91,9 @@
             flex: 1;
             padding: 10px;
             overflow-y: auto;
-            height: calc(100vh - 160px);
+            height: calc(100vh - 120px);
+            display: flex;
+            flex-direction: column;
         }
 
         .message {
@@ -165,6 +167,7 @@
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let currentUserId = localStorage.getItem("user_id");
+        let currentConvoId = null;
 
         async function loadConversations() {
             const { data: conversations, error } = await supabase
@@ -202,6 +205,7 @@
         }
 
         async function openChat(convoId, name, avatarUrl) {
+            currentConvoId = convoId;
             document.getElementById("chat-list").style.display = "none";
             document.getElementById("chat-screen").style.display = "flex";
             document.getElementById("chat-title").innerText = name;
@@ -222,31 +226,15 @@
         }
 
         async function sendMessage() {
-            const convoId = localStorage.getItem("current_convo_id");
             const messageInput = document.getElementById("message-input");
             const message = messageInput.value.trim();
 
-            if (message) {
-                const { error } = await supabase
-                    .from("messages")
-                    .insert([
-                        {
-                            conversation_id: convoId,
-                            sender_id: currentUserId,
-                            message: message
-                        }
-                    ]);
+            if (!message || !currentConvoId) return;
 
-                if (error) {
-                    console.error("Error sending message:", error);
-                    return;
-                }
+            await supabase.from("messages").insert([{ conversation_id: currentConvoId, sender_id: currentUserId, message }]);
 
-                document.getElementById("messages").innerHTML += `
-                    <div class="message sent">${message}</div>
-                `;
-                messageInput.value = "";
-            }
+            document.getElementById("messages").innerHTML += `<div class="message sent">${message}</div>`;
+            messageInput.value = "";
         }
 
         document.addEventListener("DOMContentLoaded", loadConversations);
