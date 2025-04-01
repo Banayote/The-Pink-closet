@@ -75,6 +75,7 @@
             overflow-y: auto;
             border-bottom: 1px solid #f0f0f0;
             padding: 10px;
+            margin-bottom: 10px;
         }
         .message {
             padding: 8px;
@@ -82,6 +83,7 @@
             margin-bottom: 10px;
             max-width: 80%;
             word-wrap: break-word;
+            clear: both;
         }
         .sent {
             background: #f48fb1;
@@ -99,9 +101,10 @@
             margin-top: 10px;
             border-top: 1px solid #f0f0f0;
             padding-top: 10px;
+            position: relative;
         }
         .message-input {
-            flex: 1;
+            width: 100%; /* Full width input field */
             padding: 12px;
             border-radius: 20px;
             border: 1px solid #e1e1e1;
@@ -122,6 +125,9 @@
             cursor: pointer;
             border-radius: 50%;
             font-size: 18px;
+            position: absolute;
+            right: 10px; /* Position the send button on the right */
+            bottom: 12px;
         }
         .send-btn:hover {
             background: #f1c4d7;
@@ -232,6 +238,7 @@
             msgDiv.classList.add("message", sender === currentUserId ? "sent" : "received");
             msgDiv.innerText = text;
             msgContainer.appendChild(msgDiv);
+            msgContainer.scrollTop = msgContainer.scrollHeight; // Scroll to the bottom
         }
 
         async function sendMessage() {
