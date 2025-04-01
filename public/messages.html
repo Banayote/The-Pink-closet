@@ -14,24 +14,9 @@
             padding: 0;
             background-color: white;
         }
-        
-        /* Header */
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background-color: pink;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
 
-        /* Conversation list */
-        #conversation-list {
+        /* Chat List */
+        #chat-list {
             max-width: 500px;
             height: 100vh;
             margin: auto;
@@ -41,7 +26,7 @@
             border-radius: 10px;
         }
 
-        .conversation-item {
+        .conversation {
             display: flex;
             align-items: center;
             padding: 15px;
@@ -50,7 +35,7 @@
             transition: background 0.3s;
         }
 
-        .conversation-item:hover {
+        .conversation:hover {
             background-color: #f8bbd0;
         }
 
@@ -62,27 +47,24 @@
             border: 2px solid #f48fb1;
         }
 
-        /* Chat box */
-        #chat-box {
+        /* Chat Screen */
+        #chat-screen {
             display: none;
-            max-width: 500px;
-            margin: auto;
-            padding: 10px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: white;
-            border-radius: 10px;
-            height: 100vh;
-            display: flex;
             flex-direction: column;
         }
 
         #chat-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
             padding: 10px;
             background-color: pink;
             color: white;
-            border-radius: 10px 10px 0 0;
         }
 
         #chat-header img {
@@ -92,16 +74,23 @@
         }
 
         #chat-header span {
+            flex: 1;
+            margin-left: 10px;
             font-size: 18px;
             font-weight: bold;
         }
 
+        #back-button {
+            font-size: 22px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
         /* Messages */
-        .messages {
+        #messages {
             flex: 1;
             padding: 10px;
             overflow-y: auto;
-            background-color: white;
             height: calc(100vh - 160px);
         }
 
@@ -112,31 +101,24 @@
             max-width: 70%;
             font-size: 16px;
             word-wrap: break-word;
-            white-space: pre-wrap;
         }
 
         .sent {
             background-color: pink;
-            text-align: right;
             align-self: flex-end;
         }
 
         .received {
             background-color: whitesmoke;
-            text-align: left;
             align-self: flex-start;
         }
 
         /* Input field */
         #message-input-container {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            max-width: 500px;
-            background-color: white;
             display: flex;
             align-items: center;
             padding: 10px;
+            background-color: white;
             box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
         }
 
@@ -145,7 +127,6 @@
             padding: 10px;
             border-radius: 20px;
             border: 1px solid #e1e1e1;
-            margin-right: 10px;
         }
 
         #send-button {
@@ -160,16 +141,17 @@
 </head>
 <body>
 
-    <div class="header">Messages</div>
+    <!-- Chat List -->
+    <div id="chat-list"></div>
 
-    <div id="conversation-list"></div>
-
-    <div id="chat-box">
+    <!-- Chat Screen -->
+    <div id="chat-screen">
         <div id="chat-header">
+            <i id="back-button" class="fas fa-arrow-left" onclick="goBack()"></i>
             <img id="chat-avatar" src="" alt="User">
             <span id="chat-title"></span>
         </div>
-        <div id="messages" class="messages"></div>
+        <div id="messages"></div>
         <div id="message-input-container">
             <input id="message-input" type="text" placeholder="Type a message...">
             <button id="send-button" onclick="sendMessage()">Send</button>
@@ -190,8 +172,8 @@
 
             if (error) return console.error("Error loading conversations:", error);
 
-            const conversationList = document.getElementById("conversation-list");
-            conversationList.innerHTML = "";
+            const chatList = document.getElementById("chat-list");
+            chatList.innerHTML = "";
 
             for (const convo of conversations) {
                 const otherUserId = convo.seller_id === currentUserId ? convo.buyer_id : convo.seller_id;
@@ -205,21 +187,22 @@
                 if (userError) continue;
 
                 const convoItem = document.createElement("div");
-                convoItem.classList.add("conversation-item");
+                convoItem.classList.add("conversation");
                 convoItem.onclick = () => openChat(convo.id, user.first_name, user.avatar_url);
 
                 convoItem.innerHTML = `
                     <img class="avatar" src="${user.avatar_url || 'https://via.placeholder.com/40'}" alt="${user.first_name}">
-                    <div>${user.first_name} ${user.last_name}</div>
+                    <div>${user.first_name}</div>
                 `;
 
-                conversationList.appendChild(convoItem);
+                chatList.appendChild(convoItem);
             }
         }
 
         async function openChat(convoId, name, avatarUrl) {
-            document.getElementById("chat-box").style.display = "block";
-            document.getElementById("chat-title").innerText = `Chat with ${name}`;
+            document.getElementById("chat-list").style.display = "none";
+            document.getElementById("chat-screen").style.display = "flex";
+            document.getElementById("chat-title").innerText = name;
             document.getElementById("chat-avatar").src = avatarUrl || 'https://via.placeholder.com/40';
 
             const { data, error } = await supabase.from("messages").select("*").eq("conversation_id", convoId).order("created_at", { ascending: true });
@@ -229,6 +212,11 @@
             document.getElementById("messages").innerHTML = data.map(msg =>
                 `<div class="message ${msg.sender_id === currentUserId ? 'sent' : 'received'}">${msg.message}</div>`
             ).join("");
+        }
+
+        function goBack() {
+            document.getElementById("chat-screen").style.display = "none";
+            document.getElementById("chat-list").style.display = "block";
         }
 
         document.addEventListener("DOMContentLoaded", loadConversations);
