@@ -203,6 +203,9 @@
 
             currentConversationId = convoId;
             loadMessages(convoId);
+
+            // Subscribe to new messages
+            subscribeToNewMessages();
         }
 
         async function sendMessage() {
@@ -211,8 +214,42 @@
             if (!message) return;
 
             await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
-            input.value = "";
-            loadMessages(currentConversationId);
+            input.value = "";  // Clear input
+        }
+
+        async function loadMessages(convoId) {
+            const { data: messages, error } = await supabase
+                .from("messages")
+                .select("*")
+                .eq("conversation_id", convoId)
+                .order("created_at", { ascending: true });
+
+            if (error) {
+                console.error("Error loading messages:", error);
+                return;
+            }
+
+            const messageContainer = document.getElementById("messages");
+            messageContainer.innerHTML = "";  // Clear the message container
+
+            messages.forEach((msg) => {
+                const messageElement = document.createElement("div");
+                messageElement.classList.add("message");
+                messageElement.classList.add(msg.sender_id === currentUserId ? "sent" : "received");
+                messageElement.innerText = msg.message;
+                messageContainer.appendChild(messageElement);
+            }
+
+            messageContainer.scrollTop = messageContainer.scrollHeight;  // Scroll to the latest message
+        }
+
+        function subscribeToNewMessages() {
+            supabase
+                .from(`messages:conversation_id=eq.${currentConversationId}`)
+                .on("INSERT", payload => {
+                    loadMessages(currentConversationId); // Reload messages on new message
+                })
+                .subscribe();
         }
 
         function goBack() {
