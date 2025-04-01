@@ -10,10 +10,10 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f9f9f9;
+            background-color: #fff;
         }
         .header {
-            background: #ff6347;
+            background: #f48fb1; /* Pink header */
             color: white;
             padding: 15px;
             text-align: center;
@@ -25,7 +25,7 @@
             left: 10px;
             top: 10px;
             background: white;
-            color: #ff6347;
+            color: #f48fb1;
             padding: 5px 10px;
             border: none;
             cursor: pointer;
@@ -43,17 +43,17 @@
             display: flex;
             align-items: center;
             padding: 15px;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #f0f0f0;
             cursor: pointer;
         }
         .conversation-item:hover {
-            background: #f2f2f2;
+            background: #f8bbd0;
         }
         .chat-icon {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: #ff6347;
+            background: #f48fb1;
             color: white;
             display: flex;
             align-items: center;
@@ -73,41 +73,61 @@
         .messages {
             max-height: 300px;
             overflow-y: auto;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #f0f0f0;
             padding: 10px;
         }
         .message {
             padding: 8px;
             border-radius: 5px;
             margin-bottom: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
         }
         .sent {
-            background: #ff6347;
+            background: #f48fb1;
             color: white;
             text-align: right;
+            float: right;
         }
         .received {
-            background: #ddd;
+            background: #f0f0f0;
             text-align: left;
+            float: left;
         }
         .input-container {
             display: flex;
             margin-top: 10px;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
         }
         .message-input {
             flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 12px;
+            border-radius: 20px;
+            border: 1px solid #e1e1e1;
+            background-color: #f9f9f9;
+            font-size: 16px;
+            outline: none;
+            resize: none;
+        }
+        .message-input:focus {
+            border-color: #f48fb1;
         }
         .send-btn {
-            background: #ff6347;
+            background: #f48fb1;
             color: white;
             border: none;
-            padding: 10px 15px;
-            margin-left: 5px;
+            padding: 12px 15px;
+            margin-left: 10px;
             cursor: pointer;
-            border-radius: 5px;
+            border-radius: 50%;
+            font-size: 18px;
+        }
+        .send-btn:hover {
+            background: #f1c4d7;
+        }
+        .message-input::placeholder {
+            color: #999;
         }
     </style>
 </head>
@@ -124,7 +144,7 @@
         <h3 id="chat-title"></h3>
         <div id="messages" class="messages"></div>
         <div class="input-container">
-            <input id="message-input" type="text" class="message-input" placeholder="Type a message...">
+            <textarea id="message-input" class="message-input" placeholder="Type a message..." rows="1"></textarea>
             <button class="send-btn" onclick="sendMessage()">Send</button>
         </div>
     </div>
