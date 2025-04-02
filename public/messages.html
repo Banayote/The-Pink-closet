@@ -13,7 +13,6 @@
             padding: 0;
             background-color: white;
         }
-        /* Chat List */
         #chat-list, #chat-screen {
             max-width: 500px;
             height: 100vh;
@@ -40,7 +39,6 @@
             margin-right: 10px;
             border: 2px solid #f48fb1;
         }
-        /* Chat Header */
         #chat-header {
             display: flex;
             align-items: center;
@@ -60,7 +58,6 @@
             font-weight: bold;
             margin-right: 70px;
         }
-        /* Message List */
         #messages {
             flex: 1;
             padding: 10px;
@@ -92,7 +89,6 @@
             float: left;
             clear: both;
         }
-        /* Input Container */
         #message-input-container {
             position: fixed;
             bottom: 0;
@@ -129,23 +125,15 @@
             margin-left: 10px;
             transform: rotate(180deg);
         }
-        .sending {
-            color: #ccc;
-            font-size: 14px;
-            text-align: center;
-            margin-top: 10px;
-        }
     </style>
 </head>
 <body>
 
-    <!-- Chat List -->
     <div id="chat-list">
         <h2 style="text-align: center; padding: 10px;">Messages</h2>
         <div id="chat-list-container"></div>
     </div>
 
-    <!-- Chat Screen -->
     <div id="chat-screen" style="display: none;">
         <div id="chat-header">
             <i id="back-button" class="fas fa-arrow-left" onclick="goBack()"></i>
@@ -157,12 +145,11 @@
             <input id="message-input" type="text" placeholder="Type a message...">
             <button id="send-button" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
         </div>
-        <div id="sending-indicator" class="sending" style="display: none;">Sending...</div>
     </div>
 
     <script>
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let currentUserId = localStorage.getItem("user_id");
         let currentConversationId = null;
@@ -212,6 +199,21 @@
             loadMessages(convoId);
         }
 
+        async function sendMessage() {
+            const input = document.getElementById("message-input");
+            const message = input.value.trim();
+            if (!message) return;
+
+            await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
+            input.value = "";
+
+            // Keep focus on input
+            setTimeout(() => input.focus(), 0);
+
+            // Reload messages and scroll to bottom
+            loadMessages(currentConversationId);
+        }
+
         async function loadMessages(convoId) {
             const { data: messages, error } = await supabase
                 .from("messages")
@@ -225,34 +227,13 @@
             messagesContainer.innerHTML = "";
 
             messages.forEach(msg => {
-                const messageDiv = document.createElement("div");
-                messageDiv.classList.add("message", msg.sender_id === currentUserId ? "sent" : "received");
-                messageDiv.textContent = msg.message;
-                messagesContainer.appendChild(messageDiv);
+                const msgDiv = document.createElement("div");
+                msgDiv.classList.add("message", msg.sender_id === currentUserId ? "sent" : "received");
+                msgDiv.textContent = msg.message;
+                messagesContainer.appendChild(msgDiv);
             });
 
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;  // Scroll to bottom of messages
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById("message-input");
-            const message = input.value.trim();
-            if (!message) return;
-
-            // Show "Sending..." indicator
-            const sendingIndicator = document.getElementById("sending-indicator");
-            sendingIndicator.style.display = "block";
-
-            // Insert the message into the database
-            await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
-
-            // Hide "Sending..." and clear input
-            sendingIndicator.style.display = "none";
-            input.value = "";
-            input.focus();
-
-            // Load new messages to show the sent message
-            loadMessages(currentConversationId);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         function goBack() {
