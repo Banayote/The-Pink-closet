@@ -31,6 +31,9 @@
             text-align: center;
             z-index: 10;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         h1 {
@@ -74,13 +77,13 @@
 
         #image-preview {
             display: none;
-            position: absolute;
+            position: fixed; /* Fixed so that it covers the full screen */
             top: 0;
             left: 0;
-            width: 100%;
+            width: 100vw;
             height: 100vh;
             object-fit: cover;
-            z-index: 1;
+            z-index: 1; /* Image sits at the back */
         }
 
         #cropper-box {
@@ -93,7 +96,7 @@
             border: 2px solid #fff;
             background: rgba(255, 255, 255, 0.5);
             cursor: move;
-            z-index: 2;
+            z-index: 2; /* Crop box is over the image */
         }
 
         #cropper-buttons {
