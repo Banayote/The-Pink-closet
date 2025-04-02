@@ -12,36 +12,66 @@
             padding: 0;
         }
 
+        /* Navigation Bar */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: pink;
+            color: white;
+        }
+
         .menu-icon {
             font-size: 30px;
             cursor: pointer;
-            padding: 10px;
             z-index: 1001;
         }
 
+        .search-bar {
+            display: flex;
+            align-items: center;
+        }
+
+        .search-bar input {
+            padding: 5px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .search-bar button {
+            background-color: white;
+            color: pink;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        /* Sidebar */
         .sidebar {
             position: fixed;
             top: 0;
-            right: 0;
+            right: -250px; /* Hidden initially */
             width: 250px;
             height: 100%;
+            background-color: white;
             box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
-            display: none;
-            background-color: #fff;
+            transition: right 0.3s ease-in-out;
             z-index: 1000;
-            transition: 0.3s ease;
         }
 
         .sidebar.active {
-            display: block;
+            right: 0; /* Slide in */
         }
 
         .close-btn {
             font-size: 30px;
             cursor: pointer;
-            padding: 10px;
             background: none;
             border: none;
+            width: 100%;
+            text-align: right;
+            padding: 10px;
         }
 
         .sidebar-content {
@@ -59,7 +89,14 @@
             background-color: #ddd;
         }
 
-        /* Product styles */
+        /* Product Styles */
+        #product-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 20px;
+        }
+
         .product {
             border: 1px solid #ccc;
             margin: 10px;
@@ -68,6 +105,7 @@
             cursor: pointer;
             background-color: #fff;
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+            width: 200px;
         }
 
         .product img {
@@ -89,11 +127,15 @@
             color: #ff6347;
         }
 
-        /* Placeholder for products */
-        #product-list {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: pink;
+            color: white;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
         }
     </style>
 </head>
@@ -134,6 +176,26 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Sidebar functionality
+            const menuIcon = document.getElementById('menuIcon');
+            const sidebar = document.getElementById('sidebar');
+            const closeBtn = document.getElementById('closeBtn');
+
+            menuIcon.addEventListener('click', function () {
+                sidebar.classList.toggle('active');
+            });
+
+            closeBtn.addEventListener('click', function () {
+                sidebar.classList.remove('active');
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!sidebar.contains(event.target) && !menuIcon.contains(event.target)) {
+                    sidebar.classList.remove('active');
+                }
+            });
+
+            // Supabase setup
             const supabase = window.supabase.createClient(
                 'https://fjlqkjwnelkamealhtyr.supabase.co',
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'
@@ -149,7 +211,6 @@
                         throw error;
                     }
 
-                    console.log("✅ Products Loaded:", products);
                     productList.innerHTML = ''; // Clear existing content
 
                     if (products.length === 0) {
@@ -169,9 +230,6 @@
                             <img src="${imageUrl}" alt="${product.name}">
                             <a href="product.html?id=${product.id}&seller_id=${product.seller_id}" class="view-product-btn">View Product</a>
                         `;
-
-                        // Debugging to ensure product has seller_id
-                        console.log(`🔍 Product ID: ${product.id}, Seller ID: ${product.seller_id}`);
 
                         productDiv.addEventListener('click', () => {
                             if (!product.seller_id) {
@@ -193,5 +251,4 @@
         });
     </script>
 </body>
-
 </html>
