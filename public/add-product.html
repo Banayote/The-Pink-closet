@@ -84,6 +84,17 @@
             color: #ff6bcb;
             font-weight: bold;
         }
+
+        #cropper-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        #cropper-buttons button {
+            width: 45%;
+        }
+
     </style>
 
 </head>
@@ -99,7 +110,10 @@
             
             <input type="file" id="product-image" accept="image/*" required>
             <img id="image-preview">
-            <button type="button" id="crop-button">Crop & Upload</button>
+            <div id="cropper-buttons">
+                <button type="button" id="apply-crop">Apply Crop</button>
+                <button type="button" id="exit-crop">Exit</button>
+            </div>
             <div id="loading" class="loading">Uploading...</div>
         </form>
     </div>
@@ -115,7 +129,8 @@
             const form = document.getElementById("add-product-form");
             const imageInput = document.getElementById("product-image");
             const imagePreview = document.getElementById("image-preview");
-            const cropButton = document.getElementById("crop-button");
+            const applyCropButton = document.getElementById("apply-crop");
+            const exitCropButton = document.getElementById("exit-crop");
             const loadingIndicator = document.getElementById("loading");
             let cropper;
 
@@ -129,17 +144,21 @@
                         imagePreview.style.display = 'block';
                         if (cropper) cropper.destroy();
                         cropper = new Cropper(imagePreview, {
-                            aspectRatio: 1,
+                            aspectRatio: 1, // Square crop area
                             viewMode: 2,
-                            autoCropArea: 1
+                            autoCropArea: 1,
+                            movable: true, // Only move the crop area, no resizing
+                            zoomable: false, // Disable zoom
+                            rotatable: false, // Disable rotation
+                            scalable: false, // Disable scaling
                         });
                     };
                     reader.readAsDataURL(file);
                 }
             });
 
-            // Crop Image & Upload
-            cropButton.addEventListener("click", async () => {
+            // Apply Crop & Upload Image
+            applyCropButton.addEventListener("click", async () => {
                 if (!cropper) {
                     alert("Please select an image first!");
                     return;
@@ -149,6 +168,15 @@
                 croppedCanvas.toBlob(async (blob) => {
                     await uploadImage(blob);
                 }, "image/jpeg");
+            });
+
+            // Exit without making changes
+            exitCropButton.addEventListener("click", () => {
+                imagePreview.src = ""; // Clear image preview
+                imagePreview.style.display = 'none'; // Hide image preview
+                if (cropper) {
+                    cropper.destroy(); // Destroy cropper instance
+                }
             });
 
             async function uploadImage(blob) {
