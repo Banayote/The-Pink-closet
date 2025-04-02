@@ -18,6 +18,17 @@
             cursor: pointer;
             padding: 10px;
             z-index: 1001;
+            transition: 0.3s ease-in-out;
+        }
+
+        .menu-icon.active::after {
+            content: "✖"; /* Change to "X" when active */
+            font-size: 30px;
+        }
+
+        .menu-icon:not(.active)::after {
+            content: "☰"; /* Default burger icon */
+            font-size: 30px;
         }
 
         .sidebar {
@@ -33,43 +44,25 @@
         }
 
         .sidebar.active {
-            right: 0; /* Slide in */
+            right: 0;
         }
 
-        .close-btn {
-            font-size: 30px;
-            cursor: pointer;
-            padding: 10px;
-            background: none;
-            border: none;
-            width: 100%;
-            text-align: right;
+        /* 🔥 Grid for Products */
+        #product-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
         }
 
-        .sidebar-content {
-            padding: 20px;
-        }
-
-        .sidebar-item {
-            display: block;
-            padding: 10px;
-            color: black;
-            text-decoration: none;
-        }
-
-        .sidebar-item:hover {
-            background-color: #ddd;
-        }
-
-        /* 🔥 Product Styles */
         .product {
-            border: 1px solid #ccc;
-            margin: 10px;
+            width: calc(100% / 15 - 10px); /* 15 products per row */
+            margin: 5px;
             padding: 10px;
             text-align: center;
             cursor: pointer;
             background-color: #fff;
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ccc;
         }
 
         .product img {
@@ -90,19 +83,12 @@
             font-size: 1.1rem;
             color: #ff6347;
         }
-
-        /* 🔥 Grid for Products */
-        #product-list {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-        }
     </style>
 </head>
 
 <body>
     <header>
-        <div id="menuIcon" class="menu-icon">&#9776;</div>
+        <div id="menuIcon" class="menu-icon"></div>
         <h1 id="storeName">The Pink Closet</h1>
         <div class="search-bar">
             <input type="text" id="search-input" placeholder="Search products...">
@@ -159,7 +145,7 @@
                         return;
                     }
 
-                    products.forEach((product) => {
+                    products.forEach((product, index) => {
                         const imageUrl = product.image_url || 'https://via.placeholder.com/150';
 
                         const productDiv = document.createElement('div');
@@ -171,9 +157,6 @@
                             <img src="${imageUrl}" alt="${product.name}">
                             <a href="product.html?id=${product.id}&seller_id=${product.seller_id}" class="view-product-btn">View Product</a>
                         `;
-
-                        // Debugging to ensure product has seller_id
-                        console.log(`🔍 Product ID: ${product.id}, Seller ID: ${product.seller_id}`);
 
                         productDiv.addEventListener('click', () => {
                             if (!product.seller_id) {
@@ -196,19 +179,16 @@
             /* 🔥 Fix Burger Menu */
             const menuIcon = document.getElementById('menuIcon');
             const sidebar = document.getElementById('sidebar');
-            const closeBtn = document.getElementById('closeBtn');
 
             menuIcon.addEventListener('click', function () {
-                sidebar.classList.add('active');
-            });
-
-            closeBtn.addEventListener('click', function () {
-                sidebar.classList.remove('active');
+                sidebar.classList.toggle('active');
+                menuIcon.classList.toggle('active'); // Change icon
             });
 
             document.addEventListener('click', function (event) {
                 if (!sidebar.contains(event.target) && !menuIcon.contains(event.target)) {
                     sidebar.classList.remove('active');
+                    menuIcon.classList.remove('active'); // Reset icon to ☰
                 }
             });
         });
