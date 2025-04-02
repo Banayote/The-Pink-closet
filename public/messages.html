@@ -129,6 +129,12 @@
             margin-left: 10px;
             transform: rotate(180deg);
         }
+        .sending {
+            color: #ccc;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -151,6 +157,7 @@
             <input id="message-input" type="text" placeholder="Type a message...">
             <button id="send-button" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
         </div>
+        <div id="sending-indicator" class="sending" style="display: none;">Sending...</div>
     </div>
 
     <script>
@@ -232,10 +239,19 @@
             const message = input.value.trim();
             if (!message) return;
 
+            // Show "Sending..." indicator
+            const sendingIndicator = document.getElementById("sending-indicator");
+            sendingIndicator.style.display = "block";
+
+            // Insert the message into the database
             await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
 
+            // Hide "Sending..." and clear input
+            sendingIndicator.style.display = "none";
             input.value = "";
             input.focus();
+
+            // Load new messages to show the sent message
             loadMessages(currentConversationId);
         }
 
