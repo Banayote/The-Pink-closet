@@ -13,7 +13,6 @@
             padding: 0;
             background-color: white;
         }
-        /* Chat List */
         #chat-list, #chat-screen {
             max-width: 500px;
             height: 100vh;
@@ -40,7 +39,6 @@
             margin-right: 10px;
             border: 2px solid #f48fb1;
         }
-        /* Chat Header */
         #chat-header {
             display: flex;
             align-items: center;
@@ -48,7 +46,6 @@
             padding: 10px;
             background-color: pink;
             color: white;
-            border-radius: 10px 10px 0 0;
         }
         #chat-header img {
             width: 40px;
@@ -58,9 +55,7 @@
         #chat-title {
             font-size: 18px;
             font-weight: bold;
-            margin-right: 70px;
         }
-        /* Message List */
         #messages {
             flex: 1;
             padding: 10px;
@@ -92,7 +87,6 @@
             float: left;
             clear: both;
         }
-        /* Input Container */
         #message-input-container {
             position: fixed;
             bottom: 0;
@@ -133,13 +127,11 @@
 </head>
 <body>
 
-    <!-- Chat List -->
     <div id="chat-list">
         <h2 style="text-align: center; padding: 10px;">Messages</h2>
         <div id="chat-list-container"></div>
     </div>
 
-    <!-- Chat Screen -->
     <div id="chat-screen" style="display: none;">
         <div id="chat-header">
             <i id="back-button" class="fas fa-arrow-left" onclick="goBack()"></i>
@@ -176,7 +168,7 @@
 
                 const { data: user } = await supabase
                     .from("users")
-                    .select("first_name, avatar_url")
+                    .select("first_name, last_name, avatar_url")
                     .eq("id", otherUserId)
                     .single();
 
@@ -212,17 +204,25 @@
 
             await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
             input.value = "";
-            input.focus();
+            input.focus(); // ✅ Keeps input focused
 
-            // Instantly add the message to chat
             displayMessage(message, "sent");
+            scrollToBottom(); // ✅ Scrolls chat to latest message
         }
 
-        function displayMessage(text, type) {
-            const msgDiv = document.createElement("div");
-            msgDiv.className = `message ${type}`;
-            msgDiv.innerText = text;
-            document.getElementById("messages").appendChild(msgDiv);
+        function displayMessage(message, type) {
+            const messagesDiv = document.getElementById("messages");
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message", type);
+            messageDiv.innerText = message;
+            messagesDiv.appendChild(messageDiv);
+        }
+
+        function scrollToBottom() {
+            const messagesDiv = document.getElementById("messages");
+            setTimeout(() => {
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }, 100);
         }
 
         function goBack() {
