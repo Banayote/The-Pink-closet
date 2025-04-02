@@ -3,136 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Your Store</title>
-    <link rel="stylesheet" href="store.css">
+    <title>Add Product</title>
+
     <style>
+        /* General Styles */
         body {
-            background-color: pink;
-            font-family: Arial, sans-serif;
-            color: white;
-            text-align: center;
-            padding: 20px;
+            font-family: "Poppins", sans-serif;
+            background: #f4f4f4; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             margin: 0;
         }
-        .form-container {
-            background-color: white;
-            color: pink;
-            padding: 20px;
+
+        /* Container */
+        .container {
+            background: white;
+            padding: 30px;
             border-radius: 10px;
-            max-width: 400px;
-            margin: auto;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-        .form-container h1 {
-            margin-bottom: 20px;
-        }
-        .form-container input {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            max-width: 450px;
+            text-align: center;
         }
-        .form-container button {
-            background-color: pink;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+
+        /* Image Preview */
+        .image-preview {
+            width: 100%;
+            height: 180px;
+            border: 2px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #888;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            background: #f9f9f9;
+            overflow: hidden;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        /* Form Styling */
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            text-align: left;
             margin-top: 10px;
+            color: #333;
         }
-        .form-container button:hover {
-            background-color: #f2f2f2;
-            color: pink;
+
+        input, textarea {
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 100%;
+            background: #fff;
         }
-        .exit-icon {
-            font-size: 24px;
-            position: absolute;
-            top: 10px;
-            left: 10px;
+
+        textarea {
+            height: 80px;
+            resize: none;
+        }
+
+        /* Button */
+        button {
+            background: #007bff;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
-            color: pink;
-            z-index: 1000;
+            font-size: 18px;
+            margin-top: 15px;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        /* Responsive */
+        @media (max-width: 500px) {
+            .container {
+                width: 90%;
+            }
         }
     </style>
-</head>
-<body>
 
-    <div class="form-container">
-        <div class="exit-icon" id="exitIcon">&#x2B05;</div>
-        <h1>Create Your Store</h1>
-        <form id="storeForm">
-            <input type="text" name="firstName" placeholder="First Name" required>
-            <input type="text" name="lastName" placeholder="Last Name" required>
-            <input type="email" name="email" placeholder="Email (Leave empty if you're a buyer)" required>
-            <input type="tel" name="phoneNumber" placeholder="Phone Number (Optional)">
-            <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Submit</button>
-        </form>
-    </div>
-
-    <!-- ✅ Load Supabase -->
+    <!-- Supabase SDK -->
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
-        // ✅ Initialize Supabase
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-        const supabase = createClient(SUPABASE_URL, SUPABASE_API_KEY);
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener("DOMContentLoaded", () => {
-            const exitIcon = document.getElementById("exitIcon");
-            const storeForm = document.getElementById("storeForm");
+            const form = document.getElementById("add-product-form");
+            const priceInput = document.getElementById("product-price");
+            const imageInput = document.getElementById("product-image");
+            const imagePreview = document.getElementById("image-preview");
+            const previewImg = document.getElementById("preview-img");
 
-            // ✅ Exit button functionality
-            exitIcon.addEventListener("click", () => {
-                if (confirm("Are you sure you want to exit?")) {
-                    window.location.href = "index.html"; // Redirect to main page
+            // 🔹 Show image preview
+            imageInput.addEventListener("change", () => {
+                const file = imageInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        previewImg.src = reader.result;
+                        previewImg.style.display = "block";
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    previewImg.style.display = "none";
                 }
             });
 
-            // ✅ Handle form submission
-            storeForm.addEventListener("submit", async (event) => {
+            // 🔹 Get seller ID
+            const urlParams = new URLSearchParams(window.location.search);
+            let sellerId = urlParams.get("seller_id") || localStorage.getItem("seller_id");
+
+            if (!sellerId) {
+                alert("Error: Seller ID is missing. Redirecting...");
+                window.location.href = "profile.html";
+                return;
+            }
+
+            // 🔹 Live price validation
+            priceInput.addEventListener("input", () => {
+                if (priceInput.value < 0) {
+                    priceInput.value = "";
+                    alert("Price cannot be negative.");
+                }
+            });
+
+            // 🔹 Form submission
+            form.addEventListener("submit", async (event) => {
                 event.preventDefault();
 
-                // ✅ Collect form data
-                const formData = new FormData(storeForm);
-                const payload = {
-                    first_name: formData.get("firstName"),
-                    last_name: formData.get("lastName"),
-                    email: formData.get("email"),
-                    phone_number: formData.get("phoneNumber"),
-                    password: formData.get("password"),
-                    created_at: new Date().toISOString()
-                };
+                const productName = document.getElementById("product-name").value.trim();
+                const productDescription = document.getElementById("product-description").value.trim();
+                const productPrice = parseFloat(priceInput.value);
+                const productCategory = document.getElementById("product-category").value.trim();
+                const productImage = imageInput.files[0];
+
+                if (!productName || !productDescription || !productCategory || !productImage || isNaN(productPrice) || productPrice <= 0) {
+                    alert("Please fill out all fields correctly.");
+                    return;
+                }
 
                 try {
-                    // ✅ Insert user into Supabase
-                    const { data, error } = await supabase
-                        .from("users")
-                        .insert([payload])
-                        .select();
+                    // 🔹 Upload Image to Cloudinary
+                    const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dnfavv3ud/upload";
+                    const formData = new FormData();
+                    formData.append("file", productImage);
+                    formData.append("upload_preset", "BANYOTE");
+
+                    const imageResponse = await fetch(cloudinaryUrl, { method: "POST", body: formData });
+                    const imageData = await imageResponse.json();
+
+                    if (!imageData.secure_url) throw new Error("Image upload failed.");
+
+                    // 🔹 Insert product into Supabase
+                    const { error } = await supabase.from("products").insert([{
+                        name: productName,
+                        description: productDescription,
+                        price: productPrice,
+                        category: productCategory,
+                        image_url: imageData.secure_url,
+                        seller_id: sellerId
+                    }]);
 
                     if (error) {
-                        console.error("Error:", error.message);
-                        alert("Failed to create store. Please try again.");
-                    } else if (data.length > 0) {
-                        const userId = data[0].id;
-
-                        // ✅ Save user ID in localStorage (Fixes profile issue)
-                        localStorage.setItem("user_id", userId);
-
-                        alert("Store created successfully! Redirecting...");
-                        window.location.href = `profile.html?user_id=${userId}`;
+                        alert("Failed to add product: " + error.message);
+                    } else {
+                        alert("✅ Product added successfully!");
+                        form.reset();
+                        previewImg.style.display = "none"; // Reset preview
                     }
                 } catch (error) {
-                    console.error("Unexpected error:", error.message);
-                    alert("An unexpected error occurred. Please try again.");
+                    alert("An error occurred: " + error.message);
                 }
             });
         });
     </script>
+</head>
+<body>
+    <div class="container">
+        <h1 style="color: #333;">Add a New Product</h1>
+
+        <!-- Image Preview -->
+        <div class="image-preview" id="image-preview">
+            <img id="preview-img" alt="Image Preview">
+            <span>Image will appear here</span>
+        </div>
+
+        <form id="add-product-form">
+            <label for="product-name">Product Name</label>
+            <input type="text" id="product-name" placeholder="Enter product name" required>
+
+            <label for="product-description">Description</label>
+            <textarea id="product-description" placeholder="Enter product description" required></textarea>
+
+            <label for="product-price">Price</label>
+            <input type="number" id="product-price" placeholder="Enter price" required>
+
+            <label for="product-category">Category</label>
+            <input type="text" id="product-category" placeholder="Enter category" required>
+
+            <label for="product-image">Product Image</label>
+            <input type="file" id="product-image" accept="image/*" required>
+
+            <button type="submit">Add Product</button>
+        </form>
+    </div>
 </body>
 </html>
