@@ -17,25 +17,26 @@
             font-family: 'Poppins', sans-serif;
             background-color: #fff;
             color: #333;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            flex-direction: column;
         }
 
         .container {
-            background: #fff;
-            width: 400px;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
+            z-index: 10;
+            position: relative;
         }
 
         h1 {
             color: #ff6bcb;
             font-weight: 600;
+            margin-bottom: 20px;
         }
 
         input, textarea, button {
@@ -72,31 +73,17 @@
         }
 
         #image-preview {
-            max-width: 100%;
-            margin: 10px 0;
             display: none;
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        #cropper-placeholder {
-            position: relative;
-            display: inline-block;
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 300px;
-            background-color: #f0f0f0;
-            border: 1px dashed #ff6bcb;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-
-        #cropper-placeholder img {
-            width: 100%;
-            height: 100%;
+            height: 100vh;
             object-fit: cover;
+            z-index: 1;
         }
 
-        .cropper-box {
+        #cropper-box {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -104,19 +91,26 @@
             width: 200px;
             height: 200px;
             border: 2px solid #fff;
-            border-radius: 8px;
             background: rgba(255, 255, 255, 0.5);
             cursor: move;
+            z-index: 2;
         }
 
         #cropper-buttons {
             display: none;
-            justify-content: space-between;
-            margin-top: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
         }
 
         #cropper-buttons button {
-            width: 45%;
+            width: 120px;
+            padding: 10px;
+            margin: 0 10px;
         }
 
     </style>
@@ -131,22 +125,19 @@
             <textarea id="product-description" placeholder="Description" required></textarea>
             <input type="number" id="product-price" placeholder="Price" required>
             <input type="text" id="product-category" placeholder="Category" required>
-            
+
             <input type="file" id="product-image" accept="image/*" required>
             
-            <!-- Cropper Placeholder -->
-            <div id="cropper-placeholder">
-                <img id="image-preview">
-                <div id="cropper-box" class="cropper-box"></div>
-            </div>
-            
+            <!-- Buttons to Apply or Exit (hidden initially) -->
             <div id="cropper-buttons">
-                <button type="button" id="apply-crop">Apply Crop</button>
+                <button type="button" id="apply-crop">Apply</button>
                 <button type="button" id="exit-crop">Exit</button>
             </div>
-            <div id="loading" class="loading">Uploading...</div>
         </form>
     </div>
+
+    <img id="image-preview" src="" alt="Image Preview">
+    <div id="cropper-box"></div>
 
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
@@ -163,7 +154,6 @@
             const applyCropButton = document.getElementById("apply-crop");
             const exitCropButton = document.getElementById("exit-crop");
             const cropperButtons = document.getElementById("cropper-buttons");
-            const loadingIndicator = document.getElementById("loading");
             let imageUrl = '';
             let cropper;
 
@@ -175,9 +165,9 @@
                     reader.onload = function (e) {
                         imageUrl = e.target.result;
                         imagePreview.src = imageUrl;
-                        imagePreview.style.display = 'block';
-                        cropperButtons.style.display = 'flex'; // Show crop buttons
-                        cropperBox.style.display = 'block'; // Show the cropper box
+                        imagePreview.style.display = 'block'; // Show image
+                        cropperButtons.style.display = 'flex'; // Show buttons
+                        cropperBox.style.display = 'block'; // Show cropper box
 
                         // Initialize the cropper
                         cropper = new Cropper(imagePreview, {
@@ -222,7 +212,6 @@
 
             async function uploadImage(blob) {
                 try {
-                    loadingIndicator.style.display = 'block'; // Show loading
                     const formData = new FormData();
                     formData.append("file", blob);
                     formData.append("upload_preset", "BANYOTE");
@@ -236,8 +225,6 @@
                 } catch (error) {
                     console.error("❌ Upload Error:", error);
                     alert("Image upload failed!");
-                } finally {
-                    loadingIndicator.style.display = 'none'; // Hide loading
                 }
             }
 
