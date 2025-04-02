@@ -5,6 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
 
+    <style>
+        /* General Styles */
+        body {
+            font-family: "Arial", sans-serif;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Container */
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        /* Form Styling */
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: bold;
+            text-align: left;
+            margin-top: 10px;
+        }
+
+        input, textarea {
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        textarea {
+            height: 80px;
+            resize: none;
+        }
+
+        /* Button */
+        button {
+            background: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 15px;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+
+        /* Responsive */
+        @media (max-width: 500px) {
+            .container {
+                width: 90%;
+            }
+        }
+    </style>
+
     <!-- Supabase SDK -->
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
@@ -15,47 +89,44 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             const form = document.getElementById("add-product-form");
+            const priceInput = document.getElementById("product-price");
 
-            // 🔹 Get seller ID from URL or LocalStorage
+            // 🔹 Get seller ID
             const urlParams = new URLSearchParams(window.location.search);
-            let sellerId = urlParams.get("seller_id");
+            let sellerId = urlParams.get("seller_id") || localStorage.getItem("seller_id");
 
             if (!sellerId) {
-                sellerId = localStorage.getItem("seller_id"); // Get from LocalStorage
-            } else {
-                localStorage.setItem("seller_id", sellerId); // Save to LocalStorage
-            }
-
-            console.log("📌 Seller ID Retrieved:", sellerId); // Debugging
-
-            if (!sellerId) {
-                alert("Error: Seller ID is missing. Redirecting to profile...");
-                window.location.href = "profile.html"; // Redirect back if missing
+                alert("Error: Seller ID is missing. Redirecting...");
+                window.location.href = "profile.html";
                 return;
             }
 
+            // 🔹 Live price validation
+            priceInput.addEventListener("input", () => {
+                if (priceInput.value < 0) {
+                    priceInput.value = "";
+                    alert("Price cannot be negative.");
+                }
+            });
+
+            // 🔹 Form submission
             form.addEventListener("submit", async (event) => {
                 event.preventDefault();
 
-                const productName = document.getElementById("product-name").value;
-                const productDescription = document.getElementById("product-description").value;
-                const productPrice = parseFloat(document.getElementById("product-price").value);
-                const productCategory = document.getElementById("product-category").value;
+                const productName = document.getElementById("product-name").value.trim();
+                const productDescription = document.getElementById("product-description").value.trim();
+                const productPrice = parseFloat(priceInput.value);
+                const productCategory = document.getElementById("product-category").value.trim();
                 const productImage = document.getElementById("product-image").files[0];
 
-                if (!productImage) {
-                    alert("Please select an image.");
-                    return;
-                }
-
-                if (isNaN(productPrice) || productPrice <= 0) {
-                    alert("Please enter a valid price.");
+                if (!productName || !productDescription || !productCategory || !productImage || isNaN(productPrice) || productPrice <= 0) {
+                    alert("Please fill out all fields correctly.");
                     return;
                 }
 
                 try {
                     // 🔹 Upload Image to Cloudinary
-                    const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dnfavv3ud/upload"; 
+                    const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dnfavv3ud/upload";
                     const formData = new FormData();
                     formData.append("file", productImage);
                     formData.append("upload_preset", "BANYOTE");
@@ -63,45 +134,52 @@
                     const imageResponse = await fetch(cloudinaryUrl, { method: "POST", body: formData });
                     const imageData = await imageResponse.json();
 
-                    if (!imageData.secure_url) throw new Error("Image upload failed");
+                    if (!imageData.secure_url) throw new Error("Image upload failed.");
 
                     // 🔹 Insert product into Supabase
-                    const product = {
+                    const { error } = await supabase.from("products").insert([{
                         name: productName,
                         description: productDescription,
                         price: productPrice,
                         category: productCategory,
                         image_url: imageData.secure_url,
-                        seller_id: sellerId  // ✅ Ensure it's using the seller_id
-                    };
-
-                    const { error } = await supabase.from("products").insert([product]);
+                        seller_id: sellerId
+                    }]);
 
                     if (error) {
-                        console.error("❌ Supabase Insert Error:", error);
                         alert("Failed to add product: " + error.message);
                     } else {
                         alert("✅ Product added successfully!");
                         form.reset();
                     }
                 } catch (error) {
-                    console.error("❌ Error:", error);
                     alert("An error occurred: " + error.message);
                 }
             });
         });
     </script>
-
 </head>
 <body>
-    <h1>Add Product</h1>
-    <form id="add-product-form">
-        <input type="text" id="product-name" placeholder="Product Name" required>
-        <textarea id="product-description" placeholder="Description" required></textarea>
-        <input type="number" id="product-price" placeholder="Price" required>
-        <input type="text" id="product-category" placeholder="Category" required>
-        <input type="file" id="product-image" accept="image/*" required>
-        <button type="submit">Add Product</button>
-    </form>
+    <div class="container">
+        <h1>Add a New Product</h1>
+        <form id="add-product-form">
+            <label for="product-name">Product Name</label>
+            <input type="text" id="product-name" placeholder="Enter product name" required>
+
+            <label for="product-description">Description</label>
+            <textarea id="product-description" placeholder="Enter product description" required></textarea>
+
+            <label for="product-price">Price</label>
+            <input type="number" id="product-price" placeholder="Enter price" required>
+
+            <label for="product-category">Category</label>
+            <input type="text" id="product-category" placeholder="Enter category" required>
+
+            <label for="product-image">Product Image</label>
+            <input type="file" id="product-image" accept="image/*" required>
+
+            <button type="submit">Add Product</button>
+        </form>
+    </div>
 </body>
 </html>
