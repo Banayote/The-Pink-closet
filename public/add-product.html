@@ -5,109 +5,120 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
 
-    <!-- Cropper.js (For Image Cropping) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <!-- Cropper.js CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
 
     <!-- Supabase SDK -->
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
+        // ✅ Your Supabase credentials
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener("DOMContentLoaded", () => {
             const form = document.getElementById("add-product-form");
-            const imageInput = document.getElementById("product-image");
-            const imagePreview = document.getElementById("image-preview");
-            const cropButton = document.getElementById("crop-button");
+
+            // 🔹 Get seller ID from URL or LocalStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            let sellerId = urlParams.get("seller_id");
+
+            if (!sellerId) {
+                sellerId = localStorage.getItem("seller_id"); // Get from LocalStorage
+            } else {
+                localStorage.setItem("seller_id", sellerId); // Save to LocalStorage
+            }
+
+            console.log("📌 Seller ID Retrieved:", sellerId); // Debugging
+
+            if (!sellerId) {
+                alert("Error: Seller ID is missing. Redirecting to profile...");
+                window.location.href = "profile.html"; // Redirect back if missing
+                return;
+            }
+
+            // Initialize the cropper variable
             let cropper;
 
-            // 🔹 Handle Image Selection
-            imageInput.addEventListener("change", function (event) {
+            // Handle image selection
+            const inputImage = document.getElementById("product-image");
+            const imagePreview = document.getElementById("image-preview");
+
+            inputImage.addEventListener("change", (event) => {
                 const file = event.target.files[0];
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = function (e) {
                         imagePreview.src = e.target.result;
-                        if (cropper) cropper.destroy();
+                        if (cropper) {
+                            cropper.destroy();
+                        }
                         cropper = new Cropper(imagePreview, {
-                            aspectRatio: 1, // 🔹 Square aspect ratio
-                            viewMode: 2,
-                            autoCropArea: 1
+                            aspectRatio: 1, // Fixed square aspect ratio
+                            viewMode: 1, // Restrict the image to the container
+                            autoCropArea: 1, // Automatically fill the crop area
+                            movable: true, // Allow moving the image within the square
+                            zoomable: false, // Prevent zooming
+                            cropBoxResizable: false, // Prevent resizing the crop box
+                            cropBoxMovable: true, // Allow moving the crop box
                         });
                     };
                     reader.readAsDataURL(file);
                 }
             });
 
-            // 🔹 Crop Image & Upload
-            cropButton.addEventListener("click", async () => {
-                if (!cropper) {
-                    alert("Please select an image first!");
-                    return;
-                }
+            // Handle form submission
+            form.addEventListener("submit", async (event) => {
+                event.preventDefault();
 
-                const croppedCanvas = cropper.getCroppedCanvas({ width: 500, height: 500 });
-                croppedCanvas.toBlob(async (blob) => {
-                    await uploadImage(blob);
-                }, "image/jpeg");
-            });
-
-            async function uploadImage(blob) {
-                try {
-                    const formData = new FormData();
-                    formData.append("file", blob);
-                    formData.append("upload_preset", "BANYOTE");
-
-                    const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dnfavv3ud/upload";
-                    const imageResponse = await fetch(cloudinaryUrl, { method: "POST", body: formData });
-                    const imageData = await imageResponse.json();
-
-                    if (!imageData.secure_url) throw new Error("Image upload failed");
-                    addProduct(imageData.secure_url);
-                } catch (error) {
-                    console.error("❌ Upload Error:", error);
-                    alert("Image upload failed!");
-                }
-            }
-
-            async function addProduct(imageUrl) {
                 const productName = document.getElementById("product-name").value;
                 const productDescription = document.getElementById("product-description").value;
                 const productPrice = parseFloat(document.getElementById("product-price").value);
                 const productCategory = document.getElementById("product-category").value;
 
-                const urlParams = new URLSearchParams(window.location.search);
-                let sellerId = urlParams.get("seller_id") || localStorage.getItem("seller_id");
-
-                if (!sellerId) {
-                    alert("Error: Seller ID is missing.");
+                if (!productName || !productDescription || !productPrice || !productCategory) {
+                    alert("Please fill out all the fields.");
                     return;
                 }
 
+                // Get the cropped image data URL
+                const croppedImage = cropper.getCroppedCanvas().toDataURL();
+
+                // 🔹 Upload Image to Cloudinary
+                const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dnfavv3ud/upload"; 
+                const formData = new FormData();
+                formData.append("file", croppedImage);
+                formData.append("upload_preset", "BANYOTE");
+
+                const imageResponse = await fetch(cloudinaryUrl, { method: "POST", body: formData });
+                const imageData = await imageResponse.json();
+
+                if (!imageData.secure_url) throw new Error("Image upload failed");
+
+                // 🔹 Insert product into Supabase
                 const product = {
                     name: productName,
                     description: productDescription,
                     price: productPrice,
                     category: productCategory,
-                    image_url: imageUrl,
-                    seller_id: sellerId
+                    image_url: imageData.secure_url,
+                    seller_id: sellerId  // ✅ Ensure it's using the seller_id
                 };
 
                 const { error } = await supabase.from("products").insert([product]);
+
                 if (error) {
+                    console.error("❌ Supabase Insert Error:", error);
                     alert("Failed to add product: " + error.message);
                 } else {
                     alert("✅ Product added successfully!");
                     form.reset();
-                    imagePreview.src = ""; // Clear preview
+                    imagePreview.src = ''; // Clear image preview
                 }
-            }
+            });
         });
     </script>
-
 </head>
 <body>
     <h1>Add Product</h1>
@@ -116,10 +127,18 @@
         <textarea id="product-description" placeholder="Description" required></textarea>
         <input type="number" id="product-price" placeholder="Price" required>
         <input type="text" id="product-category" placeholder="Category" required>
-        
+
+        <!-- Image Upload and Crop -->
         <input type="file" id="product-image" accept="image/*" required>
-        <img id="image-preview" style="max-width: 300px; display: block; margin: 10px 0;">
-        <button type="button" id="crop-button">Crop & Upload</button>
+        <br>
+        <div>
+            <img id="image-preview" src="" style="max-width: 100%; height: auto;">
+        </div>
+
+        <button type="submit">Add Product</button>
     </form>
+
+    <!-- Cropper.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 </body>
 </html>
