@@ -76,17 +76,11 @@
             margin: 10px 0;
             border-radius: 10px;
             display: none;
-        }
-
-        .loading {
-            display: none;
-            margin-top: 10px;
-            color: #ff6bcb;
-            font-weight: bold;
+            margin-bottom: 20px;
         }
 
         #cropper-buttons {
-            display: flex;
+            display: none;
             justify-content: space-between;
             margin-top: 10px;
         }
@@ -132,6 +126,7 @@
             const applyCropButton = document.getElementById("apply-crop");
             const exitCropButton = document.getElementById("exit-crop");
             const loadingIndicator = document.getElementById("loading");
+            const cropperButtons = document.getElementById("cropper-buttons");
             let cropper;
 
             // Handle Image Selection
@@ -142,6 +137,9 @@
                     reader.onload = function (e) {
                         imagePreview.src = e.target.result;
                         imagePreview.style.display = 'block';
+                        cropperButtons.style.display = 'flex'; // Show crop buttons
+                        
+                        // Initialize Cropper with the ability to move, but not resize
                         if (cropper) cropper.destroy();
                         cropper = new Cropper(imagePreview, {
                             aspectRatio: 1, // Square crop area
@@ -174,6 +172,7 @@
             exitCropButton.addEventListener("click", () => {
                 imagePreview.src = ""; // Clear image preview
                 imagePreview.style.display = 'none'; // Hide image preview
+                cropperButtons.style.display = 'none'; // Hide crop buttons
                 if (cropper) {
                     cropper.destroy(); // Destroy cropper instance
                 }
@@ -231,6 +230,7 @@
                     form.reset();
                     imagePreview.src = ""; // Clear preview
                     imagePreview.style.display = 'none';
+                    cropperButtons.style.display = 'none'; // Hide crop buttons
                 }
             }
         });
