@@ -200,14 +200,12 @@
         async function sendMessage() {
             const input = document.getElementById("message-input");
             const message = input.value.trim();
-            if (!message) return;
+            if (!message || !currentConversationId) return;
 
             await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
             input.value = "";
-            input.focus(); // ✅ Keeps input focused
-
+            input.focus();
             displayMessage(message, "sent");
-            scrollToBottom(); // ✅ Scrolls chat to latest message
         }
 
         function displayMessage(message, type) {
@@ -216,13 +214,7 @@
             messageDiv.classList.add("message", type);
             messageDiv.innerText = message;
             messagesDiv.appendChild(messageDiv);
-        }
-
-        function scrollToBottom() {
-            const messagesDiv = document.getElementById("messages");
-            setTimeout(() => {
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            }, 100);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
 
         function goBack() {
