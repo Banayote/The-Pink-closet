@@ -3,375 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Display</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: white;
-            margin: 0;
-            padding: 0;
-        }
+    <title>Add Product</title>
 
-        .fixed-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background-color: white;
-            padding: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        }
+    <!-- Supabase SDK -->
+    <script type="module">
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
-        .fixed-header .logo {
-            margin: auto;
-        }
+        const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        .logo h1 {
-            color: pink;
-            margin: 0;
-            text-align: center;
-        }
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("add-product-form");
 
-        .closet-icon {
-            width: 30px;
-            height: 30px;
-            fill: none;
-            stroke: pink;
-        }
+            // 🔹 Get seller ID from URL or LocalStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            let sellerId = urlParams.get("seller_id");
 
-        .back-button {
-            background-color: white;
-            color: pink;
-            border: none;
-            font-size: 1.5rem;
-            padding: 10px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .back-button:hover {
-            background-color: white;
-        }
-
-        .product-container {
-            max-width: 300px;
-            margin: auto;
-            background-color: white;
-            padding: 40px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            margin-top: 80px; /* Adjust to ensure content is not hidden behind fixed header */
-        }
-
-        .image-carousel {
-            width: 100%;
-            height: 400px;
-            overflow: hidden;
-            border: 2px solid pink;
-            border-radius: 10px;
-            position: relative;
-        }
-
-        .image-carousel img {
-            width: 100%;
-            height: 400px;
-            object-fit: cover;
-            border-radius: 10px;
-            position: absolute;
-            transition: opacity 0.5s ease;
-        }
-
-        .product-details {
-            display: flex;
-            flex-direction: column;
-            text-align: left;
-            padding: 20px 0;
-        }
-
-        .product-title {
-            font-size: 1.5rem;
-            margin-bottom: 0px;
-            color: black;
-        }
-
-        .product-price {
-            font-size: 1.25rem;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .product-description {
-            margin-bottom: 20px;
-        }
-
-        .size-options-container {
-            display: flex;
-            margin-bottom: 20px;
-            margin-left: 0px;
-        }
-
-        .size-options {
-            display: flex;
-            gap: 10px;
-        }
-
-        .size-options button {
-            border: 1px solid #ccc;
-            padding: 10px;
-            cursor: pointer;
-            background-color: white;
-            color: pink;
-            border-radius: 50px;
-        }
-
-        .size-options button:hover {
-            background-color: pink;
-            color: white;
-        }
-
-        .buy-button {
-            background-color: white;
-            color: pink;
-            padding: 15px;
-            border: 1px solid pink;
-            cursor: pointer;
-            width: 100%;
-            font-size: 1.25rem;
-            border-radius: 5px;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .buy-button:hover {
-            background-color: pink;
-            color: white;
-        }
-
-        .visit-store {
-            background-color: white;
-            color: pink;
-            padding: 10px;
-            border: 1px solid pink;
-            cursor: pointer;
-            border-radius: 5px;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .visit-store:hover {
-            background-color: pink;
-            color: white;
-        }
-
-        .add-to-closet {
-            background-color: pink;
-            color: white;
-            padding: 15px;
-            border: none;
-            cursor: pointer;
-            width: 100%;
-            font-size: 1.25rem;
-            border-radius: 5px;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            margin: 0;
-            box-sizing: border-box;
-        }
-
-        .add-to-closet:hover {
-            background-color: #pink;
-        }
-
-        .review-button {
-            background-color: white;
-            color: pink;
-            padding: 10px 15px;
-            border: 1px solid pink;
-            cursor: pointer;
-            border-radius: 5px;
-            display: block;
-            margin: 0 auto;
-        }
-
-        .review-button:hover {
-            background-color: pink;
-            color: white;
-        }
-
-        .review-section {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .more-products-container, .other-products-container {
-            margin: 20px 0;
-        }
-
-        .more-products {
-            display: flex;
-            overflow-x: auto;
-            white-space: nowrap;
-            gap: 10px;
-            padding: 10px 0;
-        }
-
-        .more-products img {
-            width: 150px;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 10px;
-        }
-
-        .more-indicator {
-            text-align: center;
-            font-size: 1rem;
-            color: pink;
-            margin-top: 10px;
-        }
-
-        .other-products {
-            display: flex;
-            flex-direction: column;
-            gap: 0px;
-            overflow-y: auto;
-            max-height: 6000px; /* Adjust as needed */
-        }
-
-        .product-row {
-            display: flex;
-            overflow-x: auto;
-            white-space: nowrap;
-            gap: 10px;
-        }
-
-        .product-row img {
-            width: 150px; /* Adjust as needed */
-            height: 150px; /* Adjust as needed */
-            object-fit: cover;
-            border-radius: 10px;
-        }
-    </style>
-</head>
-<body>
-    <div class="fixed-header">
-        <button class="back-button" onclick="history.back()">&lt;</button>
-        <div class="logo">
-            <h1>Pink Closet</h1>
-        </div>
-        <div class="closet-icon-wrapper">
-            <svg id="closetIcon" class="closet-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="pink" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
-                <line x1="12" y1="2" x2="12" y2="22"/>
-                <circle cx="9" cy="12" r="1"/>
-                <circle cx="15" cy="12" r="1"/>
-            </svg>
-            <div id="closetCounter" class="closet-counter">1</div>
-        </div>
-    </div>
-
-    <div class="product-container">
-        <div class="image-carousel" id="imageCarousel">
-            <img src="image1.jpg" alt="Product Image 1">
-            <img src="image2.jpg" alt="Product Image 2">
-            <img src="image3.jpg" alt="Product Image 3">
-        </div>
-
-        <div class="product-details">
-            <h2 class="product-title">Product Name</h2>
-            <p class="product-price">$13.00</p>
-
-            <div class="product-description">
-                <p>This is a beautiful puff sleeve blouse made of high-quality materials. Perfect for casual and formal wear. Available in multiple sizes.</p>
-            </div>
-
-            <div class="size-options-container">
-                <div class="size-options">
-                    <button>XS</button>
-                    <button>S</button>
-                    <button>M</button>
-                    <button>L</button>
-                    <button>XL</button>
-                </div>
-            </div>
-
-            <button class="buy-button">Buy Now</button>
-            <button class="visit-store" onclick="window.location.href = 'profile.html'">Visit Store</button>
-            <button class="review-button" id="leaveReviewButton">Leave a Review</button>
-        </div>
-    </div>
-
-    <div class="more-products-container">
-        <div class="section-title">More Products</div>
-        <div class="more-products" id="moreProducts">
-        </div>
-        <div class="more-indicator" id="moreIndicator" style="display: none;">More ></div>
-    </div>
-
-    <div class="other-products-container">
-        <div class="section-title">Other Products from Stores</div>
-        <div class="other-products" id="otherProducts">
-        </div>
-    </div>
-
-    <button class="add-to-closet" id="addToCloset">Add to Closet</button>
-
-    <script>
-        // Sample data for products
-        const moreProductsData = [
-            'image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg', 'image5.jpg', 'image6.jpg',
-            'image7.jpg', 'image8.jpg', 'image9.jpg', 'image10.jpg', 'image11.jpg', 'image12.jpg',
-            'image13.jpg', 'image14.jpg', 'image15.jpg', 'image16.jpg', 'image17.jpg', 'image18.jpg',
-            'image19.jpg', 'image20.jpg', 'image21.jpg', 'image22.jpg', 'image23.jpg', 'image24.jpg',
-            'image25.jpg', 'image26.jpg', 'image27.jpg', 'image28.jpg', 'image29.jpg', 'image30.jpg'
-        ];
-
-        const otherProductsData = Array.from({ length: 30 }, (_, rowIndex) => 
-            Array.from({ length: 39 }, (_, colIndex) => `images/image${(rowIndex * 39 + colIndex) % moreProductsData.length + 1}.jpg`)
-        );
-
-        const moreProducts = document.getElementById('moreProducts');
-        const moreIndicator = document.getElementById('moreIndicator');
-
-        moreProductsData.forEach((imgSrc, index) => {
-            let aElement = document.createElement('a');
-            aElement.href = `product${index + 1}.html`; // Adjust URL pattern
-            let imgElement = document.createElement('img');
-            imgElement.src = imgSrc;
-            aElement.appendChild(imgElement);
-            moreProducts.appendChild(aElement);
-        });
-
-        moreProducts.addEventListener('scroll', () => {
-            if (moreProducts.scrollLeft + moreProducts.offsetWidth >= moreProducts.scrollWidth) {
-                moreIndicator.style.display = 'block';
+            if (!sellerId) {
+                sellerId = localStorage.getItem("seller_id"); // Get from LocalStorage
             } else {
-                moreIndicator.style.display = 'none';
+                localStorage.setItem("seller_id", sellerId); // Save to LocalStorage
             }
-        });
 
-        const otherProducts = document.getElementById('otherProducts');
+            console.log("📌 Seller ID Retrieved:", sellerId); // Debugging
 
-        otherProductsData.forEach((rowData) => {
-            const rowDiv = document.createElement('div');
-            rowDiv.classList.add('product-row');
-            rowData.forEach((imgSrc, index) => {
-                let aElement = document.createElement('a');
-                aElement.href = `product${index + 31}.html`; // Adjust URL pattern
-                let imgElement = document.createElement('img');
-                imgElement.src = imgSrc;
-                aElement.appendChild(imgElement);
-                rowDiv.appendChild(aElement);
+            if (!sellerId) {
+                alert("Error: Seller ID is missing. Redirecting to profile...");
+                window.location.href = "profile.html"; // Redirect back if missing
+                return;
+            }
+
+            form.addEventListener("submit", async (event) => {
+                event.preventDefault();
+
+                const productName = document.getElementById("product-name").value;
+                const productDescription = document.getElementById("product-description").value;
+                const productPrice = parseFloat(document.getElementById("product-price").value);
+                const productCategory = document.getElementById("product-category").value;
+                const productImage = document.getElementById("product-image").files[0];
+
+                if (!productImage) {
+                    alert("Please select an image.");
+                    return;
+                }
+
+                if (isNaN(productPrice) || productPrice <= 0) {
+                    alert("Please enter a valid price.");
+                    return;
+                }
+
+                try {
+                    // 🔹 Upload Image to Cloudinary
+                    const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dnfavv3ud/upload"; 
+                    const formData = new FormData();
+                    formData.append("file", productImage);
+                    formData.append("upload_preset", "BANYOTE");
+
+                    const imageResponse = await fetch(cloudinaryUrl, { method: "POST", body: formData });
+                    const imageData = await imageResponse.json();
+
+                    if (!imageData.secure_url) throw new Error("Image upload failed");
+
+                    // 🔹 Insert product into Supabase
+                    const product = {
+                        name: productName,
+                        description: productDescription,
+                        price: productPrice,
+                        category: productCategory,
+                        image_url: imageData.secure_url,
+                        seller_id: sellerId  // ✅ Ensure it's using the seller_id
+                    };
+
+                    const { error } = await supabase.from("products").insert([product]);
+
+                    if (error) {
+                        console.error("❌ Supabase Insert Error:", error);
+                        alert("Failed to add product: " + error.message);
+                    } else {
+                        alert("✅ Product added successfully!");
+                        form.reset();
+                    }
+                } catch (error) {
+                    console.error("❌ Error:", error);
+                    alert("An error occurred: " + error.message);
+                }
             });
-            otherProducts.appendChild(rowDiv);
         });
     </script>
+
+</head>
+<body>
+    <h1>Add Product</h1>
+    <form id="add-product-form">
+        <input type="text" id="product-name" placeholder="Product Name" required>
+        <textarea id="product-description" placeholder="Description" required></textarea>
+        <input type="number" id="product-price" placeholder="Price" required>
+        <input type="text" id="product-category" placeholder="Category" required>
+        <input type="file" id="product-image" accept="image/*" required>
+        <button type="submit">Add Product</button>
+    </form>
 </body>
 </html>
