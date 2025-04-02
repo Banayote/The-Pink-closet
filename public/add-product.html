@@ -15,6 +15,7 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             const form = document.getElementById("add-product-form");
+            const spinner = document.getElementById("loading-spinner");
 
             // 🔹 Get seller ID from URL or LocalStorage
             const urlParams = new URLSearchParams(window.location.search);
@@ -37,6 +38,9 @@
             form.addEventListener("submit", async (event) => {
                 event.preventDefault();
 
+                // Show the spinner while the form is being processed
+                spinner.style.display = "block";
+
                 const productName = document.getElementById("product-name").value;
                 const productDescription = document.getElementById("product-description").value;
                 const productPrice = parseFloat(document.getElementById("product-price").value);
@@ -45,11 +49,13 @@
 
                 if (!productImage) {
                     alert("Please select an image.");
+                    spinner.style.display = "none";
                     return;
                 }
 
                 if (isNaN(productPrice) || productPrice <= 0) {
                     alert("Please enter a valid price.");
+                    spinner.style.display = "none";
                     return;
                 }
 
@@ -87,6 +93,9 @@
                 } catch (error) {
                     console.error("❌ Error:", error);
                     alert("An error occurred: " + error.message);
+                } finally {
+                    // Hide the spinner after processing
+                    spinner.style.display = "none";
                 }
             });
         });
@@ -97,15 +106,15 @@
         /* General Styles */
         body {
             font-family: Arial, sans-serif;
-            background-color: #f8f8f8; /* Light background color */
+            background-color: #f8f8f8;
             margin: 0;
             padding: 0;
         }
 
         h1 {
             text-align: center;
-            background-color: #ffc0cb; /* Light pink background */
-            color: #fff; /* White text */
+            background-color: #ffc0cb;
+            color: #fff;
             padding: 1rem;
             margin: 0;
         }
@@ -117,17 +126,17 @@
         }
 
         form {
-            background-color: #fff; /* White background for the form */
-            border: 1px solid #ddd; /* Light border around form */
+            background-color: #fff;
+            border: 1px solid #ddd;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             padding: 2rem;
         }
 
         label {
             display: block;
             margin-bottom: 0.5rem;
-            color: #333; /* Dark text color */
+            color: #333;
         }
 
         input[type="text"],
@@ -142,12 +151,12 @@
         }
 
         textarea {
-            resize: vertical; /* Allow vertical resize only */
+            resize: vertical;
         }
 
         button {
-            background-color: #ffc0cb; /* Light pink button */
-            color: #fff; /* White text */
+            background-color: #ffc0cb;
+            color: #fff;
             border: none;
             padding: 0.75rem 1.5rem;
             border-radius: 4px;
@@ -156,7 +165,24 @@
         }
 
         button:hover {
-            background-color: #ffb6c1; /* Slightly darker pink on hover */
+            background-color: #ffb6c1;
+        }
+
+        /* Spinning Heart Loader */
+        .spinner {
+            display: none;
+            margin: 20px auto;
+            border: 5px solid #f3f3f3; /* Light gray background */
+            border-top: 5px solid #ff69b4; /* Pink color */
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Responsive Design */
@@ -188,6 +214,9 @@
 
             <button type="submit">Add Product</button>
         </form>
+
+        <!-- Spinning Heart Loader -->
+        <div id="loading-spinner" class="spinner"></div>
     </main>
 </body>
 </html>
