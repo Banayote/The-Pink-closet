@@ -9,7 +9,7 @@
         /* General Styles */
         body {
             font-family: "Arial", sans-serif;
-            background: #f8f9fa;
+            background: #ffe6f0; /* Very Light Pink Background */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -19,13 +19,14 @@
 
         /* Container */
         .container {
-            background: white;
+            background: white; /* White Card */
             padding: 25px;
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 10px rgba(255, 182, 193, 0.3); /* Soft Pink Shadow */
             width: 100%;
             max-width: 400px;
             text-align: center;
+            border: 2px solid #ffb6c1; /* Light Pink Border */
         }
 
         /* Form Styling */
@@ -38,15 +39,17 @@
             font-weight: bold;
             text-align: left;
             margin-top: 10px;
+            color: #d14775; /* Darker Pink for Text */
         }
 
         input, textarea {
             padding: 10px;
             margin-top: 5px;
-            border: 1px solid #ccc;
+            border: 1px solid #ffb6c1; /* Light Pink Border */
             border-radius: 5px;
             font-size: 16px;
             width: 100%;
+            background: #fff0f5; /* Very Light Pink Input Background */
         }
 
         textarea {
@@ -56,7 +59,7 @@
 
         /* Button */
         button {
-            background: #28a745;
+            background: #ff6699; /* Medium Pink Button */
             color: white;
             padding: 10px;
             border: none;
@@ -68,7 +71,7 @@
         }
 
         button:hover {
-            background: #218838;
+            background: #e75480; /* Slightly Darker Pink on Hover */
         }
 
         /* Responsive */
@@ -161,7 +164,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Add a New Product</h1>
+        <h1 style="color: #d14775;">Add a New Product</h1>
         <form id="add-product-form">
             <label for="product-name">Product Name</label>
             <input type="text" id="product-name" placeholder="Enter product name" required>
