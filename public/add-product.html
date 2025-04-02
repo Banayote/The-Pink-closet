@@ -3,112 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Upload & Crop</title>
+    <title>Add Product</title>
+
+    <!-- Cropper.js (For Image Cropping) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
     <style>
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: 'Poppins', sans-serif;
+            background-color: #fff;
+            color: #333;
+            margin: 0;
+            padding: 0;
             height: 100vh;
-            background-color: #f4f4f4;
-        }
-        .image-container {
-            width: 500px;
-            height: 500px;
-            background-color: white;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            border: 2px dashed #ccc;
+            flex-direction: column;
+        }
+
+        .container {
+            text-align: center;
+            z-index: 10;
             position: relative;
-        }
-        .image-container img {
-            max-width: 100%;
-            max-height: 100%;
-            display: none;
-        }
-        .buttons {
             display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #ff6bcb;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 2px solid #ff6bcb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #ff3fa4;
+            outline: none;
+            box-shadow: 0 0 8px rgba(255, 107, 203, 0.5);
+        }
+
+        button {
+            background: #ff6bcb;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: #ff3fa4;
+        }
+
+        button:disabled {
+            background: #ffb3e6;
+            cursor: not-allowed;
+        }
+
+        #image-preview {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            z-index: 1;
+        }
+
+        #cropper-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border: 2px solid #fff;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: move;
+            z-index: 2;
+        }
+
+        #cropper-buttons {
+            display: none;
             justify-content: center;
             margin-top: 20px;
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
         }
-        .buttons button {
-            padding: 10px 20px;
+
+        #cropper-buttons button {
+            width: 120px;
+            padding: 10px;
             margin: 0 10px;
-            border: none;
-            background-color: #ff6bcb;
-            color: white;
+            font-weight: 600;
+            border-radius: 8px;
             cursor: pointer;
-            border-radius: 5px;
+            transition: background 0.3s ease;
         }
-        .buttons button:hover {
-            background-color: #ff3fa4;
+
+        #cropper-buttons #apply-crop {
+            background: #28a745;
+            color: white;
         }
-        #fileInput {
-            display: none;
+
+        #cropper-buttons #apply-crop:hover {
+            background: #218838;
+        }
+
+        #cropper-buttons #exit-crop {
+            background: #dc3545;
+            color: white;
+        }
+
+        #cropper-buttons #exit-crop:hover {
+            background: #c82333;
         }
     </style>
+
 </head>
 <body>
-    <div>
-        <div class="image-container" id="imageContainer">
-            <p id="placeholder">Click to Upload Image</p>
-            <img id="imagePreview">
-        </div>
-        <input type="file" id="fileInput" accept="image/*">
-        <div class="buttons" id="cropButtons" style="display: none;">
-            <button id="applyCrop">Apply</button>
-            <button id="exitCrop">Exit</button>
-        </div>
+
+    <div class="container">
+        <h1>Add Product</h1>
+        <form id="add-product-form">
+            <input type="text" id="product-name" placeholder="Product Name" required>
+            <textarea id="product-description" placeholder="Description" required></textarea>
+            <input type="number" id="product-price" placeholder="Price" required>
+            <input type="text" id="product-category" placeholder="Category" required>
+
+            <input type="file" id="product-image" accept="image/*" required>
+            
+            <!-- Buttons to Apply or Exit (hidden initially) -->
+            <div id="cropper-buttons">
+                <button type="button" id="apply-crop">Apply</button>
+                <button type="button" id="exit-crop">Exit</button>
+            </div>
+        </form>
     </div>
 
+    <img id="image-preview" src="" alt="Image Preview">
+    <div id="cropper-box"></div>
+
     <script>
-        const imageContainer = document.getElementById("imageContainer");
-        const fileInput = document.getElementById("fileInput");
-        const imagePreview = document.getElementById("imagePreview");
-        const placeholder = document.getElementById("placeholder");
-        const cropButtons = document.getElementById("cropButtons");
+        const form = document.getElementById("add-product-form");
+        const imageInput = document.getElementById("product-image");
+        const imagePreview = document.getElementById("image-preview");
+        const cropperBox = document.getElementById("cropper-box");
+        const applyCropButton = document.getElementById("apply-crop");
+        const exitCropButton = document.getElementById("exit-crop");
+        const cropperButtons = document.getElementById("cropper-buttons");
+        let imageUrl = '';
         let cropper;
 
-        imageContainer.addEventListener("click", () => fileInput.click());
-
-        fileInput.addEventListener("change", (event) => {
+        // Handle Image Selection
+        imageInput.addEventListener("change", function (event) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    imagePreview.src = e.target.result;
-                    imagePreview.style.display = "block";
-                    placeholder.style.display = "none";
-                    cropButtons.style.display = "flex";
-                    if (cropper) cropper.destroy();
+                reader.onload = function (e) {
+                    imageUrl = e.target.result;
+                    imagePreview.src = imageUrl;
+                    imagePreview.style.display = 'block'; // Show image
+                    cropperButtons.style.display = 'flex'; // Show buttons
+                    cropperBox.style.display = 'block'; // Show cropper box
+
+                    // Initialize the cropper
                     cropper = new Cropper(imagePreview, {
-                        aspectRatio: 1,
-                        viewMode: 2
+                        aspectRatio: 1, // Square crop area
+                        viewMode: 2,
+                        autoCropArea: 1,
+                        movable: true, // Only move the crop area
+                        zoomable: false, // Disable zoom
+                        rotatable: false, // Disable rotation
+                        scalable: false, // Disable scaling
+                        cropBoxResizable: false, // Disable resizing the crop box
+                        cropBoxMovable: true, // Enable moving the crop box
                     });
                 };
                 reader.readAsDataURL(file);
             }
         });
 
-        document.getElementById("applyCrop").addEventListener("click", () => {
+        // Apply Crop & Upload Image
+        applyCropButton.addEventListener("click", async () => {
+            if (!cropper) {
+                alert("Please select an image first!");
+                return;
+            }
+
+            const croppedCanvas = cropper.getCroppedCanvas({ width: 500, height: 500 });
+            croppedCanvas.toBlob(async (blob) => {
+                await uploadImage(blob);
+            }, "image/jpeg");
+        });
+
+        // Exit without making changes
+        exitCropButton.addEventListener("click", () => {
+            imagePreview.src = ""; // Clear image preview
+            imagePreview.style.display = 'none'; // Hide image preview
+            cropperBox.style.display = 'none'; // Hide cropper box
+            cropperButtons.style.display = 'none'; // Hide crop buttons
             if (cropper) {
-                const canvas = cropper.getCroppedCanvas({ width: 500, height: 500 });
-                imagePreview.src = canvas.toDataURL("image/jpeg");
-                cropper.destroy();
-                cropButtons.style.display = "none";
+                cropper.destroy(); // Destroy cropper instance
             }
         });
 
-        document.getElementById("exitCrop").addEventListener("click", () => {
-            imagePreview.style.display = "none";
-            placeholder.style.display = "block";
-            cropButtons.style.display = "none";
-            if (cropper) cropper.destroy();
-        });
+        async function uploadImage(blob) {
+            try {
+                const formData = new FormData();
+                formData.append("file", blob);
+                formData.append("upload_preset", "BANYOTE");
+
+                const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dnfavv3ud/upload";
+                const imageResponse = await fetch(cloudinaryUrl, { method: "POST", body: formData });
+                const imageData = await imageResponse.json();
+
+                if (!imageData.secure_url) throw new Error("Image upload failed");
+                alert("✅ Image uploaded successfully!");
+            } catch (error) {
+                console.error("❌ Upload Error:", error);
+                alert("Image upload failed!");
+            }
+        }
     </script>
+
 </body>
 </html>
