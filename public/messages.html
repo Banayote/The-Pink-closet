@@ -13,6 +13,7 @@
             padding: 0;
             background-color: white;
         }
+        /* Chat List */
         #chat-list, #chat-screen {
             max-width: 500px;
             height: 100vh;
@@ -39,6 +40,7 @@
             margin-right: 10px;
             border: 2px solid #f48fb1;
         }
+        /* Chat Header */
         #chat-header {
             display: flex;
             align-items: center;
@@ -58,6 +60,7 @@
             font-weight: bold;
             margin-right: 70px;
         }
+        /* Message List */
         #messages {
             flex: 1;
             padding: 10px;
@@ -89,6 +92,7 @@
             float: left;
             clear: both;
         }
+        /* Input Container */
         #message-input-container {
             position: fixed;
             bottom: 0;
@@ -129,11 +133,13 @@
 </head>
 <body>
 
+    <!-- Chat List -->
     <div id="chat-list">
         <h2 style="text-align: center; padding: 10px;">Messages</h2>
         <div id="chat-list-container"></div>
     </div>
 
+    <!-- Chat Screen -->
     <div id="chat-screen" style="display: none;">
         <div id="chat-header">
             <i id="back-button" class="fas fa-arrow-left" onclick="goBack()"></i>
@@ -149,7 +155,8 @@
 
     <script>
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let currentUserId = localStorage.getItem("user_id");
         let currentConversationId = null;
@@ -207,33 +214,8 @@
             await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
             input.value = "";
 
-            // Keep focus on input
             setTimeout(() => input.focus(), 0);
-
-            // Reload messages and scroll to bottom
             loadMessages(currentConversationId);
-        }
-
-        async function loadMessages(convoId) {
-            const { data: messages, error } = await supabase
-                .from("messages")
-                .select("*")
-                .eq("conversation_id", convoId)
-                .order("created_at", { ascending: true });
-
-            if (error) return console.error("Error loading messages:", error);
-
-            const messagesContainer = document.getElementById("messages");
-            messagesContainer.innerHTML = "";
-
-            messages.forEach(msg => {
-                const msgDiv = document.createElement("div");
-                msgDiv.classList.add("message", msg.sender_id === currentUserId ? "sent" : "received");
-                msgDiv.textContent = msg.message;
-                messagesContainer.appendChild(msgDiv);
-            });
-
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         function goBack() {
