@@ -132,6 +132,7 @@
         #sending-indicator {
             display: none;
             color: pink;
+            margin-left: 10px;
         }
     </style>
 </head>
@@ -152,7 +153,7 @@
         </div>
         <div id="messages"></div>
         <div id="message-input-container">
-            <input id="message-input" type="text" placeholder="Type a message...">
+            <input id="message-input" type="text" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
             <button id="send-button" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
             <span id="sending-indicator">Sending...</span>
         </div>
@@ -165,49 +166,20 @@
         let currentUserId = localStorage.getItem("user_id");
         let currentConversationId = null;
 
-        async function loadConversations() {
-            const { data: conversations, error } = await supabase
-                .from("conversations")
-                .select("*")
-                .or(`buyer_id.eq.${currentUserId},seller_id.eq.${currentUserId}`);
+        async function sendMessage() {
+            const input = document.getElementById("message-input");
+            const message = input.value.trim();
+            if (!message) return;
 
-            if (error) return console.error("Error loading conversations:", error);
+            document.getElementById("sending-indicator").style.display = "inline";
 
-            const chatList = document.getElementById("chat-list-container");
-            chatList.innerHTML = "";
+            await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
 
-            for (const convo of conversations) {
-                const otherUserId = convo.seller_id === currentUserId ? convo.buyer_id : convo.seller_id;
+            input.value = "";
+            input.focus();
+            document.getElementById("sending-indicator").style.display = "none";
 
-                const { data: user } = await supabase
-                    .from("users")
-                    .select("first_name, last_name, avatar_url")
-                    .eq("id", otherUserId)
-                    .single();
-
-                if (!user) continue;
-
-                const convoItem = document.createElement("div");
-                convoItem.classList.add("conversation");
-                convoItem.onclick = () => openChat(convo.id, user.first_name, user.avatar_url);
-
-                convoItem.innerHTML = `
-                    <img class="avatar" src="${user.avatar_url || 'https://via.placeholder.com/40'}" alt="${user.first_name}">
-                    <div>${user.first_name}</div>
-                `;
-
-                chatList.appendChild(convoItem);
-            }
-        }
-
-        async function openChat(convoId, name, avatarUrl) {
-            document.getElementById("chat-list").style.display = "none";
-            document.getElementById("chat-screen").style.display = "flex";
-            document.getElementById("chat-title").innerText = name;
-            document.getElementById("chat-avatar").src = avatarUrl || 'https://via.placeholder.com/40';
-
-            currentConversationId = convoId;
-            loadMessages(convoId);
+            loadMessages(currentConversationId);
         }
 
         async function loadMessages(convoId) {
@@ -232,25 +204,11 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        async function sendMessage() {
-            const input = document.getElementById("message-input");
-            const message = input.value.trim();
-            if (!message) return;
-
-            // Show sending indicator
-            const sendingIndicator = document.getElementById("sending-indicator");
-            sendingIndicator.style.display = "block";
-
-            // Insert the message into the database
-            await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
-
-            // Clear input and re-focus
-            input.value = "";
-            input.focus();
-
-            // Hide sending indicator and load messages
-            sendingIndicator.style.display = "none";
-            loadMessages(currentConversationId);
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+                event.preventDefault();
+            }
         }
 
         function goBack() {
@@ -258,7 +216,9 @@
             document.getElementById("chat-list").style.display = "block";
         }
 
-        document.addEventListener("DOMContentLoaded", loadConversations);
+        document.addEventListener("DOMContentLoaded", () => {
+            loadMessages(currentConversationId);
+        });
     </script>
 
 </body>
