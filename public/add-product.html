@@ -86,27 +86,34 @@
             z-index: 1;
         }
 
+        /* Full-Screen Cropper Modal */
+        #cropper-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
         #cropper-box {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 200px;
-            height: 200px;
-            border: 2px solid #fff;
+            width: 80vw; /* Takes up most of the screen */
+            height: 80vw; /* Aspect ratio 1:1 */
+            max-width: 500px;
+            max-height: 500px;
             background: rgba(255, 255, 255, 0.5);
             cursor: move;
             z-index: 2;
         }
 
         #cropper-buttons {
-            display: none;
+            display: flex;
             justify-content: center;
             margin-top: 20px;
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
             z-index: 3;
         }
 
@@ -121,22 +128,23 @@
         }
 
         #cropper-buttons #apply-crop {
-            background: #28a745;
+            background: #ff6bcb; /* Pink color */
             color: white;
         }
 
         #cropper-buttons #apply-crop:hover {
-            background: #218838;
+            background: #ff3fa4; /* Lighter pink */
         }
 
         #cropper-buttons #exit-crop {
-            background: #dc3545;
+            background: #ff3fa4; /* Pink color */
             color: white;
         }
 
         #cropper-buttons #exit-crop:hover {
-            background: #c82333;
+            background: #ff6bcb; /* Lighter pink */
         }
+
     </style>
 
 </head>
@@ -160,17 +168,31 @@
         </form>
     </div>
 
-    <img id="image-preview" src="" alt="Image Preview">
-    <div id="cropper-box"></div>
+    <!-- Full-Screen Cropper Modal -->
+    <div id="cropper-modal">
+        <div id="cropper-box"></div>
+        <div id="cropper-buttons">
+            <button type="button" id="apply-crop">Apply</button>
+            <button type="button" id="exit-crop">Exit</button>
+        </div>
+    </div>
 
-    <script>
+    <img id="image-preview" src="" alt="Image Preview">
+
+    <script type="module">
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
+
+        const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
         const form = document.getElementById("add-product-form");
         const imageInput = document.getElementById("product-image");
         const imagePreview = document.getElementById("image-preview");
         const cropperBox = document.getElementById("cropper-box");
         const applyCropButton = document.getElementById("apply-crop");
         const exitCropButton = document.getElementById("exit-crop");
-        const cropperButtons = document.getElementById("cropper-buttons");
+        const cropperModal = document.getElementById("cropper-modal");
         let imageUrl = '';
         let cropper;
 
@@ -183,7 +205,7 @@
                     imageUrl = e.target.result;
                     imagePreview.src = imageUrl;
                     imagePreview.style.display = 'block'; // Show image
-                    cropperButtons.style.display = 'flex'; // Show buttons
+                    cropperModal.style.display = 'flex'; // Show full-screen cropper modal
                     cropperBox.style.display = 'block'; // Show cropper box
 
                     // Initialize the cropper
@@ -218,10 +240,8 @@
 
         // Exit without making changes
         exitCropButton.addEventListener("click", () => {
-            imagePreview.src = ""; // Clear image preview
+            cropperModal.style.display = 'none'; // Hide the cropper modal
             imagePreview.style.display = 'none'; // Hide image preview
-            cropperBox.style.display = 'none'; // Hide cropper box
-            cropperButtons.style.display = 'none'; // Hide crop buttons
             if (cropper) {
                 cropper.destroy(); // Destroy cropper instance
             }
