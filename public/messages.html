@@ -160,28 +160,59 @@
     </div>
 
     <script>
+        // Supabase configuration
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let currentUserId = localStorage.getItem("user_id");
         let currentConversationId = null;
 
-        async function sendMessage() {
-            const input = document.getElementById("message-input");
-            const message = input.value.trim();
-            if (!message) return;
+        // Load existing conversations
+        async function loadConversations() {
+            const { data: conversations, error } = await supabase
+                .from("conversations")
+                .select("*")
+                .or(`buyer_id.eq.${currentUserId},seller_id.eq.${currentUserId}`);
 
-            document.getElementById("sending-indicator").style.display = "inline";
+            if (error) return console.error("Error loading conversations:", error);
 
-            await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
+            const chatList = document.getElementById("chat-list-container");
+            chatList.innerHTML = "";
 
-            input.value = "";
-            input.focus();
-            document.getElementById("sending-indicator").style.display = "none";
+            conversations.forEach(convo => {
+                const otherUserId = convo.seller_id === currentUserId ? convo.buyer_id : convo.seller_id;
 
-            loadMessages(currentConversationId);
+                // Fetch user data for the conversation
+                supabase.from("users").select("first_name, last_name, avatar_url").eq("id", otherUserId).single()
+                    .then(({ data: user }) => {
+                        if (!user) return;
+
+                        const convoItem = document.createElement("div");
+                        convoItem.classList.add("conversation");
+                        convoItem.onclick = () => openChat(convo.id, user.first_name, user.avatar_url);
+
+                        convoItem.innerHTML = `
+                            <img class="avatar" src="${user.avatar_url || 'https://via.placeholder.com/40'}" alt="${user.first_name}">
+                            <div>${user.first_name}</div>
+                        `;
+
+                        chatList.appendChild(convoItem);
+                    });
+            });
         }
 
+        // Open chat screen and load messages
+        async function openChat(convoId, name, avatarUrl) {
+            document.getElementById("chat-list").style.display = "none";
+            document.getElementById("chat-screen").style.display = "flex";
+            document.getElementById("chat-title").innerText = name;
+            document.getElementById("chat-avatar").src = avatarUrl || 'https://via.placeholder.com/40';
+
+            currentConversationId = convoId;
+            loadMessages(convoId);
+        }
+
+        // Load messages for a specific conversation
         async function loadMessages(convoId) {
             const { data: messages, error } = await supabase
                 .from("messages")
@@ -204,6 +235,28 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
+        // Send a message to the current conversation
+        async function sendMessage() {
+            const input = document.getElementById("message-input");
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Show sending indicator
+            document.getElementById("sending-indicator").style.display = "inline";
+
+            // Insert the message into the database
+            await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
+
+            // Clear input and re-focus
+            input.value = "";
+            input.focus();
+
+            // Hide sending indicator and load messages
+            document.getElementById("sending-indicator").style.display = "none";
+            loadMessages(currentConversationId);
+        }
+
+        // Handle Enter key to send a message
         function handleKeyPress(event) {
             if (event.key === "Enter") {
                 sendMessage();
@@ -211,14 +264,14 @@
             }
         }
 
+        // Go back to the conversation list
         function goBack() {
             document.getElementById("chat-screen").style.display = "none";
             document.getElementById("chat-list").style.display = "block";
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            loadMessages(currentConversationId);
-        });
+        // Load conversations when the page loads
+        document.addEventListener("DOMContentLoaded", loadConversations);
     </script>
 
 </body>
