@@ -129,6 +129,10 @@
             margin-left: 10px;
             transform: rotate(180deg);
         }
+        #sending-indicator {
+            display: none;
+            color: pink;
+        }
     </style>
 </head>
 <body>
@@ -150,13 +154,13 @@
         <div id="message-input-container">
             <input id="message-input" type="text" placeholder="Type a message...">
             <button id="send-button" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+            <span id="sending-indicator">Sending...</span>
         </div>
     </div>
 
     <script>
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-        
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let currentUserId = localStorage.getItem("user_id");
         let currentConversationId = null;
@@ -206,15 +210,46 @@
             loadMessages(convoId);
         }
 
+        async function loadMessages(convoId) {
+            const { data: messages, error } = await supabase
+                .from("messages")
+                .select("*")
+                .eq("conversation_id", convoId)
+                .order("created_at", { ascending: true });
+
+            if (error) return console.error("Error loading messages:", error);
+
+            const messagesContainer = document.getElementById("messages");
+            messagesContainer.innerHTML = "";
+
+            messages.forEach(message => {
+                const msgDiv = document.createElement("div");
+                msgDiv.classList.add("message", message.sender_id === currentUserId ? "sent" : "received");
+                msgDiv.innerText = message.message;
+                messagesContainer.appendChild(msgDiv);
+            });
+
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
         async function sendMessage() {
             const input = document.getElementById("message-input");
             const message = input.value.trim();
             if (!message) return;
 
-            await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
-            input.value = "";
+            // Show sending indicator
+            const sendingIndicator = document.getElementById("sending-indicator");
+            sendingIndicator.style.display = "block";
 
-            setTimeout(() => input.focus(), 0);
+            // Insert the message into the database
+            await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
+
+            // Clear input and re-focus
+            input.value = "";
+            input.focus();
+
+            // Hide sending indicator and load messages
+            sendingIndicator.style.display = "none";
             loadMessages(currentConversationId);
         }
 
