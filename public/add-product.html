@@ -1,31 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
-    
-    <!-- Link to external CSS -->
-    <link rel="stylesheet" href="add_product.css">
 
-    <!-- 🔥 Cropper.js -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <!-- Cropper.js CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="add_product.css">
 
     <!-- Supabase SDK -->
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
+        // ✅ Your Supabase credentials
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1l...
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener("DOMContentLoaded", () => {
             const form = document.getElementById("add-product-form");
-            const imageInput = document.getElementById("product-image");
-            const previewContainer = document.getElementById("image-preview-container");
-            const previewImage = document.getElementById("image-preview");
-            const cropButton = document.getElementById("crop-button");
             let cropper;
 
             // 🔹 Get seller ID from URL or LocalStorage
@@ -39,20 +36,28 @@
             }
             localStorage.setItem("seller_id", sellerId);
 
-            // 🔹 Handle Image Selection & Cropper
-            imageInput.addEventListener("change", (event) => {
+            // Handle Image Selection & Cropper
+            const inputImage = document.getElementById("product-image");
+            const imagePreview = document.getElementById("image-preview");
+            const cropButton = document.getElementById("crop-button");
+
+            inputImage.addEventListener("change", (event) => {
                 const file = event.target.files[0];
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = function (e) {
-                        previewImage.src = e.target.result;
-                        previewContainer.style.display = "block";
+                        imagePreview.src = e.target.result;
+                        document.getElementById("image-preview-container").style.display = "block";
 
-                        if (cropper) cropper.destroy(); 
-                        cropper = new Cropper(previewImage, {
-                            aspectRatio: 1, 
-                            viewMode: 2,
+                        if (cropper) cropper.destroy();
+                        cropper = new Cropper(imagePreview, {
+                            aspectRatio: 1,
+                            viewMode: 1,
                             autoCropArea: 1,
+                            movable: true,
+                            zoomable: false,
+                            cropBoxResizable: false,
+                            cropBoxMovable: true,
                         });
                     };
                     reader.readAsDataURL(file);
@@ -61,7 +66,6 @@
 
             cropButton.addEventListener("click", async () => {
                 if (!cropper) return;
-
                 const canvas = cropper.getCroppedCanvas({ width: 500, height: 500 });
                 const croppedImageUrl = canvas.toDataURL("image/png");
 
@@ -84,7 +88,7 @@
                 }
             });
 
-            // 🔹 Handle Product Submission
+            // Handle Form Submission
             form.addEventListener("submit", async (event) => {
                 event.preventDefault();
 
@@ -116,7 +120,7 @@
                     } else {
                         alert("✅ Product added successfully!");
                         form.reset();
-                        previewContainer.style.display = "none";
+                        document.getElementById("image-preview-container").style.display = "none";
                     }
                 } catch (error) {
                     alert("❌ An error occurred: " + error.message);
@@ -124,6 +128,7 @@
             });
         });
     </script>
+
 </head>
 
 <body>
@@ -157,9 +162,11 @@
 
             <input type="hidden" id="cropped-image-url">
 
-            <!-- 🔹 Submit Button -->
             <button type="submit">Add Product</button>
         </form>
     </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 </body>
+
 </html>
