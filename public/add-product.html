@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
 
+    <!-- External CSS -->
+    <link rel="stylesheet" href="add_product.css">
+
     <!-- Cropper.js CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
 
@@ -14,7 +17,7 @@
 
         // ✅ Your Supabase credentials
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -121,22 +124,35 @@
     </script>
 </head>
 <body>
-    <h1>Add Product</h1>
-    <form id="add-product-form">
-        <input type="text" id="product-name" placeholder="Product Name" required>
-        <textarea id="product-description" placeholder="Description" required></textarea>
-        <input type="number" id="product-price" placeholder="Price" required>
-        <input type="text" id="product-category" placeholder="Category" required>
+    <header>
+        <h1>Add Product</h1>
+    </header>
+    
+    <main>
+        <form id="add-product-form">
+            <label for="product-name">Product Name:</label>
+            <input type="text" id="product-name" placeholder="Product Name" required>
 
-        <!-- Image Upload and Crop -->
-        <input type="file" id="product-image" accept="image/*" required>
-        <br>
-        <div>
-            <img id="image-preview" src="" style="max-width: 100%; height: auto;">
-        </div>
+            <label for="product-description">Description:</label>
+            <textarea id="product-description" placeholder="Description" required></textarea>
 
-        <button type="submit">Add Product</button>
-    </form>
+            <label for="product-price">Price:</label>
+            <input type="number" id="product-price" placeholder="Price" required>
+
+            <label for="product-category">Category:</label>
+            <input type="text" id="product-category" placeholder="Category" required>
+
+            <!-- Image Upload and Crop -->
+            <label for="product-image">Upload Product Image:</label>
+            <input type="file" id="product-image" accept="image/*" required>
+            
+            <div style="text-align: center; margin-top: 10px;">
+                <img id="image-preview" src="" style="max-width: 100%; height: auto; border: 1px solid #ddd; padding: 5px;">
+            </div>
+
+            <button type="submit">Add Product</button>
+        </form>
+    </main>
 
     <!-- Cropper.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
