@@ -8,8 +8,8 @@
     <style>
         /* General Styles */
         body {
-            font-family: "Arial", sans-serif;
-            background: #ffe6f0; /* Very Light Pink Background */
+            font-family: "Poppins", sans-serif;
+            background: #f4f4f4; /* Light gray background */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -19,14 +19,36 @@
 
         /* Container */
         .container {
-            background: white; /* White Card */
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(255, 182, 193, 0.3); /* Soft Pink Shadow */
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
             text-align: center;
-            border: 2px solid #ffb6c1; /* Light Pink Border */
+        }
+
+        /* Image Preview */
+        .image-preview {
+            width: 100%;
+            height: 180px;
+            border: 2px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #888;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            background: #f9f9f9;
+            overflow: hidden;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
         }
 
         /* Form Styling */
@@ -36,20 +58,20 @@
         }
 
         label {
-            font-weight: bold;
+            font-weight: 600;
             text-align: left;
             margin-top: 10px;
-            color: #d14775; /* Darker Pink for Text */
+            color: #333;
         }
 
         input, textarea {
             padding: 10px;
             margin-top: 5px;
-            border: 1px solid #ffb6c1; /* Light Pink Border */
+            border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 16px;
             width: 100%;
-            background: #fff0f5; /* Very Light Pink Input Background */
+            background: #fff;
         }
 
         textarea {
@@ -59,9 +81,9 @@
 
         /* Button */
         button {
-            background: #ff6699; /* Medium Pink Button */
+            background: #007bff;
             color: white;
-            padding: 10px;
+            padding: 12px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -71,7 +93,7 @@
         }
 
         button:hover {
-            background: #e75480; /* Slightly Darker Pink on Hover */
+            background: #0056b3;
         }
 
         /* Responsive */
@@ -93,6 +115,24 @@
         document.addEventListener("DOMContentLoaded", () => {
             const form = document.getElementById("add-product-form");
             const priceInput = document.getElementById("product-price");
+            const imageInput = document.getElementById("product-image");
+            const imagePreview = document.getElementById("image-preview");
+            const previewImg = document.getElementById("preview-img");
+
+            // 🔹 Show image preview
+            imageInput.addEventListener("change", () => {
+                const file = imageInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        previewImg.src = reader.result;
+                        previewImg.style.display = "block";
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    previewImg.style.display = "none";
+                }
+            });
 
             // 🔹 Get seller ID
             const urlParams = new URLSearchParams(window.location.search);
@@ -120,7 +160,7 @@
                 const productDescription = document.getElementById("product-description").value.trim();
                 const productPrice = parseFloat(priceInput.value);
                 const productCategory = document.getElementById("product-category").value.trim();
-                const productImage = document.getElementById("product-image").files[0];
+                const productImage = imageInput.files[0];
 
                 if (!productName || !productDescription || !productCategory || !productImage || isNaN(productPrice) || productPrice <= 0) {
                     alert("Please fill out all fields correctly.");
@@ -154,6 +194,7 @@
                     } else {
                         alert("✅ Product added successfully!");
                         form.reset();
+                        previewImg.style.display = "none"; // Reset preview
                     }
                 } catch (error) {
                     alert("An error occurred: " + error.message);
@@ -164,7 +205,14 @@
 </head>
 <body>
     <div class="container">
-        <h1 style="color: #d14775;">Add a New Product</h1>
+        <h1 style="color: #333;">Add a New Product</h1>
+
+        <!-- Image Preview -->
+        <div class="image-preview" id="image-preview">
+            <img id="preview-img" alt="Image Preview">
+            <span>Image will appear here</span>
+        </div>
+
         <form id="add-product-form">
             <label for="product-name">Product Name</label>
             <input type="text" id="product-name" placeholder="Enter product name" required>
