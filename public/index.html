@@ -22,8 +22,9 @@
         }
 
         .menu-icon.active::after {
-            content: "✖"; /* Change to "X" when active */
-            font-size: 30px;
+            content: "✖"; /* Bold "X" */
+            font-size: 35px;
+            font-weight: bold;
         }
 
         .menu-icon:not(.active)::after {
@@ -47,22 +48,29 @@
             right: 0;
         }
 
-        /* 🔥 Grid for Products */
+        /* 🔥 Horizontal Scroll for Products */
+        #product-container {
+            overflow-x: auto;
+            white-space: nowrap;
+            scroll-snap-type: x mandatory;
+            padding: 20px;
+        }
+
         #product-list {
             display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
+            gap: 15px;
         }
 
         .product {
-            width: calc(100% / 15 - 10px); /* 15 products per row */
-            margin: 5px;
+            min-width: 200px; /* Adjust width */
+            flex: 0 0 auto;
             padding: 10px;
             text-align: center;
             cursor: pointer;
             background-color: #fff;
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
             border: 1px solid #ccc;
+            scroll-snap-align: start;
         }
 
         .product img {
@@ -98,7 +106,9 @@
 
     <main>
         <section id="main-content">
-            <div id="product-list"></div> <!-- Products will be displayed here -->
+            <div id="product-container">
+                <div id="product-list"></div> <!-- Products will be displayed here -->
+            </div>
         </section>
     </main>
 
@@ -145,7 +155,7 @@
                         return;
                     }
 
-                    products.forEach((product, index) => {
+                    products.forEach((product) => {
                         const imageUrl = product.image_url || 'https://via.placeholder.com/150';
 
                         const productDiv = document.createElement('div');
