@@ -9,7 +9,101 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
-    <!-- Supabase SDK -->
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #fff;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: #fff;
+            width: 400px;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #ff6bcb;
+            font-weight: 600;
+        }
+
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 2px solid #ff6bcb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #ff3fa4;
+            outline: none;
+            box-shadow: 0 0 8px rgba(255, 107, 203, 0.5);
+        }
+
+        button {
+            background: #ff6bcb;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: #ff3fa4;
+        }
+
+        button:disabled {
+            background: #ffb3e6;
+            cursor: not-allowed;
+        }
+
+        #image-preview {
+            max-width: 100%;
+            margin: 10px 0;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            margin-top: 10px;
+            color: #ff6bcb;
+            font-weight: bold;
+        }
+    </style>
+
+</head>
+<body>
+
+    <div class="container">
+        <h1>Add Product</h1>
+        <form id="add-product-form">
+            <input type="text" id="product-name" placeholder="Product Name" required>
+            <textarea id="product-description" placeholder="Description" required></textarea>
+            <input type="number" id="product-price" placeholder="Price" required>
+            <input type="text" id="product-category" placeholder="Category" required>
+            
+            <input type="file" id="product-image" accept="image/*" required>
+            <img id="image-preview">
+            <button type="button" id="crop-button">Crop & Upload</button>
+            <div id="loading" class="loading">Uploading...</div>
+        </form>
+    </div>
+
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
@@ -22,18 +116,20 @@
             const imageInput = document.getElementById("product-image");
             const imagePreview = document.getElementById("image-preview");
             const cropButton = document.getElementById("crop-button");
+            const loadingIndicator = document.getElementById("loading");
             let cropper;
 
-            // 🔹 Handle Image Selection
+            // Handle Image Selection
             imageInput.addEventListener("change", function (event) {
                 const file = event.target.files[0];
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = function (e) {
                         imagePreview.src = e.target.result;
+                        imagePreview.style.display = 'block';
                         if (cropper) cropper.destroy();
                         cropper = new Cropper(imagePreview, {
-                            aspectRatio: 1, // 🔹 Square aspect ratio
+                            aspectRatio: 1,
                             viewMode: 2,
                             autoCropArea: 1
                         });
@@ -42,7 +138,7 @@
                 }
             });
 
-            // 🔹 Crop Image & Upload
+            // Crop Image & Upload
             cropButton.addEventListener("click", async () => {
                 if (!cropper) {
                     alert("Please select an image first!");
@@ -57,6 +153,7 @@
 
             async function uploadImage(blob) {
                 try {
+                    loadingIndicator.style.display = 'block'; // Show loading
                     const formData = new FormData();
                     formData.append("file", blob);
                     formData.append("upload_preset", "BANYOTE");
@@ -66,10 +163,12 @@
                     const imageData = await imageResponse.json();
 
                     if (!imageData.secure_url) throw new Error("Image upload failed");
-                    addProduct(imageData.secure_url);
+                    await addProduct(imageData.secure_url);
                 } catch (error) {
                     console.error("❌ Upload Error:", error);
                     alert("Image upload failed!");
+                } finally {
+                    loadingIndicator.style.display = 'none'; // Hide loading
                 }
             }
 
@@ -103,23 +202,11 @@
                     alert("✅ Product added successfully!");
                     form.reset();
                     imagePreview.src = ""; // Clear preview
+                    imagePreview.style.display = 'none';
                 }
             }
         });
     </script>
 
-</head>
-<body>
-    <h1>Add Product</h1>
-    <form id="add-product-form">
-        <input type="text" id="product-name" placeholder="Product Name" required>
-        <textarea id="product-description" placeholder="Description" required></textarea>
-        <input type="number" id="product-price" placeholder="Price" required>
-        <input type="text" id="product-category" placeholder="Category" required>
-        
-        <input type="file" id="product-image" accept="image/*" required>
-        <img id="image-preview" style="max-width: 300px; display: block; margin: 10px 0;">
-        <button type="button" id="crop-button">Crop & Upload</button>
-    </form>
 </body>
 </html>
