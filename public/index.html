@@ -71,6 +71,7 @@
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
             border: 1px solid #ccc;
             scroll-snap-align: start;
+            position: relative;
         }
 
         .product img {
@@ -88,8 +89,14 @@
         }
 
         .product-price {
-            font-size: 1.1rem;
-            color: #ff6347;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: black;
+            background-color: rgba(0, 0, 0, 0.1);
+            padding: 5px;
+            display: inline-block;
+            margin-top: 10px;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -163,8 +170,8 @@
                         productDiv.innerHTML = `
                             <h2 class="product-name">${product.name}</h2>
                             <p class="product-description">${product.description}</p>
-                            <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
                             <img src="${imageUrl}" alt="${product.name}">
+                            <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
                             <a href="product.html?id=${product.id}&seller_id=${product.seller_id}" class="view-product-btn">View Product</a>
                         `;
 
