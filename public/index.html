@@ -54,6 +54,7 @@
             white-space: nowrap;
             scroll-snap-type: x mandatory;
             padding: 20px;
+            padding-bottom: 10px; /* Reduced bottom padding */
         }
 
         #product-list {
@@ -72,9 +73,9 @@
             scroll-snap-align: start;
             display: flex;
             flex-direction: column;
+            justify-content: flex-start; /* Ensure we don't stretch items unnecessarily */
             align-items: center;
-            justify-content: space-between;
-            position: relative;
+            margin-bottom: 5px; /* Ensure there's no extra margin below each product */
         }
 
         .product a {
@@ -84,14 +85,14 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
-            justify-content: space-between;
-            height: 100%;
+            justify-content: flex-start; /* Keep items aligned to the top */
         }
 
         .product img {
             max-width: 100%;
             height: auto;
             border-bottom: 1px solid #ddd;
+            margin-bottom: 5px; /* Reduced margin */
         }
 
         .product-price {
@@ -107,10 +108,6 @@
             border-radius: 5px;
         }
 
-        /* Adjust product container padding to reduce white space */
-        #product-container {
-            padding-bottom: 10px; /* Reduced padding at the bottom */
-        }
     </style>
 </head>
 
