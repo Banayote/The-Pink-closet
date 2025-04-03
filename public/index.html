@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Pink Closet</title>
     <link rel="stylesheet" href="styles.css">
-
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,9 +22,10 @@
         }
 
         .menu-icon.active::after {
-            content: "✖"; /* Bold "X" */
+            content: "✖"; /* Pink "X" */
             font-size: 35px;
             font-weight: bold;
+            color: pink;
         }
 
         .menu-icon:not(.active)::after {
@@ -50,27 +49,30 @@
             right: 0;
         }
 
-        /* 🔥 Scrollable Product Section */
-        #product-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            padding: 10px;
-            max-width: 100vw;
+        /* Remove the white "X" close button */
+        .close-btn {
+            display: none; /* Hides the white X */
         }
 
-        .product-row {
+        /* 🔥 Grid Layout for Products */
+        #product-container {
+            padding: 10px;
             display: flex;
-            overflow-x: auto;
-            white-space: nowrap;
-            scrollbar-width: thin;
-            scrollbar-color: #ccc transparent;
+            justify-content: center;
+        }
+
+        #product-list {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr); /* 15 products per row */
             gap: 10px;
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: auto; /* Make products scroll left & right */
+            white-space: nowrap;
         }
 
         .product {
-            min-width: 200px; /* Adjust size as needed */
-            flex: 0 0 auto;
+            padding: 5px;
             text-align: center;
             background-color: #fff;
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
@@ -107,7 +109,6 @@
             text-align: center;
             border-radius: 5px;
         }
-
     </style>
 </head>
 
@@ -123,7 +124,9 @@
 
     <main>
         <section id="main-content">
-            <div id="product-container"></div> <!-- Products will be displayed here -->
+            <div id="product-container">
+                <div id="product-list"></div> <!-- Products will be displayed here -->
+            </div>
         </section>
     </main>
 
@@ -133,7 +136,6 @@
 
     <!-- 🔥 Sidebar (Burger Menu) -->
     <div id="sidebar" class="sidebar">
-        <button id="closeBtn" class="close-btn">&times;</button>
         <div class="sidebar-content">
             <a href="profile.html" class="sidebar-item">Profile</a>
             <a href="store.html" class="sidebar-item">Create Store</a>
@@ -152,7 +154,7 @@
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'
             );
 
-            const productContainer = document.getElementById('product-container');
+            const productList = document.getElementById('product-list');
 
             async function loadProducts() {
                 try {
@@ -163,22 +165,14 @@
                     }
 
                     console.log("✅ Products Loaded:", products);
-                    productContainer.innerHTML = ''; // Clear existing content
+                    productList.innerHTML = ''; // Clear existing content
 
                     if (products.length === 0) {
-                        productContainer.innerHTML = '<p>No products available.</p>';
+                        productList.innerHTML = '<p>No products available.</p>';
                         return;
                     }
 
-                    let currentRow;
-
                     products.forEach((product, index) => {
-                        if (index % 15 === 0) {
-                            currentRow = document.createElement('div');
-                            currentRow.classList.add('product-row');
-                            productContainer.appendChild(currentRow);
-                        }
-
                         const imageUrl = product.image_url || 'https://via.placeholder.com/150';
 
                         const productDiv = document.createElement('div');
@@ -190,11 +184,20 @@
                             </a>
                         `;
 
-                        currentRow.appendChild(productDiv);
+                        productList.appendChild(productDiv);
+
+                        // 🔥 Create a new row after every 15 products
+                        if ((index + 1) % 15 === 0) {
+                            const newRow = document.createElement('div');
+                            newRow.style.width = "100%";
+                            newRow.style.display = "flex";
+                            newRow.style.justifyContent = "center";
+                            productList.appendChild(newRow);
+                        }
                     });
                 } catch (err) {
                     console.error('❌ Error loading products:', err.message);
-                    productContainer.innerHTML = '<p>Error loading products. Try again later.</p>';
+                    productList.innerHTML = '<p>Error loading products. Try again later.</p>';
                 }
             }
 
@@ -218,5 +221,4 @@
         });
     </script>
 </body>
-
 </html>
