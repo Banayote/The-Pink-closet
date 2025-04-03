@@ -22,10 +22,9 @@
         }
 
         .menu-icon.active::after {
-            content: "✖"; /* Pink "X" */
+            content: "✖"; /* Plain "X" */
             font-size: 35px;
             font-weight: bold;
-            color: pink;
         }
 
         .menu-icon:not(.active)::after {
@@ -49,26 +48,18 @@
             right: 0;
         }
 
-        /* Remove the white "X" close button */
-        .close-btn {
-            display: none; /* Hides the white X */
-        }
-
-        /* 🔥 Grid Layout for Products */
+        /* 🔥 Horizontal Scroll for Products */
         #product-container {
             padding: 10px;
             display: flex;
-            justify-content: center;
+            overflow-x: auto; /* Horizontal scrolling */
+            white-space: nowrap;
         }
 
-        #product-list {
-            display: grid;
-            grid-template-columns: repeat(15, 1fr); /* 15 products per row */
+        .product-row {
+            display: flex;
             gap: 10px;
-            width: 100%;
-            max-width: 100vw;
-            overflow-x: auto; /* Make products scroll left & right */
-            white-space: nowrap;
+            flex-wrap: nowrap; /* Prevent wrapping */
         }
 
         .product {
@@ -154,7 +145,7 @@
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'
             );
 
-            const productList = document.getElementById('product-list');
+            const productContainer = document.getElementById('product-container');
 
             async function loadProducts() {
                 try {
@@ -165,12 +156,16 @@
                     }
 
                     console.log("✅ Products Loaded:", products);
-                    productList.innerHTML = ''; // Clear existing content
+                    productContainer.innerHTML = ''; // Clear existing content
 
                     if (products.length === 0) {
-                        productList.innerHTML = '<p>No products available.</p>';
+                        productContainer.innerHTML = '<p>No products available.</p>';
                         return;
                     }
+
+                    let currentRow = document.createElement('div');
+                    currentRow.classList.add('product-row');
+                    productContainer.appendChild(currentRow);
 
                     products.forEach((product, index) => {
                         const imageUrl = product.image_url || 'https://via.placeholder.com/150';
@@ -184,20 +179,18 @@
                             </a>
                         `;
 
-                        productList.appendChild(productDiv);
+                        currentRow.appendChild(productDiv);
 
                         // 🔥 Create a new row after every 15 products
                         if ((index + 1) % 15 === 0) {
-                            const newRow = document.createElement('div');
-                            newRow.style.width = "100%";
-                            newRow.style.display = "flex";
-                            newRow.style.justifyContent = "center";
-                            productList.appendChild(newRow);
+                            currentRow = document.createElement('div');
+                            currentRow.classList.add('product-row');
+                            productContainer.appendChild(currentRow);
                         }
                     });
                 } catch (err) {
                     console.error('❌ Error loading products:', err.message);
-                    productList.innerHTML = '<p>Error loading products. Try again later.</p>';
+                    productContainer.innerHTML = '<p>Error loading products. Try again later.</p>';
                 }
             }
 
