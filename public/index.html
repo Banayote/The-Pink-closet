@@ -48,28 +48,30 @@
             right: 0;
         }
 
-        /* 🔥 Horizontal Scroll for Products */
+        /* 🔥 Grid Layout for Products */
         #product-container {
-            overflow-x: auto;
-            white-space: nowrap;
-            scroll-snap-type: x mandatory;
             padding: 10px;
+            display: flex;
+            justify-content: center;
         }
 
         #product-list {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(15, 1fr); /* 15 products per row */
             gap: 10px;
+            width: 100%;
+            max-width: 100vw;
         }
 
         .product {
-            min-width: calc(100vw / 15); /* Exactly 15 products visible at a time */
-            flex: 0 0 auto;
             padding: 5px;
             text-align: center;
             background-color: #fff;
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
             border: 1px solid #ccc;
-            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .product a {
