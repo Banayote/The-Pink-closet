@@ -12,30 +12,31 @@
             padding: 0;
         }
 
-        /* 🔥 Burger Menu */
+        /* 🔥 Fixed Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            z-index: 1000;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
         .menu-icon {
             font-size: 30px;
             cursor: pointer;
             padding: 10px;
-            z-index: 1001;
-            transition: 0.3s ease-in-out;
-        }
-
-        .menu-icon.active::after {
-            content: "✖"; /* Bold "X" */
-            font-size: 35px;
-            font-weight: bold;
-        }
-
-        .menu-icon:not(.active)::after {
-            content: "☰"; /* Default burger icon */
-            font-size: 30px;
         }
 
         .sidebar {
             position: fixed;
             top: 0;
-            right: -250px; /* Hidden by default */
+            right: -250px;
             width: 250px;
             height: 100%;
             background-color: #fff;
@@ -48,19 +49,37 @@
             right: 0;
         }
 
-        /* 🔥 Grid Layout for Products */
-        #product-container {
-            padding: 10px;
-            display: flex;
-            justify-content: center;
+        /* 🔥 Product Section */
+        main {
+            margin-top: 80px; /* Push content below fixed header */
         }
 
-        #product-list {
-            display: grid;
-            grid-template-columns: repeat(15, 1fr); /* 15 products per row */
-            gap: 10px;
+        #product-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 10px;
             width: 100%;
-            max-width: 100vw;
+        }
+
+        /* 🔥 Each row contains 15 products & scrolls sideways */
+        .product-row {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scroll-snap-type: x mandatory;
+        }
+
+        .product-row::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .product-row::-webkit-scrollbar-thumb {
+            background-color: #888;
+            border-radius: 10px;
         }
 
         .product {
@@ -72,15 +91,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-
-        .product a {
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
+            scroll-snap-align: start;
         }
 
         .product img {
@@ -96,7 +107,6 @@
             padding: 5px;
             background-color: white;
             border: 1px solid #ddd;
-            display: block;
             width: 100%;
             text-align: center;
             border-radius: 5px;
@@ -107,7 +117,7 @@
 
 <body>
     <header>
-        <div id="menuIcon" class="menu-icon"></div>
+        <div id="menuIcon" class="menu-icon">☰</div>
         <h1 id="storeName">The Pink Closet</h1>
         <div class="search-bar">
             <input type="text" id="search-input" placeholder="Search products...">
@@ -117,9 +127,7 @@
 
     <main>
         <section id="main-content">
-            <div id="product-container">
-                <div id="product-list"></div> <!-- Products will be displayed here -->
-            </div>
+            <div id="product-container"></div> <!-- Product rows will be added here -->
         </section>
     </main>
 
@@ -148,7 +156,7 @@
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'
             );
 
-            const productList = document.getElementById('product-list');
+            const productContainer = document.getElementById('product-container');
 
             async function loadProducts() {
                 try {
@@ -159,14 +167,21 @@
                     }
 
                     console.log("✅ Products Loaded:", products);
-                    productList.innerHTML = ''; // Clear existing content
+                    productContainer.innerHTML = ''; // Clear existing content
 
                     if (products.length === 0) {
-                        productList.innerHTML = '<p>No products available.</p>';
+                        productContainer.innerHTML = '<p>No products available.</p>';
                         return;
                     }
 
-                    products.forEach((product) => {
+                    let row;
+                    products.forEach((product, index) => {
+                        if (index % 15 === 0) {
+                            row = document.createElement('div');
+                            row.classList.add('product-row');
+                            productContainer.appendChild(row);
+                        }
+
                         const imageUrl = product.image_url || 'https://via.placeholder.com/150';
 
                         const productDiv = document.createElement('div');
@@ -178,11 +193,11 @@
                             </a>
                         `;
 
-                        productList.appendChild(productDiv);
+                        row.appendChild(productDiv);
                     });
                 } catch (err) {
                     console.error('❌ Error loading products:', err.message);
-                    productList.innerHTML = '<p>Error loading products. Try again later.</p>';
+                    productContainer.innerHTML = '<p>Error loading products. Try again later.</p>';
                 }
             }
 
@@ -194,13 +209,13 @@
 
             menuIcon.addEventListener('click', function () {
                 sidebar.classList.toggle('active');
-                menuIcon.classList.toggle('active'); // Change icon
+                menuIcon.classList.toggle('active');
             });
 
             document.addEventListener('click', function (event) {
                 if (!sidebar.contains(event.target) && !menuIcon.contains(event.target)) {
                     sidebar.classList.remove('active');
-                    menuIcon.classList.remove('active'); // Reset icon to ☰
+                    menuIcon.classList.remove('active');
                 }
             });
         });
