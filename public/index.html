@@ -48,36 +48,29 @@
             right: 0;
         }
 
-        /* 🔥 Horizontal Scroll for Products */
+        /* 🔥 Products Layout */
         #product-container {
-            overflow-x: auto;
-            white-space: nowrap;
-            scroll-snap-type: x mandatory;
             padding: 20px;
-            padding-bottom: 10px;
         }
 
         #product-list {
             display: flex;
-            flex-wrap: wrap; /* Ensure products will wrap to a new line after 15 */
-            gap: 15px;
-            justify-content: space-around; /* Ensures products are evenly distributed */
+            flex-wrap: wrap; /* Allows wrapping to a new row */
+            justify-content: space-between; /* Distributes products evenly */
+            gap: 10px; /* Space between products */
         }
 
         .product {
-            width: 15%; /* Each product takes up 15% of the width */
-            min-width: 150px; /* Ensure there's a minimum width */
-            padding: 10px;
+            width: calc(100% / 15 - 10px); /* Ensures 15 products per row */
+            min-width: 100px; /* Prevents products from shrinking too much */
+            padding: 5px;
             text-align: center;
             background-color: #fff;
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
             border: 1px solid #ccc;
-            scroll-snap-align: start;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
             align-items: center;
-            margin-bottom: 10px;
         }
 
         .product a {
@@ -97,15 +90,14 @@
         }
 
         .product-price {
-            font-size: 1.2rem;
+            font-size: 1rem;
             color: #000;
-            padding: 5px 10px;
+            padding: 5px;
             background-color: white;
             border: 1px solid #ddd;
             display: block;
             width: 100%;
             text-align: center;
-            margin-top: 5px;
             border-radius: 5px;
         }
 
