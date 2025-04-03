@@ -26,7 +26,7 @@
         }
 
         .product {
-            min-width: 200px; /* Adjust width */
+            min-width: 200px;
             flex: 0 0 auto;
             padding: 10px;
             text-align: center;
@@ -63,7 +63,7 @@
     <main>
         <section id="main-content">
             <div id="product-container">
-                <div id="product-list"></div> <!-- Products will be displayed here -->
+                <div id="product-list"></div>
             </div>
         </section>
     </main>
@@ -87,7 +87,7 @@
                         throw error;
                     }
 
-                    productList.innerHTML = ''; // Clear existing content
+                    productList.innerHTML = '';
 
                     if (products.length === 0) {
                         productList.innerHTML = '<p>No products available.</p>';
