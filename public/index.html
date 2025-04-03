@@ -125,15 +125,15 @@
 
         .search-bar button {
             padding: 10px 15px;
-            background-color: #000;
-            color: #fff;
-            border: none;
+            background-color: #fff;
+            color: #000;
+            border: 1px solid #ddd;
             cursor: pointer;
             border-radius: 5px;
         }
 
         .search-bar button:hover {
-            background-color: #444;
+            background-color: #f1f1f1;
         }
     </style>
 </head>
@@ -218,8 +218,6 @@
                         productDiv.innerHTML = `
                             <a href="product.html?id=${product.id}">
                                 <img src="${imageUrl}" alt="Product Image">
-                                <h2 class="product-name">${product.name}</h2>
-                                <p class="product-description">${product.description}</p>
                                 <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
                             </a>
                         `;
