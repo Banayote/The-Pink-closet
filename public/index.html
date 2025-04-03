@@ -48,29 +48,28 @@
             right: 0;
         }
 
-        /* 🔥 Products Layout */
+        /* 🔥 Horizontal Scroll for Products */
         #product-container {
-            padding: 20px;
+            overflow-x: auto;
+            white-space: nowrap;
+            scroll-snap-type: x mandatory;
+            padding: 10px;
         }
 
         #product-list {
             display: flex;
-            flex-wrap: wrap; /* Allows wrapping to a new row */
-            justify-content: space-between; /* Distributes products evenly */
-            gap: 10px; /* Space between products */
+            gap: 10px;
         }
 
         .product {
-            width: calc(100% / 15 - 10px); /* Ensures 15 products per row */
-            min-width: 100px; /* Prevents products from shrinking too much */
+            min-width: calc(100vw / 15); /* Exactly 15 products visible at a time */
+            flex: 0 0 auto;
             padding: 5px;
             text-align: center;
             background-color: #fff;
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
             border: 1px solid #ccc;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            scroll-snap-align: start;
         }
 
         .product a {
