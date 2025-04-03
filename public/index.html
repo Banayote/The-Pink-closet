@@ -10,6 +10,7 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
+            background-color: #f8f8f8;
         }
 
         /* 🔥 Fixed Header */
@@ -20,7 +21,7 @@
             width: 100%;
             background-color: white;
             z-index: 1000;
-            padding: 10px;
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -33,6 +34,29 @@
             padding: 10px;
         }
 
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .search-bar input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+        }
+
+        .search-bar button {
+            padding: 8px 12px;
+            background-color: #ff69b4;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        /* 🔥 Sidebar */
         .sidebar {
             position: fixed;
             top: 0;
@@ -58,12 +82,11 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-            overflow-x: auto;
-            padding: 10px;
+            padding: 20px;
             width: 100%;
         }
 
-        /* 🔥 Each row contains 15 products & scrolls sideways */
+        /* 🔥 Product Rows */
         .product-row {
             display: grid;
             grid-template-columns: repeat(15, 1fr);
@@ -71,6 +94,10 @@
             overflow-x: auto;
             padding-bottom: 10px;
             scroll-snap-type: x mandatory;
+            background-color: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .product-row::-webkit-scrollbar {
@@ -82,6 +109,7 @@
             border-radius: 10px;
         }
 
+        /* 🔥 Individual Product */
         .product {
             padding: 5px;
             text-align: center;
@@ -202,22 +230,6 @@
             }
 
             loadProducts();
-
-            /* 🔥 Fix Burger Menu */
-            const menuIcon = document.getElementById('menuIcon');
-            const sidebar = document.getElementById('sidebar');
-
-            menuIcon.addEventListener('click', function () {
-                sidebar.classList.toggle('active');
-                menuIcon.classList.toggle('active');
-            });
-
-            document.addEventListener('click', function (event) {
-                if (!sidebar.contains(event.target) && !menuIcon.contains(event.target)) {
-                    sidebar.classList.remove('active');
-                    menuIcon.classList.remove('active');
-                }
-            });
         });
     </script>
 </body>
