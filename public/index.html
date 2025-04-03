@@ -52,18 +52,19 @@
 
         /* 🔥 Scrollable Product Section */
         #product-container {
-            overflow-x: auto;
-            white-space: nowrap;
             display: flex;
-            justify-content: flex-start;
+            flex-direction: column;
+            gap: 20px;
             padding: 10px;
             max-width: 100vw;
-            scrollbar-width: thin;
-            scrollbar-color: #ccc transparent;
         }
 
-        #product-list {
+        .product-row {
             display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: thin;
+            scrollbar-color: #ccc transparent;
             gap: 10px;
         }
 
@@ -122,9 +123,7 @@
 
     <main>
         <section id="main-content">
-            <div id="product-container">
-                <div id="product-list"></div> <!-- Products will be displayed here -->
-            </div>
+            <div id="product-container"></div> <!-- Products will be displayed here -->
         </section>
     </main>
 
@@ -153,7 +152,7 @@
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'
             );
 
-            const productList = document.getElementById('product-list');
+            const productContainer = document.getElementById('product-container');
 
             async function loadProducts() {
                 try {
@@ -164,14 +163,22 @@
                     }
 
                     console.log("✅ Products Loaded:", products);
-                    productList.innerHTML = ''; // Clear existing content
+                    productContainer.innerHTML = ''; // Clear existing content
 
                     if (products.length === 0) {
-                        productList.innerHTML = '<p>No products available.</p>';
+                        productContainer.innerHTML = '<p>No products available.</p>';
                         return;
                     }
 
-                    products.forEach((product) => {
+                    let currentRow;
+
+                    products.forEach((product, index) => {
+                        if (index % 15 === 0) {
+                            currentRow = document.createElement('div');
+                            currentRow.classList.add('product-row');
+                            productContainer.appendChild(currentRow);
+                        }
+
                         const imageUrl = product.image_url || 'https://via.placeholder.com/150';
 
                         const productDiv = document.createElement('div');
@@ -183,11 +190,11 @@
                             </a>
                         `;
 
-                        productList.appendChild(productDiv);
+                        currentRow.appendChild(productDiv);
                     });
                 } catch (err) {
                     console.error('❌ Error loading products:', err.message);
-                    productList.innerHTML = '<p>Error loading products. Try again later.</p>';
+                    productContainer.innerHTML = '<p>Error loading products. Try again later.</p>';
                 }
             }
 
