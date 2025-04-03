@@ -83,17 +83,6 @@
             height: auto;
         }
 
-        .product-name {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        .product-description {
-            color: #666;
-            margin-bottom: 10px;
-        }
-
         .product-price {
             font-size: 1.2rem;
             color: #000;
@@ -177,9 +166,7 @@
                         const productDiv = document.createElement('div');
                         productDiv.classList.add('product');
                         productDiv.innerHTML = `
-                            <img src="${imageUrl}" alt="${product.name}">
-                            <h2 class="product-name">${product.name}</h2>
-                            <p class="product-description">${product.description}</p>
+                            <img src="${imageUrl}" alt="Product Image">
                             <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
                         `;
 
