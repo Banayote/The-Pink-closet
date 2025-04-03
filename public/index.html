@@ -22,9 +22,10 @@
         }
 
         .menu-icon.active::after {
-            content: "✖"; /* Plain "X" */
+            content: "X"; /* Plain Pink X */
             font-size: 35px;
             font-weight: bold;
+            color: pink;
         }
 
         .menu-icon:not(.active)::after {
@@ -54,12 +55,7 @@
             display: flex;
             overflow-x: auto; /* Horizontal scrolling */
             white-space: nowrap;
-        }
-
-        .product-row {
-            display: flex;
             gap: 10px;
-            flex-wrap: nowrap; /* Prevent wrapping */
         }
 
         .product {
@@ -68,9 +64,10 @@
             background-color: #fff;
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
             border: 1px solid #ccc;
-            display: flex;
+            display: inline-block;
             flex-direction: column;
             align-items: center;
+            min-width: 150px; /* Set a minimum width */
         }
 
         .product a {
@@ -146,6 +143,7 @@
             );
 
             const productContainer = document.getElementById('product-container');
+            const productList = document.getElementById('product-list');
 
             async function loadProducts() {
                 try {
@@ -156,16 +154,16 @@
                     }
 
                     console.log("✅ Products Loaded:", products);
-                    productContainer.innerHTML = ''; // Clear existing content
+                    productList.innerHTML = ''; // Clear existing content
 
                     if (products.length === 0) {
-                        productContainer.innerHTML = '<p>No products available.</p>';
+                        productList.innerHTML = '<p>No products available.</p>';
                         return;
                     }
 
-                    let currentRow = document.createElement('div');
-                    currentRow.classList.add('product-row');
-                    productContainer.appendChild(currentRow);
+                    let productRow = document.createElement('div');
+                    productRow.classList.add('product-row');
+                    productContainer.appendChild(productRow);
 
                     products.forEach((product, index) => {
                         const imageUrl = product.image_url || 'https://via.placeholder.com/150';
@@ -179,15 +177,17 @@
                             </a>
                         `;
 
-                        currentRow.appendChild(productDiv);
+                        productRow.appendChild(productDiv);
 
-                        // 🔥 Create a new row after every 15 products
+                        // 🔥 Make sure all products stay in the same scrolling direction
                         if ((index + 1) % 15 === 0) {
-                            currentRow = document.createElement('div');
-                            currentRow.classList.add('product-row');
-                            productContainer.appendChild(currentRow);
+                            productRow = document.createElement('div');
+                            productRow.classList.add('product-row');
+                            productContainer.appendChild(productRow);
                         }
                     });
+
+                    productContainer.scrollLeft = 0; // Ensure it starts from the left
                 } catch (err) {
                     console.error('❌ Error loading products:', err.message);
                     productContainer.innerHTML = '<p>Error loading products. Try again later.</p>';
