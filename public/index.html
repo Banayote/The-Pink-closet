@@ -108,6 +108,33 @@
             border-radius: 5px;
         }
 
+        .search-bar {
+            margin: 20px auto;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .search-bar button {
+            padding: 10px 15px;
+            background-color: #000;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .search-bar button:hover {
+            background-color: #444;
+        }
     </style>
 </head>
 
@@ -116,8 +143,8 @@
         <div id="menuIcon" class="menu-icon"></div>
         <h1 id="storeName">The Pink Closet</h1>
         <div class="search-bar">
-            <input type="text" id="search-input" placeholder="Search products...">
-            <button id="search-button">Search</button>
+            <input type="text" id="search-input" placeholder="Search products..." oninput="searchProducts()">
+            <button id="search-button" onclick="searchProducts()">Search</button>
         </div>
     </header>
 
@@ -155,24 +182,35 @@
             );
 
             const productList = document.getElementById('product-list');
+            const searchInput = document.getElementById('search-input');
 
+            let products = []; // To store all the products
+
+            // Function to load products from Supabase
             async function loadProducts() {
                 try {
-                    const { data: products, error } = await supabase.from('products').select();
+                    const { data: fetchedProducts, error } = await supabase.from('products').select();
 
                     if (error) {
                         throw error;
                     }
 
-                    console.log("✅ Products Loaded:", products);
-                    productList.innerHTML = ''; // Clear existing content
+                    console.log("✅ Products Loaded:", fetchedProducts);
+                    products = fetchedProducts; // Store products in the array
+                    displayProducts(products); // Display all products initially
+                } catch (err) {
+                    console.error('❌ Error loading products:', err.message);
+                    productList.innerHTML = '<p>Error loading products. Try again later.</p>';
+                }
+            }
 
-                    if (products.length === 0) {
-                        productList.innerHTML = '<p>No products available.</p>';
-                        return;
-                    }
-
-                    products.forEach((product) => {
+            // Function to display products on the page
+            function displayProducts(productsToDisplay) {
+                productList.innerHTML = ''; // Clear existing content
+                if (productsToDisplay.length === 0) {
+                    productList.innerHTML = '<p>No products found.</p>';
+                } else {
+                    productsToDisplay.forEach((product) => {
                         const imageUrl = product.image_url || 'https://via.placeholder.com/150';
 
                         const productDiv = document.createElement('div');
@@ -180,18 +218,29 @@
                         productDiv.innerHTML = `
                             <a href="product.html?id=${product.id}">
                                 <img src="${imageUrl}" alt="Product Image">
+                                <h2 class="product-name">${product.name}</h2>
+                                <p class="product-description">${product.description}</p>
                                 <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
                             </a>
                         `;
 
                         productList.appendChild(productDiv);
                     });
-                } catch (err) {
-                    console.error('❌ Error loading products:', err.message);
-                    productList.innerHTML = '<p>Error loading products. Try again later.</p>';
                 }
             }
 
+            // Function to search products based on the input
+            function searchProducts() {
+                const searchQuery = searchInput.value.toLowerCase();
+                const filteredProducts = products.filter(product => {
+                    return product.name.toLowerCase().includes(searchQuery) ||
+                           product.description.toLowerCase().includes(searchQuery);
+                });
+
+                displayProducts(filteredProducts); // Update displayed products
+            }
+
+            // Initially load products
             loadProducts();
 
             /* 🔥 Fix Burger Menu */
