@@ -72,6 +72,10 @@
             border: 1px solid #ccc;
             scroll-snap-align: start;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
         }
 
         .product img {
@@ -82,6 +86,7 @@
         .product-name {
             font-size: 1.2rem;
             font-weight: bold;
+            margin-top: 10px;
         }
 
         .product-description {
@@ -186,9 +191,9 @@
                         const productDiv = document.createElement('div');
                         productDiv.classList.add('product');
                         productDiv.innerHTML = `
+                            <img src="${imageUrl}" alt="${product.name}">
                             <h2 class="product-name">${product.name}</h2>
                             <p class="product-description">${product.description}</p>
-                            <img src="${imageUrl}" alt="${product.name}">
                             <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
                             <a href="product.html?id=${product.id}&seller_id=${product.seller_id}" class="view-product-btn">View Product</a>
                         `;
