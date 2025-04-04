@@ -36,7 +36,7 @@
         .sidebar {
             position: fixed;
             top: 0;
-            right: -250px; /* Hidden by default */
+            right: -250px;
             width: 250px;
             height: 100%;
             background-color: #fff;
@@ -49,13 +49,21 @@
             right: 0;
         }
 
-        /* 🔥 Horizontal Scroll for Products */
+        /* 🔥 Product Layout with Multiple Rows */
         #product-container {
             padding: 10px;
             display: flex;
-            overflow-x: auto; /* Horizontal scrolling */
-            white-space: nowrap;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .product-row {
+            display: flex;
+            overflow-x: auto; /* Scroll left and right */
             gap: 10px;
+            white-space: nowrap;
+            width: 100%;
+            padding-bottom: 10px;
         }
 
         .product {
@@ -67,7 +75,7 @@
             display: inline-block;
             flex-direction: column;
             align-items: center;
-            min-width: 150px; /* Set a minimum width */
+            min-width: 150px;
         }
 
         .product a {
@@ -112,9 +120,7 @@
 
     <main>
         <section id="main-content">
-            <div id="product-container">
-                <div id="product-list"></div> <!-- Products will be displayed here -->
-            </div>
+            <div id="product-container"></div> <!-- Products will be displayed here -->
         </section>
     </main>
 
@@ -143,7 +149,6 @@
             );
 
             const productContainer = document.getElementById('product-container');
-            const productList = document.getElementById('product-list');
 
             async function loadProducts() {
                 try {
@@ -154,10 +159,10 @@
                     }
 
                     console.log("✅ Products Loaded:", products);
-                    productList.innerHTML = ''; // Clear existing content
+                    productContainer.innerHTML = ''; // Clear existing content
 
                     if (products.length === 0) {
-                        productList.innerHTML = '<p>No products available.</p>';
+                        productContainer.innerHTML = '<p>No products available.</p>';
                         return;
                     }
 
@@ -179,15 +184,13 @@
 
                         productRow.appendChild(productDiv);
 
-                        // 🔥 Make sure all products stay in the same scrolling direction
-                        if ((index + 1) % 15 === 0) {
+                        // 🔥 Start a new row after 15 products
+                        if ((index + 1) % 15 === 0 && index !== products.length - 1) {
                             productRow = document.createElement('div');
                             productRow.classList.add('product-row');
                             productContainer.appendChild(productRow);
                         }
                     });
-
-                    productContainer.scrollLeft = 0; // Ensure it starts from the left
                 } catch (err) {
                     console.error('❌ Error loading products:', err.message);
                     productContainer.innerHTML = '<p>Error loading products. Try again later.</p>';
