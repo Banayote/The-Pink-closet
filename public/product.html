@@ -6,129 +6,97 @@
     <title>Product Details</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Body Styling */
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f2f5;
             margin: 0;
             padding: 0;
-            background-color: #f6f5f3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
 
-        /* Header Styling */
-        header {
-            background-color: #ff4081; /* Pink color */
-            padding: 20px;
-            text-align: center;
-        }
-
-        /* Logo Styling */
-        header h1 {
-            color: white;
-            font-size: 2.5rem;
-            margin: 0;
-            font-weight: 600;
-        }
-
-        /* Main Product Container */
         .product-container {
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 30px;
-            background-color: white;
+            background-color: #fff;
+            padding: 20px;
             border-radius: 15px;
-            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
             text-align: center;
-            overflow: hidden;
         }
 
-        /* Image Styling */
         .product-container img {
             width: 100%;
-            height: auto;
+            max-height: 400px;
+            object-fit: cover;
             border-radius: 10px;
         }
 
-        /* Product Name Styling */
         .product-name {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: #333;
-            margin-top: 20px;
-        }
-
-        /* Product Description Styling */
-        .product-description {
-            color: #555;
-            margin-top: 10px;
-            font-size: 1rem;
-            line-height: 1.5;
-            max-width: 800px;
-            margin: 10px auto;
-        }
-
-        /* Product Price Styling */
-        .product-price {
-            color: #ff4081;
             font-size: 1.8rem;
+            font-weight: bold;
+            color: #333;
             margin-top: 15px;
         }
 
-        /* Button Styling */
+        .product-description {
+            color: #777;
+            margin-top: 10px;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .product-price {
+            color: #FF5733;
+            font-size: 1.5rem;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+
         .buy-btn {
-            background-color: #ff4081; /* Pink button */
+            background-color: #FF5733;
             color: white;
-            padding: 12px 24px;
+            padding: 12px 30px;
             font-size: 1.2rem;
             border: none;
             cursor: pointer;
-            margin-top: 20px;
-            border-radius: 8px;
+            margin-top: 25px;
             text-decoration: none;
+            border-radius: 30px;
+            transition: background-color 0.3s ease-in-out;
         }
 
-        /* Button Hover Styling */
         .buy-btn:hover {
-            background-color: #e3377d; /* Slightly darker pink */
+            background-color: #e44a29;
         }
 
-        /* Footer Styling */
         footer {
             text-align: center;
-            padding: 20px;
-            background-color: #ff4081;
-            color: white;
-            font-size: 1rem;
-        }
-
-        footer p {
-            margin: 0;
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-top: 30px;
         }
     </style>
 </head>
 <body>
-
-    <!-- Header with Pink Closet Logo -->
     <header>
-        <h1>Pink Closet</h1>
+        <h1>Product Details</h1>
     </header>
-
     <main>
         <div id="product-container" class="product-container">
             <p>Loading product...</p>
         </div>
     </main>
-
-    <!-- Footer -->
     <footer>
         <p>&copy; The Pink Closet 2024. All rights reserved.</p>
     </footer>
-
     <script>
         // ✅ Supabase credentials
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
         let product;
         let currentUserId = localStorage.getItem("user_id");
 
@@ -140,8 +108,8 @@
                 document.getElementById("product-container").innerHTML = "<p>❌ Product ID is missing.</p>";
                 return;
             }
-
             console.log("📦 Fetching product with ID:", productId);
+
             // ✅ Fetch the product details
             const { data, error } = await supabase
                 .from("products")
@@ -179,6 +147,7 @@
                 alert("❌ Error: Missing seller information.");
                 return;
             }
+
             const sellerId = product.seller_id;
 
             // ✅ Ensure a user cannot start a chat with themselves
@@ -188,6 +157,7 @@
             }
 
             console.log("🔍 Checking conversation between:", currentUserId, "and", sellerId);
+
             try {
                 // ✅ Check if a conversation already exists
                 let { data: conversation, error } = await supabase
@@ -207,7 +177,6 @@
                         .insert([{ seller_id: sellerId, buyer_id: currentUserId }])
                         .select()
                         .single();
-
                     if (createError) throw createError;
                     conversation = newConversation;
                 }
