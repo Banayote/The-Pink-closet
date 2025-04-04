@@ -6,86 +6,108 @@
     <title>Product Details</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* Body Styling */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f9f9f9;
+            background-color: #f6f5f3;
         }
 
+        /* Header Styling */
         header {
-            background-color: white;
-            padding: 10px 0;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        /* Pink Closet logo styling */
-        header h1 {
-            color: pink;
-            margin: 0;
-            font-size: 2rem;
-            font-weight: bold;
-        }
-
-        .product-container {
-            max-width: 600px;
-            margin: 20px auto;
+            background-color: #ff4081; /* Pink color */
             padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
 
+        /* Logo Styling */
+        header h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        /* Main Product Container */
+        .product-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            overflow: hidden;
+        }
+
+        /* Image Styling */
         .product-container img {
             width: 100%;
-            border-radius: 8px;
+            height: auto;
+            border-radius: 10px;
         }
 
+        /* Product Name Styling */
         .product-name {
-            font-size: 2rem;
-            font-weight: bold;
-            color: black;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #333;
+            margin-top: 20px;
         }
 
+        /* Product Description Styling */
         .product-description {
             color: #555;
             margin-top: 10px;
+            font-size: 1rem;
+            line-height: 1.5;
+            max-width: 800px;
+            margin: 10px auto;
         }
 
+        /* Product Price Styling */
         .product-price {
-            color: #ff6347;
-            font-size: 1.5rem;
+            color: #ff4081;
+            font-size: 1.8rem;
             margin-top: 15px;
         }
 
+        /* Button Styling */
         .buy-btn {
-            background-color: #ff6347;
+            background-color: #ff4081; /* Pink button */
             color: white;
-            padding: 10px 20px;
-            font-size: 1rem;
+            padding: 12px 24px;
+            font-size: 1.2rem;
             border: none;
             cursor: pointer;
             margin-top: 20px;
+            border-radius: 8px;
             text-decoration: none;
-            border-radius: 5px;
         }
 
+        /* Button Hover Styling */
         .buy-btn:hover {
-            background-color: #e5533b;
+            background-color: #e3377d; /* Slightly darker pink */
         }
 
+        /* Footer Styling */
         footer {
-            background-color: #fff;
             text-align: center;
-            padding: 10px;
-            color: #555;
-            font-size: 0.9rem;
+            padding: 20px;
+            background-color: #ff4081;
+            color: white;
+            font-size: 1rem;
+        }
+
+        footer p {
+            margin: 0;
         }
     </style>
 </head>
 <body>
+
+    <!-- Header with Pink Closet Logo -->
     <header>
         <h1>Pink Closet</h1>
     </header>
@@ -96,6 +118,7 @@
         </div>
     </main>
 
+    <!-- Footer -->
     <footer>
         <p>&copy; The Pink Closet 2024. All rights reserved.</p>
     </footer>
