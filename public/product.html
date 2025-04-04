@@ -6,11 +6,93 @@
     <title>Product Details</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Add your styles here */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        header img {
+            width: 50px; /* Adjust the logo size as needed */
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        .product-container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .product-container img {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        .product-name {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .product-description {
+            color: #555;
+            margin-top: 10px;
+        }
+
+        .product-price {
+            color: #ff6347;
+            font-size: 1.5rem;
+            margin-top: 15px;
+        }
+
+        .buy-btn {
+            background-color: #ff6347;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .buy-btn:hover {
+            background-color: #e5533b;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+        }
+
+        footer p {
+            margin: 0;
+        }
     </style>
 </head>
 <body>
     <header>
+        <!-- Add your logo image here -->
+        <img src="logo.png" alt="Pink Closet Logo"> <!-- Adjust the image source as necessary -->
         <h1>Product Details</h1>
     </header>
     <main>
