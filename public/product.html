@@ -3,346 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Display</title>
+    <title>Product Details</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: white;
-            margin: 0;
-            padding: 0;
-        }
-
-        .fixed-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background-color: white;
-            padding: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        }
-
-        .fixed-header .logo {
-            margin: auto;
-        }
-
-        .logo h1 {
-            color: pink;
-            margin: 0;
-            text-align: center;
-        }
-
-        .closet-icon {
-            width: 30px;
-            height: 30px;
-            fill: none;
-            stroke: pink;
-        }
-
-        .back-button {
-            background-color: white;
-            color: pink;
-            border: none;
-            font-size: 1.5rem;
-            padding: 10px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .back-button:hover {
-            background-color: white;
-        }
-
-        .product-container {
-            max-width: 300px;
-            margin: auto;
-            background-color: white;
-            padding: 40px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            margin-top: 80px; /* Adjust to ensure content is not hidden behind fixed header */
-        }
-
-        .image-carousel {
-            width: 100%;
-            height: 400px;
-            overflow: hidden;
-            border: 2px solid pink;
-            border-radius: 10px;
-            position: relative;
-        }
-
-        .image-carousel img {
-            width: 100%;
-            height: 400px;
-            object-fit: cover;
-            border-radius: 10px;
-            position: absolute;
-            transition: opacity 0.5s ease;
-        }
-
-        .product-details {
-            display: flex;
-            flex-direction: column;
-            text-align: left;
-            padding: 20px 0;
-        }
-
-        .product-title {
-            font-size: 1.5rem;
-            margin-bottom: 0px;
-            color: black;
-        }
-
-        .product-price {
-            font-size: 1.25rem;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .product-description {
-            margin-bottom: 20px;
-        }
-
-        .size-options-container {
-            display: flex;
-            margin-bottom: 20px;
-            margin-left: 0px;
-        }
-
-        .size-options {
-            display: flex;
-            gap: 10px;
-        }
-
-        .size-options button {
-            border: 1px solid #ccc;
-            padding: 10px;
-            cursor: pointer;
-            background-color: white;
-            color: pink;
-            border-radius: 50px;
-        }
-
-        .size-options button:hover {
-            background-color: pink;
-            color: white;
-        }
-
-        .message-seller-button {
-            background-color: white;
-            color: pink;
-            padding: 15px;
-            border: 1px solid pink;
-            cursor: pointer;
-            width: 100%;
-            font-size: 1.25rem;
-            border-radius: 5px;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .message-seller-button:hover {
-            background-color: pink;
-            color: white;
-        }
-
-        .review-button {
-            background-color: white;
-            color: pink;
-            padding: 10px 15px;
-            border: 1px solid pink;
-            cursor: pointer;
-            border-radius: 5px;
-            display: block;
-            margin: 0 auto;
-        }
-
-        .review-button:hover {
-            background-color: pink;
-            color: white;
-        }
-
-        .review-section {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .add-to-closet {
-            background-color: pink;
-            color: white;
-            padding: 15px;
-            border: none;
-            cursor: pointer;
-            width: 100%;
-            font-size: 1.25rem;
-            border-radius: 5px;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            margin: 0;
-            box-sizing: border-box;
-        }
-
-        .add-to-closet:hover {
-            background-color: #e6007e;
-        }
-
-        .closet-icon-wrapper {
-            position: relative;
-        }
-
-        .closet-counter {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background-color: red;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            display: none; /* Initially hidden */
-        }
+        /* Add your styles here */
     </style>
 </head>
 <body>
-    <div class="fixed-header">
-        <button class="back-button">&lt;</button>
-        <div class="logo">
-            <h1>Pink Closet</h1>
+    <header>
+        <h1>Product Details</h1>
+    </header>
+    <main>
+        <div id="product-container" class="product-container">
+            <p>Loading product...</p>
         </div>
-        <div class="closet-icon-wrapper">
-            <svg id="closetIcon" class="closet-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="pink" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
-                <line x1="12" y1="2" x2="12" y2="22"/>
-                <circle cx="9" cy="12" r="1"/>
-                <circle cx="15" cy="12" r="1"/>
-            </svg>
-            <div id="closetCounter" class="closet-counter">1</div>
-        </div>
-    </div>
-
-    <div class="product-container">
-        <div class="image-carousel" id="imageCarousel">
-            <img src="image1.jpg" alt="Product Image 1">
-            <img src="image2.jpg" alt="Product Image 2">
-            <img src="image3.jpg" alt="Product Image 3">
-        </div>
-
-        <div class="product-details">
-            <h2 class="product-title" id="productTitle">Loading...</h2>
-            <p class="product-price" id="productPrice">$0.00</p>
-
-            <div class="product-description">
-                <p id="productDescription">Loading...</p>
-            </div>
-
-            <div class="size-options-container">
-                <div class="size-options" id="sizeOptions">
-                    <!-- Dynamically populated sizes -->
-                </div>
-            </div>
-
-            <button class="message-seller-button" id="messageSellerButton">Message Seller</button>
-        </div>
-    </div>
-
-    <button class="add-to-closet" id="addToCloset">Add to Closet</button>
-
+    </main>
+    <footer>
+        <p>&copy; The Pink Closet 2024. All rights reserved.</p>
+    </footer>
     <script>
-        // Initialize Supabase client
-        const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        // ✅ Supabase credentials
+        const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co"; // Your Supabase URL
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4"; // Your Supabase API Key
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Fetch product data from Supabase
-        async function fetchProductData() {
-            const { data, error } = await supabase
-                .from('products')  // Replace 'products' with your table name
-                .select('*')
-                .single(); // Get one product (or adapt as needed)
+        let product;
+        let currentUserId = localStorage.getItem("user_id");
 
-            if (error) {
-                console.error('Error fetching product data:', error);
+        document.addEventListener("DOMContentLoaded", async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get("id");
+
+            if (!productId) {
+                document.getElementById("product-container").innerHTML = "<p>❌ Product ID is missing.</p>";
                 return;
             }
 
-            const { title, price, description, images, sizes } = data;
+            // ✅ Fetch the product details
+            const { data, error } = await supabase
+                .from("products")
+                .select("*")
+                .eq("id", productId)
+                .single();
 
-            // Update the product information on the page
-            document.getElementById('productTitle').textContent = title;
-            document.getElementById('productPrice').textContent = `$${price}`;
-            document.getElementById('productDescription').textContent = description;
+            if (error || !data) {
+                document.getElementById("product-container").innerHTML = "<p>❌ Failed to load product details.</p>";
+                return;
+            }
 
-            // Load product images dynamically
-            const imageCarousel = document.getElementById('imageCarousel');
-            images.forEach(image => {
-                const imgElement = document.createElement('img');
-                imgElement.src = image.url;  // Assume 'url' field in your images object
-                imgElement.alt = `Product Image ${images.indexOf(image) + 1}`;
-                imageCarousel.appendChild(imgElement);
-            });
+            product = data;
+            document.getElementById("product-container").innerHTML = `
+                <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
+                <div class="product-details">
+                    <h2 class="product-name">${product.name}</h2>
+                    <p class="product-description">${product.description}</p>
+                    <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
+                    <button class="buy-btn" onclick="startConversation()">Message Seller</button>
+                </div>
+            `;
 
-            // Load available sizes
-            const sizeOptionsContainer = document.getElementById('sizeOptions');
-            sizes.forEach(size => {
-                const button = document.createElement('button');
-                button.textContent = size;
-                sizeOptionsContainer.appendChild(button);
-            });
-        }
-
-        // Call the fetchProductData function to populate the page
-        fetchProductData();
-
-        // Message Seller functionality
-        document.getElementById('messageSellerButton').addEventListener('click', async () => {
-            const { data, error } = await supabase.auth.getSession();
-            if (!data.session) {
-                alert('You need to be logged in to message the seller.');
-                // Optionally, redirect to login page here
-                // window.location.href = 'login.html';
-            } else {
-                // Open the conversation or messaging system directly
-                window.location.href = 'message_seller.html';  // Open the message seller page
+            // ✅ Ensure user has a unique ID stored
+            if (!currentUserId) {
+                currentUserId = "user_" + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem("user_id", currentUserId);
             }
         });
 
-        // Add to Closet functionality
-        document.getElementById('addToCloset').addEventListener('click', () => {
-            const closetIcon = document.getElementById('closetIcon');
-            const closetCounter = document.getElementById('closetCounter');
+        // ✅ Start a conversation between any two users
+        async function startConversation() {
+            if (!product || !product.seller_id) {
+                alert("❌ Error: Missing seller information.");
+                return;
+            }
 
-            const productTitle = document.getElementById('productTitle').textContent;
-            const productPrice = document.getElementById('productPrice').textContent;
-            const productDescription = document.getElementById('productDescription').textContent;
-            const productDetails = {
-                title: productTitle,
-                price: productPrice,
-                description: productDescription
-            };
+            const sellerId = product.seller_id;
 
-            let closet = JSON.parse(localStorage.getItem('closet')) || [];
-            closet.push(productDetails);
-            localStorage.setItem('closet', JSON.stringify(closet));
+            // ✅ Ensure a user cannot start a chat with themselves
+            if (currentUserId === sellerId) {
+                alert("❌ You cannot message yourself.");
+                return;
+            }
 
-            // Update the counter
-            const counterValue = closet.length;
-            closetCounter.textContent = counterValue;
-            closetCounter.style.display = 'block';
-        });
+            try {
+                // ✅ Check if a conversation already exists
+                let { data: conversation, error } = await supabase
+                    .from("conversations")
+                    .select("id")
+                    .or(`buyer_id.eq.${currentUserId}, seller_id.eq.${currentUserId}`)
+                    .or(`buyer_id.eq.${sellerId}, seller_id.eq.${sellerId}`)
+                    .single();
+
+                if (error) console.error("⚠️ Error checking conversation:", error.message);
+
+                // ✅ Create a new conversation if it doesn’t exist
+                if (!conversation) {
+                    let { data: newConversation, error: createError } = await supabase
+                        .from("conversations")
+                        .insert([{ seller_id: sellerId, buyer_id: currentUserId }])
+                        .select()
+                        .single();
+                    if (createError) throw createError;
+                    conversation = newConversation;
+                }
+
+                // ✅ Redirect to the messages page with conversation ID
+                window.location.href = `messages.html?conversation_id=${conversation.id}`;
+            } catch (err) {
+                console.error("❌ Error starting conversation:", err.message);
+                alert("Error starting conversation. Please try again.");
+            }
+        }
     </script>
 </body>
 </html>
