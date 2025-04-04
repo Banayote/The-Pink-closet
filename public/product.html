@@ -242,20 +242,16 @@
         </div>
 
         <div class="product-details">
-            <h2 class="product-title">Product Name</h2>
-            <p class="product-price">$13.00</p>
+            <h2 class="product-title" id="productTitle">Loading...</h2>
+            <p class="product-price" id="productPrice">$0.00</p>
 
             <div class="product-description">
-                <p>This is a beautiful puff sleeve blouse made of high-quality materials. Perfect for casual and formal wear. Available in multiple sizes.</p>
+                <p id="productDescription">Loading...</p>
             </div>
 
             <div class="size-options-container">
-                <div class="size-options">
-                    <button>XS</button>
-                    <button>S</button>
-                    <button>M</button>
-                    <button>L</button>
-                    <button>XL</button>
+                <div class="size-options" id="sizeOptions">
+                    <!-- Dynamically populated sizes -->
                 </div>
             </div>
 
@@ -271,18 +267,57 @@
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Message Seller button functionality
-        document.getElementById('messageSellerButton').addEventListener('click', async () => {
-            const { data, error } = await supabase.auth.getSession();
-            if (error || !data.session) {
-                // Redirect to login page if not authenticated
-                window.location.href = 'login.html';
+        // Fetch product data from Supabase
+        async function fetchProductData() {
+            const { data, error } = await supabase
+                .from('products')  // Replace 'products' with your table name
+                .select('*')
+                .single(); // Get one product (or adapt as needed)
+
+            if (error) {
+                console.error('Error fetching product data:', error);
                 return;
             }
 
-            // Proceed to message the seller
-            // Implement logic to open a messaging interface or redirect to a messaging page
-            window.location.href = 'message_seller.html';
+            const { title, price, description, images, sizes } = data;
+
+            // Update the product information on the page
+            document.getElementById('productTitle').textContent = title;
+            document.getElementById('productPrice').textContent = `$${price}`;
+            document.getElementById('productDescription').textContent = description;
+
+            // Load product images dynamically
+            const imageCarousel = document.getElementById('imageCarousel');
+            images.forEach(image => {
+                const imgElement = document.createElement('img');
+                imgElement.src = image.url;  // Assume 'url' field in your images object
+                imgElement.alt = `Product Image ${images.indexOf(image) + 1}`;
+                imageCarousel.appendChild(imgElement);
+            });
+
+            // Load available sizes
+            const sizeOptionsContainer = document.getElementById('sizeOptions');
+            sizes.forEach(size => {
+                const button = document.createElement('button');
+                button.textContent = size;
+                sizeOptionsContainer.appendChild(button);
+            });
+        }
+
+        // Call the fetchProductData function to populate the page
+        fetchProductData();
+
+        // Message Seller functionality
+        document.getElementById('messageSellerButton').addEventListener('click', async () => {
+            const { data, error } = await supabase.auth.getSession();
+            if (!data.session) {
+                alert('You need to be logged in to message the seller.');
+                // Optionally, redirect to login page here
+                // window.location.href = 'login.html';
+            } else {
+                // Open the conversation or messaging system directly
+                window.location.href = 'message_seller.html';  // Open the message seller page
+            }
         });
 
         // Add to Closet functionality
@@ -290,27 +325,9 @@
             const closetIcon = document.getElementById('closetIcon');
             const closetCounter = document.getElementById('closetCounter');
 
-            // Add animation
-            const animation = document.createElement('div');
-            animation.style.position = 'absolute';
-            animation.style.bottom = '570px';
-            animation.style.left = '20px';
-            animation.style.width = '50px';
-            animation.style.height = '50px';
-            animation.style.background = 'pink';
-            animation.style.borderRadius = '50%';
-            animation.style.zIndex = '2000';
-            animation.style.pointerEvents = 'none';
-            animation.style.animation = 'flyToCloset 1s forwards';
-            document.body.appendChild(animation);
-
-            setTimeout(() => {
-                document.body.removeChild(animation);
-            }, 1000);
-
-            const productTitle = document.querySelector('.product-title').textContent;
-            const productPrice = document.querySelector('.product-price').textContent;
-            const productDescription = document.querySelector('.product-description p').textContent;
+            const productTitle = document.getElementById('productTitle').textContent;
+            const productPrice = document.getElementById('productPrice').textContent;
+            const productDescription = document.getElementById('productDescription').textContent;
             const productDetails = {
                 title: productTitle,
                 price: productPrice,
@@ -321,7 +338,7 @@
             closet.push(productDetails);
             localStorage.setItem('closet', JSON.stringify(closet));
 
-            // Update counter
+            // Update the counter
             const counterValue = closet.length;
             closetCounter.textContent = counterValue;
             closetCounter.style.display = 'block';
