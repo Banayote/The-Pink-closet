@@ -12,6 +12,22 @@
             padding: 0;
             background-color: #f9f9f9;
         }
+
+        header {
+            background-color: white;
+            padding: 10px 0;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        /* Pink Closet logo styling */
+        header h1 {
+            color: pink;
+            margin: 0;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
         .product-container {
             max-width: 600px;
             margin: 20px auto;
@@ -21,29 +37,31 @@
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
+
         .product-container img {
             width: 100%;
             border-radius: 8px;
-            border: 2px solid #ff69b4; /* Pink border around the image */
         }
+
         .product-name {
             font-size: 2rem;
             font-weight: bold;
-            color: #ff69b4; /* Pink color for the product name */
-            margin-top: 10px;
+            color: black;
         }
+
         .product-description {
             color: #555;
             margin-top: 10px;
-            font-size: 1.1rem;
         }
+
         .product-price {
-            color: #ff69b4; /* Pink color for the price */
+            color: #ff6347;
             font-size: 1.5rem;
             margin-top: 15px;
         }
+
         .buy-btn {
-            background-color: #ff69b4; /* Pink background for the button */
+            background-color: #ff6347;
             color: white;
             padding: 10px 20px;
             font-size: 1rem;
@@ -52,45 +70,54 @@
             margin-top: 20px;
             text-decoration: none;
             border-radius: 5px;
-            transition: background-color 0.3s ease;
         }
+
         .buy-btn:hover {
-            background-color: #e53d8c; /* Darker pink on hover */
+            background-color: #e5533b;
         }
+
         footer {
+            background-color: #fff;
             text-align: center;
-            padding: 20px;
+            padding: 10px;
+            color: #555;
             font-size: 0.9rem;
-            background-color: #f1f1f1;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Product Details</h1>
+        <h1>Pink Closet</h1>
     </header>
+
     <main>
         <div id="product-container" class="product-container">
             <p>Loading product...</p>
         </div>
     </main>
+
     <footer>
         <p>&copy; The Pink Closet 2024. All rights reserved.</p>
     </footer>
+
     <script>
         // ✅ Supabase credentials
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         let product;
         let currentUserId = localStorage.getItem("user_id");
+
         document.addEventListener("DOMContentLoaded", async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const productId = urlParams.get("id");
+
             if (!productId) {
                 document.getElementById("product-container").innerHTML = "<p>❌ Product ID is missing.</p>";
                 return;
             }
+
             console.log("📦 Fetching product with ID:", productId);
             // ✅ Fetch the product details
             const { data, error } = await supabase
@@ -98,10 +125,12 @@
                 .select("*")
                 .eq("id", productId)
                 .single();
+
             if (error || !data) {
                 document.getElementById("product-container").innerHTML = "<p>❌ Failed to load product details.</p>";
                 return;
             }
+
             product = data;
             document.getElementById("product-container").innerHTML = `
                 <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
@@ -112,6 +141,7 @@
                     <button class="buy-btn" onclick="startConversation()">Message Seller</button>
                 </div>
             `;
+
             // ✅ Ensure user has a unique ID stored
             if (!currentUserId) {
                 currentUserId = "user_" + Math.random().toString(36).substr(2, 9);
@@ -119,6 +149,7 @@
                 console.log("👤 New User ID Generated:", currentUserId);
             }
         });
+
         // ✅ Start a conversation between any two users
         async function startConversation() {
             if (!product || !product.seller_id) {
@@ -126,11 +157,13 @@
                 return;
             }
             const sellerId = product.seller_id;
+
             // ✅ Ensure a user cannot start a chat with themselves
             if (currentUserId === sellerId) {
                 alert("❌ You cannot message yourself.");
                 return;
             }
+
             console.log("🔍 Checking conversation between:", currentUserId, "and", sellerId);
             try {
                 // ✅ Check if a conversation already exists
@@ -140,7 +173,9 @@
                     .or(`buyer_id.eq.${currentUserId}, seller_id.eq.${currentUserId}`)
                     .or(`buyer_id.eq.${sellerId}, seller_id.eq.${sellerId}`)
                     .single();
+
                 if (error) console.error("⚠️ Error checking conversation:", error.message);
+
                 // ✅ Create a new conversation if it doesn’t exist
                 if (!conversation) {
                     console.log("➕ Creating new conversation...");
@@ -149,9 +184,11 @@
                         .insert([{ seller_id: sellerId, buyer_id: currentUserId }])
                         .select()
                         .single();
+
                     if (createError) throw createError;
                     conversation = newConversation;
                 }
+
                 console.log("💬 Redirecting to conversation:", conversation.id);
                 window.location.href = `messages.html?conversation_id=${conversation.id}`;
             } catch (err) {
