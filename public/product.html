@@ -156,6 +156,7 @@
     @media (max-width: 768px) {
       .product-container {
         padding: 20px 15px;
+
       }
 
       .product-title {
@@ -202,8 +203,8 @@
 
   <script>
     const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-    const SUPABASE_KEY = "YOUR_SUPABASE_KEY_HERE"; // Replace with your actual anon key
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let product;
     let currentUserId = localStorage.getItem("user_id");
@@ -237,61 +238,3 @@
           <h2 class="product-title">${product.name}</h2>
           <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
           <div class="product-description"><p>${product.description}</p></div>
-          <div class="size-options-container">
-            <div class="size-options">
-              <button>XS</button>
-              <button>S</button>
-              <button>M</button>
-              <button>L</button>
-              <button>XL</button>
-            </div>
-          </div>
-          <button class="buy-button" onclick="startConversation()">Message Seller</button>
-        </div>
-      `;
-
-      if (!currentUserId) {
-        currentUserId = "user_" + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem("user_id", currentUserId);
-      }
-    });
-
-    async function startConversation() {
-      if (!product || !product.seller_id) {
-        alert("❌ Error: Missing seller information.");
-        return;
-      }
-
-      const sellerId = product.seller_id;
-      if (currentUserId === sellerId) {
-        alert("❌ You cannot message yourself.");
-        return;
-      }
-
-      try {
-        let { data: conversation, error } = await supabase
-          .from("conversations")
-          .select("id")
-          .or(`buyer_id.eq.${currentUserId}, seller_id.eq.${currentUserId}`)
-          .or(`buyer_id.eq.${sellerId}, seller_id.eq.${sellerId}`)
-          .single();
-
-        if (!conversation) {
-          let { data: newConversation, error: createError } = await supabase
-            .from("conversations")
-            .insert([{ seller_id: sellerId, buyer_id: currentUserId }])
-            .select()
-            .single();
-          if (createError) throw createError;
-          conversation = newConversation;
-        }
-
-        window.location.href = `messages.html?conversation_id=${conversation.id}`;
-      } catch (err) {
-        console.error("❌ Error starting conversation:", err.message);
-        alert("Error starting conversation. Please try again.");
-      }
-    }
-  </script>
-</body>
-</html>
