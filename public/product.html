@@ -40,6 +40,22 @@
       stroke: pink;
     }
 
+    .closet-icon-wrapper {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .closet-counter {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background-color: red;
+      color: white;
+      font-size: 12px;
+      border-radius: 50%;
+      padding: 3px 8px;
+    }
+
     .product-container {
       max-width: 600px;
       margin: auto;
@@ -221,14 +237,14 @@
       <h1>Pink Closet</h1>
     </div>
     
-    <div class="closet-icon-wrapper">
+    <div class="closet-icon-wrapper" onclick="location.href='closet.html'">
       <svg id="closetIcon" class="closet-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="pink" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
         <line x1="12" y1="2" x2="12" y2="22"/>
         <circle cx="9" cy="12" r="1"/>
         <circle cx="15" cy="12" r="1"/>
       </svg>
-      <div id="closetCounter" class="closet-counter">1</div>
+      <div id="closetCounter" class="closet-counter">0</div>
     </div>
   </div>
 
@@ -298,6 +314,25 @@
       }
     });
 
+    // Add product to the closet
+    document.getElementById("addToCloset").addEventListener("click", () => {
+      let closet = JSON.parse(localStorage.getItem("closet")) || [];
+      if (!closet.some(item => item.id === product.id)) {
+        closet.push(product);
+        localStorage.setItem("closet", JSON.stringify(closet));
+      }
+      updateClosetCounter();
+    });
+
+    // Update the closet icon counter
+    function updateClosetCounter() {
+      let closet = JSON.parse(localStorage.getItem("closet")) || [];
+      document.getElementById("closetCounter").innerText = closet.length;
+    }
+
+    // Call the function to update the closet count when the page loads
+    updateClosetCounter();
+    
     async function startConversation() {
       if (!product || !product.seller_id) {
         alert("❌ Error: Missing seller information.");
