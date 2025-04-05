@@ -238,10 +238,9 @@
             supabase
                 .from(`messages:conversation_id=eq.${convoId}`)
                 .on('INSERT', payload => {
-                    const message = payload.new;
                     const msgDiv = document.createElement("div");
-                    msgDiv.classList.add("message", message.sender_id === currentUserId ? "sent" : "received");
-                    msgDiv.innerText = message.message;
+                    msgDiv.classList.add("message", payload.new.sender_id === currentUserId ? "sent" : "received");
+                    msgDiv.innerText = payload.new.message;
                     document.getElementById("messages").appendChild(msgDiv);
                     document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
                 })
