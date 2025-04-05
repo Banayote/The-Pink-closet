@@ -8,12 +8,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: white;
+            background-color: #fff;
         }
-        /* Chat List */
+
         #chat-list, #chat-screen {
             max-width: 500px;
             height: 100vh;
@@ -22,44 +22,65 @@
             flex-direction: column;
             background-color: white;
         }
+
+        /* Chat List */
         .conversation {
             display: flex;
             align-items: center;
-            padding: 15px;
-            border-bottom: 1px solid #e1e1e1;
+            padding: 14px 16px;
+            border-bottom: 1px solid #eaeaea;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: background-color 0.2s ease;
         }
+
         .conversation:hover {
-            background-color: #f8bbd0;
+            background-color: #fce4ec;
         }
-        .avatar {
-            width: 40px;
-            height: 40px;
+
+        .conversation .avatar {
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            margin-right: 10px;
             border: 2px solid #f48fb1;
+            object-fit: cover;
+            margin-right: 12px;
         }
+
+        .conversation .user-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
         /* Chat Header */
         #chat-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px;
+            padding: 10px 14px;
             background-color: pink;
             color: white;
             border-radius: 10px 10px 0 0;
         }
+
         #chat-header img {
             width: 40px;
             height: 40px;
             border-radius: 50%;
         }
+
         #chat-title {
             font-size: 18px;
             font-weight: bold;
             margin-right: 70px;
         }
+
         /* Message List */
         #messages {
             flex: 1;
@@ -68,9 +89,10 @@
             height: calc(100vh - 160px);
             background-color: white;
         }
+
         .message {
             margin: 10px 0;
-            padding: 10px;
+            padding: 10px 14px;
             border-radius: 15px;
             max-width: 70%;
             display: inline-block;
@@ -80,18 +102,21 @@
             white-space: pre-wrap;
             overflow-wrap: break-word;
         }
+
         .sent {
             background-color: pink;
-            text-align: right;
+            color: white;
             float: right;
             clear: both;
         }
+
         .received {
-            background-color: whitesmoke;
-            text-align: left;
+            background-color: #f1f1f1;
+            color: #333;
             float: left;
             clear: both;
         }
+
         /* Input Container */
         #message-input-container {
             position: fixed;
@@ -103,16 +128,19 @@
             align-items: center;
             padding: 10px;
             z-index: 1000;
-            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.08);
         }
+
         #message-input {
             flex: 1;
             padding: 10px;
             border-radius: 20px;
             border: 1px solid #ddd;
             margin-left: 10px;
-            height: 34px;
+            height: 36px;
+            font-size: 15px;
         }
+
         #send-button {
             background-color: pink;
             color: white;
@@ -122,6 +150,7 @@
             cursor: pointer;
             margin-left: 10px;
         }
+
         #back-button {
             font-size: 22px;
             color: white;
@@ -129,6 +158,7 @@
             margin-left: 10px;
             transform: rotate(180deg);
         }
+
         #sending-indicator {
             display: none;
             color: pink;
@@ -140,7 +170,7 @@
 
     <!-- Chat List -->
     <div id="chat-list">
-        <h2 style="text-align: center; padding: 10px;">Messages</h2>
+        <h2 style="text-align: center; padding: 12px 0;">Messages</h2>
         <div id="chat-list-container"></div>
     </div>
 
@@ -160,14 +190,12 @@
     </div>
 
     <script>
-        // Supabase configuration
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let currentUserId = localStorage.getItem("user_id");
         let currentConversationId = null;
 
-        // Load existing conversations
         async function loadConversations() {
             const { data: conversations, error } = await supabase
                 .from("conversations")
@@ -182,8 +210,7 @@
             conversations.forEach(convo => {
                 const otherUserId = convo.seller_id === currentUserId ? convo.buyer_id : convo.seller_id;
 
-                // Fetch user data for the conversation
-                supabase.from("users").select("first_name, last_name, avatar_url").eq("id", otherUserId).single()
+                supabase.from("users").select("first_name, avatar_url").eq("id", otherUserId).single()
                     .then(({ data: user }) => {
                         if (!user) return;
 
@@ -193,7 +220,9 @@
 
                         convoItem.innerHTML = `
                             <img class="avatar" src="${user.avatar_url || 'https://via.placeholder.com/40'}" alt="${user.first_name}">
-                            <div>${user.first_name}</div>
+                            <div class="user-info">
+                                <div class="user-name">${user.first_name}</div>
+                            </div>
                         `;
 
                         chatList.appendChild(convoItem);
@@ -201,7 +230,6 @@
             });
         }
 
-        // Open chat screen and load messages
         async function openChat(convoId, name, avatarUrl) {
             document.getElementById("chat-list").style.display = "none";
             document.getElementById("chat-screen").style.display = "flex";
@@ -212,7 +240,6 @@
             loadMessages(convoId);
         }
 
-        // Load messages for a specific conversation
         async function loadMessages(convoId) {
             const { data: messages, error } = await supabase
                 .from("messages")
@@ -235,28 +262,21 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Send a message to the current conversation
         async function sendMessage() {
             const input = document.getElementById("message-input");
             const message = input.value.trim();
             if (!message) return;
 
-            // Show sending indicator
             document.getElementById("sending-indicator").style.display = "inline";
 
-            // Insert the message into the database
             await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
 
-            // Clear input and re-focus
             input.value = "";
             input.focus();
-
-            // Hide sending indicator and load messages
             document.getElementById("sending-indicator").style.display = "none";
             loadMessages(currentConversationId);
         }
 
-        // Handle Enter key to send a message
         function handleKeyPress(event) {
             if (event.key === "Enter") {
                 sendMessage();
@@ -264,13 +284,11 @@
             }
         }
 
-        // Go back to the conversation list
         function goBack() {
             document.getElementById("chat-screen").style.display = "none";
             document.getElementById("chat-list").style.display = "block";
         }
 
-        // Load conversations when the page loads
         document.addEventListener("DOMContentLoaded", loadConversations);
     </script>
 
