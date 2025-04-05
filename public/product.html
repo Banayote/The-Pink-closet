@@ -1,310 +1,297 @@
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Display</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: white;
-            margin: 0;
-            padding: 0;
-        } 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Display</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: white;
+            margin: 0;
+            padding: 0;
+        }
+        .fixed-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        .logo h1 {
+            color: pink;
+            margin: 0;
+            text-align: center;
+        }
+        .closet-icon {
+            width: 30px;
+            height: 30px;
+            fill: none;
+            stroke: pink;
+        }
+        .product-container {
+            max-width: 600px;
+            margin: auto;
+            background-color: white;
+            padding: 40px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            margin-top: 80px;
+        }
+        .image-carousel {
+            width: 100%;
+            height: 400px;
+            overflow: hidden;
+            border: 2px solid pink;
+            border-radius: 10px;
+            position: relative;
+        }
+        .image-carousel img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures image scales correctly within its container */
+            border-radius: 10px;
+            transition: opacity 0.5s ease;
+        }
+        .product-details {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            padding: 20px 0;
+        }
+        .product-title {
+            font-size: 1.5rem;
+            margin-bottom: 0px;
+            color: black;
+        }
+        .product-price {
+            font-size: 1.25rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .product-description {
+            margin-bottom: 20px;
+        }
+        .size-options-container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .size-options {
+            display: flex;
+            gap: 10px;
+        }
+        .size-options button {
+            border: 1px solid #ccc;
+            padding: 10px;
+            cursor: pointer;
+            background-color: white;
+            color: pink;
+            border-radius: 50px;
+        }
+        .size-options button:hover {
+            background-color: pink;
+            color: white;
+        }
+        .buy-button {
+            background-color: white;
+            color: pink;
+            padding: 15px;
+            border: 1px solid pink;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.25rem;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .buy-button:hover {
+            background-color: pink;
+            color: white;
+        }
+        .message-seller-button {
+            background-color: white;
+            color: pink;
+            padding: 10px;
+            border: 1px solid pink;
+            cursor: pointer;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .message-seller-button:hover {
+            background-color: pink;
+            color: white;
+        }
+        .add-to-closet {
+            background-color: pink;
+            color: white;
+            padding: 15px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.25rem;
+            border-radius: 5px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        .add-to-closet:hover {
+            background-color: #e5533b;
+        }
 
-        .fixed-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background-color: white;
-            padding: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        } 
-
-        .logo h1 {
-            color: pink;
-            margin: 0;
-            text-align: center;
-        } 
-
-        .closet-icon {
-            width: 30px;
-            height: 30px;
-            fill: none;
-            stroke: pink;
-        } 
-
-        .product-container {
-            max-width: 300px;
-            margin: auto;
-            background-color: white;
-            padding: 40px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            margin-top: 80px;
-        } 
-
-        .image-carousel {
-            width: 100%;
-            height: 400px;
-            overflow: hidden;
-            border: 2px solid pink;
-            border-radius: 10px;
-            position: relative;
-        } 
-
-        .image-carousel img {
-            width: 100%;
-            height: 400px;
-            object-fit: cover;
-            border-radius: 10px;
-            position: absolute;
-            transition: opacity 0.5s ease;
-        } 
-
-        .product-details {
-            display: flex;
-            flex-direction: column;
-            text-align: left;
-            padding: 20px 0;
-        } 
-
-        .product-title {
-            font-size: 1.5rem;
-            margin-bottom: 0px;
-            color: black;
-        } 
-
-        .product-price {
-            font-size: 1.25rem;
-            color: #333;
-            margin-bottom: 10px;
-        } 
-
-        .product-description {
-            margin-bottom: 20px;
-        } 
-
-        .size-options-container {
-            display: flex;
-            margin-bottom: 20px;
-            margin-left: 0px;
-        } 
-
-        .size-options {
-            display: flex;
-            gap: 10px;
-        } 
-
-        .size-options button {
-            border: 1px solid #ccc;
-            padding: 10px;
-            cursor: pointer;
-            background-color: white;
-            color: pink;
-            border-radius: 50px;
-        } 
-
-        .size-options button:hover {
-            background-color: pink;
-            color: white;
-        } 
-
-        .buy-button {
-            background-color: white;
-            color: pink;
-            padding: 15px;
-            border: 1px solid pink;
-            cursor: pointer;
-            width: 100%;
-            font-size: 1.25rem;
-            border-radius: 5px;
-            text-align: center;
-            margin-bottom: 15px;
-        } 
-
-        .buy-button:hover {
-            background-color: pink;
-            color: white;
-        } 
-
-        .visit-store {
-            background-color: white;
-            color: pink;
-            padding: 10px;
-            border: 1px solid pink;
-            cursor: pointer;
-            border-radius: 5px;
-            text-align: center;
-            margin-bottom: 15px;
-        } 
-
-        .visit-store:hover {
-            background-color: pink;
-            color: white;
-        } 
-
-        .add-to-closet {
-            background-color: pink;
-            color: white;
-            padding: 15px;
-            border: none;
-            cursor: pointer;
-            width: 100%;
-            font-size: 1.25rem;
-            border-radius: 5px;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            margin: 0;
-            box-sizing: border-box;
-        } 
-
-        .add-to-closet:hover {
-            background-color: #pink;
-        } 
-
-        .review-button {
-            background-color: white;
-            color: pink;
-            padding: 10px 15px;
-            border: 1px solid pink;
-            cursor: pointer;
-            border-radius: 5px;
-            display: block;
-            margin: 0 auto;
-        } 
-
-        .review-button:hover {
-            background-color: pink;
-            color: white;
-        } 
-
-        .review-section {
-            margin-top: 20px;
-            text-align: center;
-        } 
-
-        .closet-icon-wrapper {
-            position: relative;
-        } 
-
-        .closet-counter {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background-color: red;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            display: none;
-        } 
-
-        .message-seller-button {
-            background-color: white;
-            color: pink;
-            padding: 10px;
-            border: 1px solid pink;
-            cursor: pointer;
-            border-radius: 5px;
-            text-align: center;
-            margin-bottom: 15px;
-        } 
-
-        .message-seller-button:hover {
-            background-color: pink;
-            color: white;
-        } 
-
-    </style>
+        /* Media query for responsiveness on smaller screens */
+        @media (max-width: 768px) {
+            .product-container {
+                padding: 15px; /* Reduce padding on smaller screens */
+            }
+            .product-title {
+                font-size: 1.25rem; /* Smaller font size on mobile */
+            }
+            .product-price {
+                font-size: 1.1rem; /* Adjust price font size */
+            }
+            .buy-button, .message-seller-button, .add-to-closet {
+                font-size: 1.1rem; /* Adjust button font size */
+            }
+            .image-carousel {
+                height: 300px; /* Adjust image carousel height on small screens */
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="fixed-header">
-        <button class="back-button">&lt;</button>
-        <div class="logo">
-            <h1>Pink Closet</h1>
-        </div>
-        <div class="closet-icon-wrapper">
-            <svg id="closetIcon" class="closet-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="pink" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
-                <line x1="12" y1="2" x2="12" y2="22"/>
-                <circle cx="9" cy="12" r="1"/>
-                <circle cx="15" cy="12" r="1"/>
-            </svg>
-            <div id="closetCounter" class="closet-counter">1</div>
-        </div>
-    </div> 
+    <div class="fixed-header">
+        <button class="back-button">&lt;</button>
+        <div class="logo">
+            <h1>Pink Closet</h1>
+        </div>
+        <div class="closet-icon-wrapper">
+            <svg id="closetIcon" class="closet-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="pink" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
+                <line x1="12" y1="2" x2="12" y2="22"/>
+                <circle cx="9" cy="12" r="1"/>
+                <circle cx="15" cy="12" r="1"/>
+            </svg>
+            <div id="closetCounter" class="closet-counter">1</div>
+        </div>
+    </div>
+    <div class="product-container">
+        <div id="product-container">
+            <p>Loading product...</p>
+        </div>
+    </div>
+    <button class="add-to-closet" id="addToCloset">Add to Closet</button>
+    
+    <script>
+        // ✅ Supabase credentials
+        const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let product;
+        let currentUserId = localStorage.getItem("user_id");
 
-    <div class="product-container">
-        <div class="image-carousel" id="imageCarousel">
-            <img src="image1.jpg" alt="Product Image 1">
-            <img src="image2.jpg" alt="Product Image 2">
-            <img src="image3.jpg" alt="Product Image 3">
-        </div> 
+        document.addEventListener("DOMContentLoaded", async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get("id");
+            if (!productId) {
+                document.getElementById("product-container").innerHTML = "<p>❌ Product ID is missing.</p>";
+                return;
+            }
+            console.log("📦 Fetching product with ID:", productId);
+            // ✅ Fetch the product details
+            const { data, error } = await supabase
+                .from("products")
+                .select("*")
+                .eq("id", productId)
+                .single();
+            if (error || !data) {
+                document.getElementById("product-container").innerHTML = "<p>❌ Failed to load product details.</p>";
+                return;
+            }
+            product = data;
+            document.getElementById("product-container").innerHTML = `
+                <div class="image-carousel">
+                    <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
+                </div>
+                <div class="product-details">
+                    <h2 class="product-title">${product.name}</h2>
+                    <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
+                    <div class="product-description">
+                        <p>${product.description}</p>
+                    </div>
+                    <div class="size-options-container">
+                        <div class="size-options">
+                            <button>XS</button>
+                            <button>S</button>
+                            <button>M</button>
+                            <button>L</button>
+                            <button>XL</button>
+                        </div>
+                    </div>
+                    <button class="buy-button" onclick="startConversation()">Message Seller</button>
+                </div>
+            `;
 
-        <div class="product-details">
-            <h2 class="product-title">Product Name</h2>
-            <p class="product-price">$13.00</p> 
+            // ✅ Ensure user has a unique ID stored
+            if (!currentUserId) {
+                currentUserId = "user_" + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem("user_id", currentUserId);
+                console.log("👤 New User ID Generated:", currentUserId);
+            }
+        });
 
-            <div class="product-description">
-                <p>This is a beautiful puff sleeve blouse made of high-quality materials. Perfect for casual and formal wear. Available in multiple sizes.</p>
-            </div> 
-
-            <div class="size-options-container">
-                <div class="size-options">
-                    <button>XS</button>
-                    <button>S</button>
-                    <button>M</button>
-                    <button>L</button>
-                    <button>XL</button>
-                </div>
-            </div> 
-
-            <button class="buy-button">Buy Now</button>
-            <button class="visit-store">Visit Store</button>
-            <button class="message-seller-button" id="messageSellerButton">Message Seller</button>
-            <button class="review-button" id="leaveReviewButton">Leave a Review</button>
-        </div>
-    </div> 
-
-    <div class="more-products-container">
-        <div class="section-title">More Products</div>
-        <div class="more-products" id="moreProducts">
-        </div>
-        <div class="more-indicator" id="moreIndicator" style="display: none;">More ></div>
-    </div> 
-
-    <div class="other-products-container">
-        <div class="section-title">Other Products from Stores</div>
-        <div class="other-products" id="otherProducts">
-        </div>
-    </div> 
-
-    <button class="add-to-closet" id="addToCloset">Add to Closet</button> 
-
-    <script>
-    // Add your existing JavaScript functions here
-    // For example, handling the message seller button
-    document.getElementById('messageSellerButton').addEventListener('click', function() {
-        alert("Opening conversation with seller...");
-    });
-    </script>
+        // ✅ Start a conversation between any two users
+        async function startConversation() {
+            if (!product || !product.seller_id) {
+                alert("❌ Error: Missing seller information.");
+                return;
+            }
+            const sellerId = product.seller_id;
+            // ✅ Ensure a user cannot start a chat with themselves
+            if (currentUserId === sellerId) {
+                alert("❌ You cannot message yourself.");
+                return;
+            }
+            console.log("🔍 Checking conversation between:", currentUserId, "and", sellerId);
+            try {
+                // ✅ Check if a conversation already exists
+                let { data: conversation, error } = await supabase
+                    .from("conversations")
+                    .select("id")
+                    .or(`buyer_id.eq.${currentUserId}, seller_id.eq.${currentUserId}`)
+                    .or(`buyer_id.eq.${sellerId}, seller_id.eq.${sellerId}`)
+                    .single();
+                if (error) console.error("⚠️ Error checking conversation:", error.message);
+                // ✅ Create a new conversation if it doesn’t exist
+                if (!conversation) {
+                    console.log("➕ Creating new conversation...");
+                    let { data: newConversation, error: createError } = await supabase
+                        .from("conversations")
+                        .insert([{ seller_id: sellerId, buyer_id: currentUserId }])
+                        .select()
+                        .single();
+                    if (createError) throw createError;
+                    conversation = newConversation;
+                }
+                console.log("💬 Redirecting to conversation:", conversation.id);
+                window.location.href = `messages.html?conversation_id=${conversation.id}`;
+            } catch (err) {
+                console.error("❌ Error starting conversation:", err.message);
+                alert("Error starting conversation. Please try again.");
+            }
+        }
+    </script>
 </body>
 </html>
-
