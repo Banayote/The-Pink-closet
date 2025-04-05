@@ -1,62 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Display</title>
+    <title>Product Details</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Keep ALL your existing CSS styles below -->
     <style>
-        /* [ALL YOUR EXISTING STYLES REMAIN UNCHANGED] */
-        body { font-family: Arial, sans-serif; background-color: white; margin: 0; padding: 0; }
-        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background-color: white; padding: 5px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); z-index: 1000; }
-        /* ... continue all your existing styles ... */
+        /* Global styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+
+        header {
+            background-color: #ff6347;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px 0;
+            background-color: #f1f1f1;
+            font-size: 0.875rem;
+        }
+
+        .product-container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .product-container img {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        .product-name {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        .product-description {
+            color: #555;
+            margin-top: 10px;
+        }
+
+        .product-price {
+            color: #ff6347;
+            font-size: 1.5rem;
+            margin-top: 15px;
+        }
+
+        .buy-btn {
+            background-color: #ff6347;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .buy-btn:hover {
+            background-color: #e5533b;
+        }
+
+        .loading-message {
+            font-size: 1.2rem;
+            color: #888;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 1rem;
+            margin-top: 20px;
+        }
     </style>
 </head>
+
 <body>
-    <div class="fixed-header">
-        <!-- Keep your header structure -->
-        <button class="back-button">&lt;</button>
-        <div class="logo">
-            <h1>Pink Closet</h1>
+    <header>
+        <h1>Product Details</h1>
+    </header>
+
+    <main>
+        <div id="product-container" class="product-container">
+            <p class="loading-message">Loading product...</p>
         </div>
-        <div class="closet-icon-wrapper">
-            <!-- Keep closet icon -->
-        </div>
-    </div>
+    </main>
 
-    <!-- Updated Product Container -->
-    <div class="product-container" id="productContainer">
-        <p>Loading product...</p>
-    </div>
-
-    <!-- Keep all your existing product sections -->
-    <div class="more-products-container">
-        <!-- ... -->
-    </div>
-
-    <button class="add-to-closet" id="addToCloset">Add to Closet</button>
+    <footer>
+        <p>&copy; The Pink Closet 2024. All rights reserved.</p>
+    </footer>
 
     <script>
-        // ============== SUPABASE SETUP ==============
+        // ✅ Supabase credentials
         const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        let currentUserId = localStorage.getItem("user_id");
+
         let product;
+        let currentUserId = localStorage.getItem("user_id");
 
-        // ============== PRODUCT LOADING ==============
         document.addEventListener("DOMContentLoaded", async () => {
-            // Get product ID from URL
             const urlParams = new URLSearchParams(window.location.search);
-            const productId = urlParams.get('id');
-
+            const productId = urlParams.get("id");
             if (!productId) {
-                document.getElementById("productContainer").innerHTML = "<p>❌ Product ID missing</p>";
+                document.getElementById("product-container").innerHTML = "<p class='error-message'>❌ Product ID is missing.</p>";
                 return;
             }
+            console.log("📦 Fetching product with ID:", productId);
 
-            // Fetch product from Supabase
+            // ✅ Fetch the product details
             const { data, error } = await supabase
                 .from("products")
                 .select("*")
@@ -64,125 +131,78 @@
                 .single();
 
             if (error || !data) {
-                document.getElementById("productContainer").innerHTML = "<p>❌ Failed to load product</p>";
+                document.getElementById("product-container").innerHTML = "<p class='error-message'>❌ Failed to load product details.</p>";
                 return;
             }
 
             product = data;
-            renderProduct();
-            initializeCarousel();
-            setupEventListeners();
-        });
-
-        // ============== RENDER PRODUCT ==============
-        function renderProduct() {
-            document.getElementById("productContainer").innerHTML = `
-                <div class="image-carousel" id="imageCarousel">
-                    ${product.images.map(img => `<img src="${img}" alt="${product.name}">`).join('')}
-                </div>
+            document.getElementById("product-container").innerHTML = `
+                <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
                 <div class="product-details">
-                    <h2 class="product-title">${product.name}</h2>
+                    <h2 class="product-name">${product.name}</h2>
+                    <p class="product-description">${product.description}</p>
                     <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
-                    <div class="product-description">
-                        <p>${product.description}</p>
-                    </div>
-                    <div class="size-options-container">
-                        <div class="size-options">
-                            ${product.sizes.map(size => 
-                                `<button>${size}</button>`
-                            ).join('')}
-                        </div>
-                    </div>
-                    <button class="buy-button">Buy Now</button>
-                    <button class="visit-store" id="messageSeller">Message Seller</button>
-                    <button class="review-button" id="leaveReviewButton">Leave a Review</button>
+                    <button class="buy-btn" onclick="startConversation()">Message Seller</button>
                 </div>
             `;
-        }
 
-        // ============== MESSAGE SELLER FUNCTION ==============
-        async function startConversation() {
-            if (!product?.seller_id) {
-                alert("❌ Seller information missing");
-                return;
-            }
-
-            // Create user ID if missing
+            // ✅ Ensure user has a unique ID stored
             if (!currentUserId) {
                 currentUserId = "user_" + Math.random().toString(36).substr(2, 9);
                 localStorage.setItem("user_id", currentUserId);
+                console.log("👤 New User ID Generated:", currentUserId);
+            }
+        });
+
+        // ✅ Start a conversation between any two users
+        async function startConversation() {
+            if (!product || !product.seller_id) {
+                alert("❌ Error: Missing seller information.");
+                return;
             }
 
             const sellerId = product.seller_id;
 
+            // ✅ Ensure a user cannot start a chat with themselves
+            if (currentUserId === sellerId) {
+                alert("❌ You cannot message yourself.");
+                return;
+            }
+
+            console.log("🔍 Checking conversation between:", currentUserId, "and", sellerId);
+
             try {
-                // Check existing conversation
-                const { data: conversation, error } = await supabase
+                // ✅ Check if a conversation already exists
+                let { data: conversation, error } = await supabase
                     .from("conversations")
                     .select("id")
-                    .or(`buyer_id.eq.${currentUserId},seller_id.eq.${currentUserId}`)
-                    .or(`buyer_id.eq.${sellerId},seller_id.eq.${sellerId}`)
+                    .or(`buyer_id.eq.${currentUserId}, seller_id.eq.${currentUserId}`)
+                    .or(`buyer_id.eq.${sellerId}, seller_id.eq.${sellerId}`)
                     .single();
 
-                // Create new conversation if needed
-                const convId = conversation?.id || (await supabase
-                    .from("conversations")
-                    .insert([{ 
-                        buyer_id: currentUserId, 
-                        seller_id: sellerId,
-                        product_id: product.id
-                    }])
-                    .select()
-                    .single()).data.id;
+                if (error) console.error("⚠️ Error checking conversation:", error.message);
 
-                window.location.href = `messages.html?conversation_id=${convId}`;
-            } catch (error) {
-                console.error("Conversation error:", error);
-                alert("❌ Error starting conversation");
+                // ✅ Create a new conversation if it doesn’t exist
+                if (!conversation) {
+                    console.log("➕ Creating new conversation...");
+                    let { data: newConversation, error: createError } = await supabase
+                        .from("conversations")
+                        .insert([{ seller_id: sellerId, buyer_id: currentUserId }])
+                        .select()
+                        .single();
+
+                    if (createError) throw createError;
+                    conversation = newConversation;
+                }
+
+                console.log("💬 Redirecting to conversation:", conversation.id);
+                window.location.href = `messages.html?conversation_id=${conversation.id}`;
+            } catch (err) {
+                console.error("❌ Error starting conversation:", err.message);
+                alert("Error starting conversation. Please try again.");
             }
         }
-
-        // ============== PRESERVE EXISTING FUNCTIONALITY ==============
-        function initializeCarousel() {
-            // Keep all your existing carousel code
-            const imageCarousel = document.getElementById('imageCarousel');
-            const images = imageCarousel.querySelectorAll('img');
-            let currentIndex = 0;
-            
-            function showImage(index) { /* ... */ }
-            function nextImage() { /* ... */ }
-            function previousImage() { /* ... */ }
-            
-            // Keep touch handlers
-            imageCarousel.addEventListener('touchstart', (e) => { /* ... */ });
-            imageCarousel.addEventListener('touchend', (e) => { /* ... */ });
-            
-            showImage(currentIndex);
-        }
-
-        function setupEventListeners() {
-            // Message Seller
-            document.getElementById('messageSeller')?.addEventListener('click', startConversation);
-            
-            // Preserve Add to Closet
-            document.getElementById('addToCloset')?.addEventListener('click', () => {
-                // Keep your existing animation and localStorage logic
-                // ...
-            });
-
-            // Preserve all other existing listeners
-            document.getElementById('closetIcon')?.addEventListener('click', () => {
-                window.location.href = 'closet.html';
-            });
-
-            document.getElementById('leaveReviewButton')?.addEventListener('click', () => {
-                window.location.href = 'reviews.html';
-            });
-        }
-
-        // Keep your existing more products logic
-        const moreProductsData = [/* ... */];
-        // ... rest of your existing product display code ...
     </script>
 </body>
+
 </html>
