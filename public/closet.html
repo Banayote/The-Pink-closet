@@ -75,22 +75,28 @@
       text-align: center;
       border-radius: 10px;
       background-color: white;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .closet-item:hover {
+      box-shadow: 0 6px 16px rgba(255, 192, 203, 0.3);
     }
 
     .closet-item img {
       width: 100%;
-      height: 150px;
+      height: 250px;
       object-fit: cover;
       border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    .closet-item .product-title {
+    .product-title {
       font-size: 1.2rem;
       margin: 10px 0;
       color: black;
     }
 
-    .closet-item .product-price {
+    .product-price {
       font-size: 1rem;
       color: #333;
     }
@@ -140,37 +146,46 @@
 
     const closetItemsContainer = document.getElementById('closetItems');
     const emptyMessage = document.getElementById('emptyMessage');
+
     let closetItems = JSON.parse(localStorage.getItem('closet')) || [];
 
     function renderClosetItems() {
       closetItemsContainer.innerHTML = '';
-      if (closetItems.length > 0) {
-        emptyMessage.style.display = 'none';
-        closetItems.forEach((item, index) => {
-          const itemDiv = document.createElement('div');
-          itemDiv.classList.add('closet-item');
 
-          itemDiv.innerHTML = `
-            <a href="product.html?id=${item.id}">
-              <img src="${item.image}" alt="${item.title}">
-              <h2 class="product-title">${item.title}</h2>
-              <p class="product-price">${item.price}</p>
-            </a>
-            <button class="remove-button" data-index="${index}">Remove</button>
-          `;
-
-          closetItemsContainer.appendChild(itemDiv);
-        });
-
-        document.querySelectorAll('.remove-button').forEach(button => {
-          button.addEventListener('click', function () {
-            const itemIndex = this.getAttribute('data-index');
-            removeFromCloset(itemIndex);
-          });
-        });
-      } else {
+      if (closetItems.length === 0) {
         emptyMessage.style.display = 'block';
+        return;
       }
+
+      emptyMessage.style.display = 'none';
+
+      closetItems.forEach((item, index) => {
+        const image = item.image || '';
+        const title = item.title || 'No Title';
+        const price = item.price || '';
+        const productId = item.id || '';
+
+        const itemDiv = document.createElement('div');
+        itemDiv.classList.add('closet-item');
+
+        itemDiv.innerHTML = `
+          <a href="product.html?id=${productId}">
+            <img src="${image}" alt="${title}" onerror="this.src='https://via.placeholder.com/300x400?text=No+Image';">
+            <h2 class="product-title">${title}</h2>
+            <p class="product-price">${price}</p>
+          </a>
+          <button class="remove-button" data-index="${index}">Remove</button>
+        `;
+
+        closetItemsContainer.appendChild(itemDiv);
+      });
+
+      document.querySelectorAll('.remove-button').forEach(button => {
+        button.addEventListener('click', function () {
+          const itemIndex = this.getAttribute('data-index');
+          removeFromCloset(itemIndex);
+        });
+      });
     }
 
     function removeFromCloset(index) {
