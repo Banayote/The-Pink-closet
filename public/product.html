@@ -79,7 +79,6 @@
       border-radius: 10px;
       overflow: hidden;
       background-color: #fdf0f5;
-      cursor: pointer;
     }
 
     .image-carousel img {
@@ -191,42 +190,47 @@
       background-color: #e5533b;
     }
 
-    /* Modal Styles */
-    .image-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0, 0, 0, 0.8);
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-
-    .image-modal img {
-      max-width: 90%;
-      max-height: 90%;
-      border-radius: 10px;
-    }
-
-    .close-modal {
-      position: absolute;
-      top: 10px;
-      right: 10px;
+    /* New back button styles */
+    .back-button {
+      background-color: pink;  /* Updated to pink */
+      border: 2px solid pink;
       color: white;
-      font-size: 2rem;
+      font-size: 1.5rem;
+      padding: 5px 15px;
+      border-radius: 50px;
       cursor: pointer;
-      background: rgba(0, 0, 0, 0.5);
-      border: none;
-      padding: 5px;
-      border-radius: 50%;
+      margin-left: 10px;
+    }
+
+    .back-button:hover {
+      background-color: #e5533b;
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      .product-container {
+        padding: 15px;
+      }
+
+      .product-title {
+        font-size: 1.25rem;
+      }
+
+      .product-price {
+        font-size: 1.1rem;
+      }
+
+      .buy-button,
+      .message-seller-button,
+      .add-to-closet {
+        font-size: 1.1rem;
+      }
     }
   </style>
 </head>
 <body>
   <div class="fixed-header">
+    <!-- Back Button with pink arrow -->
     <button class="back-button" onclick="location.href='index.html'">&lt;</button>
     
     <div class="logo">
@@ -251,12 +255,6 @@
   </div>
 
   <button class="add-to-closet" id="addToCloset">Add to Closet</button>
-
-  <!-- Image Modal -->
-  <div class="image-modal" id="imageModal">
-    <button class="close-modal" id="closeModal">X</button>
-    <img id="modalImage" src="" alt="Product Image">
-  </div>
 
   <script>
     const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
@@ -288,7 +286,7 @@
       product = data;
 
       document.getElementById("product-container").innerHTML = `
-        <div class="image-carousel" onclick="openModal()">
+        <div class="image-carousel">
           <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
         </div>
         <div class="product-details">
@@ -316,21 +314,7 @@
       }
     });
 
-    // Open the image modal
-    function openModal() {
-      const modal = document.getElementById("imageModal");
-      const modalImage = document.getElementById("modalImage");
-      const imageUrl = product.image_url || 'https://via.placeholder.com/600';
-      modal.style.display = 'flex';
-      modalImage.src = imageUrl;
-    }
-
-    // Close the image modal
-    document.getElementById("closeModal").addEventListener("click", () => {
-      document.getElementById("imageModal").style.display = 'none';
-    });
-
-    // Add product to the closet
+    // Add product to the closet and redirect to closet.html
     document.getElementById("addToCloset").addEventListener("click", () => {
       let closet = JSON.parse(localStorage.getItem("closet")) || [];
       if (!closet.some(item => item.id === product.id)) {
@@ -338,6 +322,8 @@
         localStorage.setItem("closet", JSON.stringify(closet));
       }
       updateClosetCounter();
+      // Redirect to closet page after adding
+      window.location.href = 'closet.html';
     });
 
     // Update the closet icon counter
