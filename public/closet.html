@@ -150,9 +150,11 @@
           const itemDiv = document.createElement('div');
           itemDiv.classList.add('closet-item');
 
+          const imgSrc = item.image || item.img || ''; // Fallback if named differently
+
           itemDiv.innerHTML = `
             <a href="product.html?id=${item.id}">
-              <img src="${item.image}" alt="${item.title}">
+              <img src="${imgSrc}" alt="${item.title}">
               <h2 class="product-title">${item.title}</h2>
               <p class="product-price">${item.price}</p>
             </a>
