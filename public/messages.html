@@ -187,6 +187,7 @@
     const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
     let currentUserId = localStorage.getItem("user_id");
     let currentConversationId = null;
     let messageSubscription = null;
@@ -234,36 +235,33 @@
       currentConversationId = convoId;
       await loadMessages(convoId);
 
-      // unsubscribe previous
       if (messageSubscription) {
         await supabase.removeChannel(messageSubscription);
       }
 
-      // subscribe real-time
       messageSubscription = supabase.channel(`messages-${convoId}`)
-        .on(
-          'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${convoId}` },
-          payload => {
-            appendMessage(payload.new);
-          }
-        )
-        .subscribe();
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${convoId}`
+        }, payload => {
+          appendMessage(payload.new);
+        }).subscribe();
     }
 
     function appendMessage(message) {
-  const msgDiv = document.createElement("div");
-  msgDiv.classList.add("message", message.sender_id === currentUserId ? "sent" : "received");
-  msgDiv.innerText = message.message;
-  const messagesContainer = document.getElementById("messages");
-  messagesContainer.appendChild(msgDiv);
+      const msgDiv = document.createElement("div");
+      msgDiv.classList.add("message", message.sender_id === currentUserId ? "sent" : "received");
+      msgDiv.innerText = message.message;
 
-  // Scroll after DOM update
-  setTimeout(() => {
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  }, 10);
-}
+      const container = document.getElementById("messages");
+      container.appendChild(msgDiv);
 
+      setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+      }, 20);
+    }
 
     async function loadMessages(convoId) {
       const { data: messages, error } = await supabase
@@ -274,8 +272,8 @@
 
       if (error) return console.error("Error loading messages:", error);
 
-      const messagesContainer = document.getElementById("messages");
-      messagesContainer.innerHTML = "";
+      const container = document.getElementById("messages");
+      container.innerHTML = "";
       messages.forEach(appendMessage);
     }
 
@@ -303,7 +301,6 @@
       document.getElementById("chat-screen").style.display = "none";
       document.getElementById("chat-list").style.display = "block";
 
-      // clean up listener when leaving chat
       if (messageSubscription) {
         supabase.removeChannel(messageSubscription);
         messageSubscription = null;
@@ -315,4 +312,3 @@
 
 </body>
 </html>
-
