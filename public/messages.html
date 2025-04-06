@@ -1,189 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-Time Chat Application</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        /* Basic styling for chat interface */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            margin: 0;
-            padding: 0;
-        }
-        #chat-container {
-            max-width: 600px;
-            margin: 50px auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            height: 80vh;
-        }
-        #messages {
-            flex: 1;
-            overflow-y: auto;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 10px;
-            padding: 10px;
-        }
-        .message {
-            padding: 8px 12px;
-            margin: 5px 0;
-            border-radius: 20px;
-            max-width: 80%;
-            word-wrap: break-word;
-            display: inline-block;
-        }
-        .sent {
-            background-color: #dcf8c6;
-            align-self: flex-end;
-            margin-left: auto;
-        }
-        .received {
-            background-color: #ececec;
-            align-self: flex-start;
-            margin-right: auto;
-        }
-        #input-container {
-            display: flex;
-            align-items: center;
-        }
-        #message-input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            outline: none;
-        }
-        #send-button {
-            width: 50px;
-            padding: 10px;
-            border: none;
-            background-color: #128c7e;
-            color: #fff;
-            border-radius: 50%;
-            cursor: pointer;
-            outline: none;
-            margin-left: 10px;
-        }
-        #send-button:disabled {
-            background-color: #ccc;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat App</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+    }
+    #chat-container {
+      max-width: 600px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #fff;
+      border: 1px solid #ddd;
+    }
+    #messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+    }
+    .message {
+      padding: 10px 15px;
+      margin: 5px 0;
+      border-radius: 20px;
+      max-width: 70%;
+      word-wrap: break-word;
+      display: inline-block;
+    }
+    .sent {
+      background-color: #ffc0cb;
+      align-self: flex-end;
+      margin-left: auto;
+    }
+    .received {
+      background-color: #eee;
+      align-self: flex-start;
+      margin-right: auto;
+    }
+    #input-container {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+      background: #fff;
+    }
+    #message-input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+    #send-button {
+      margin-left: 10px;
+      padding: 10px 15px;
+      border: none;
+      background-color: pink;
+      color: #fff;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-
-<div id="chat-container">
+  <div id="chat-container">
     <div id="messages"></div>
     <div id="input-container">
-        <input id="message-input" type="text" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
-        <button id="send-button" onclick="sendMessage()">Send</button>
+      <input id="message-input" type="text" placeholder="Type a message..." onkeypress="handleKeyPress(event)" />
+      <button id="send-button" onclick="sendMessage()">Send</button>
     </div>
-</div>
+  </div>
 
-<script>
-    // Initialize Supabase client
+  <script>
+    // Supabase setup
     const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
 
-    const currentUserId = 'user-id'; // Replace with the actual user ID
-    const currentConversationId = 'conversation-id'; // Replace with the actual conversation ID
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const messagesContainer = document.getElementById('messages');
-    const messageInput = document.getElementById('message-input');
-    const sendButton = document.getElementById('send-button');
+    const currentUserId = localStorage.getItem("user_id") || "demo_user"; // fallback
+    const currentConversationId = localStorage.getItem("conversation_id") || "demo_convo";
 
-    // Function to load messages from the database
+    const messagesContainer = document.getElementById("messages");
+    const messageInput = document.getElementById("message-input");
+
+    // Load all messages
     async function loadMessages() {
-        const { data: messages, error } = await supabase
-            .from('messages')
-            .select('*')
-            .eq('conversation_id', currentConversationId)
-            .order('created_at', { ascending: true });
+      const { data, error } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("conversation_id", currentConversationId)
+        .order("created_at", { ascending: true });
 
-        if (error) {
-            console.error('Error loading messages:', error);
-            return;
-        }
+      if (error) {
+        console.error("Error loading messages:", error);
+        return;
+      }
 
-        messagesContainer.innerHTML = '';
-        messages.forEach(message => {
-            displayMessage(message);
-        });
-
-        scrollToBottom();
+      messagesContainer.innerHTML = "";
+      data.forEach(displayMessage);
+      scrollToBottom();
     }
 
-    // Function to display a message in the chat
-    function displayMessage(message) {
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('message');
-        messageElement.classList.add(message.sender_id === currentUserId ? 'sent' : 'received');
-        messageElement.textContent = message.message;
-        messagesContainer.appendChild(messageElement);
+    // Display single message
+    function displayMessage(msg) {
+      const div = document.createElement("div");
+      div.classList.add("message", msg.sender_id === currentUserId ? "sent" : "received");
+      div.textContent = msg.message;
+      messagesContainer.appendChild(div);
     }
 
-    // Function to send a message
-    async function sendMessage() {
-        const messageText = messageInput.value.trim();
-        if (messageText === '') return;
-
-        sendButton.disabled = true;
-
-        const { error } = await supabase.from('messages').insert([
-            {
-                conversation_id: currentConversationId,
-                sender_id: currentUserId,
-                message: messageText,
-            },
-        ]);
-
-        if (error) {
-            console.error('Error sending message:', error);
-            sendButton.disabled = false;
-            return;
-        }
-
-        messageInput.value = '';
-        messageInput.focus();
-        sendButton.disabled = false;
-    }
-
-    // Function to handle Enter key press
-    function handleKeyPress(event) {
-        if (event.key === 'Enter') {
-            sendMessage();
-            event.preventDefault();
-        }
-    }
-
-    // Function to scroll to the bottom of the messages container
+    // Auto scroll to last message
     function scrollToBottom() {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    // Real-time subscription to new messages
+    // Send message
+    async function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text) return;
+
+      const { error } = await supabase.from("messages").insert([
+        {
+          sender_id: currentUserId,
+          conversation_id: currentConversationId,
+          message: text
+        }
+      ]);
+
+      if (error) {
+        console.error("Send error:", error);
+        return;
+      }
+
+      messageInput.value = "";
+      messageInput.focus();
+    }
+
+    // Send on Enter
+    function handleKeyPress(e) {
+      if (e.key === "Enter") {
+        sendMessage();
+        e.preventDefault();
+      }
+    }
+
+    // Real-time subscription
     supabase
-        .channel('public:messages')
-        .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${currentConversationId}` },
-            (payload) => {
-                displayMessage(payload.new);
-                scrollToBottom();
-            }
-        )
-        .subscribe();
+      .channel("public:messages")
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "messages",
+        filter: `conversation_id=eq.${currentConversationId}`
+      }, payload => {
+        displayMessage(payload.new);
+        scrollToBottom();
+      })
+      .subscribe();
 
-    // Load existing messages when the page loads
-    document.addEventListener('DOMContentLoaded', loadMessages);
-</script>
-
+    // Initial load
+    document.addEventListener("DOMContentLoaded", loadMessages);
+  </script>
 </body>
 </html>
