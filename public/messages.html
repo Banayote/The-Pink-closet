@@ -230,11 +230,10 @@
                 messagesContainer.appendChild(msgDiv);
             });
 
-            // Scroll to the bottom to show the latest message
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Subscribe to real-time message updates
+        // Real-time updates for new messages
         function subscribeToMessages(convoId) {
             supabase
                 .from(`messages:conversation_id=eq.${convoId}`)
@@ -242,9 +241,8 @@
                     const msgDiv = document.createElement("div");
                     msgDiv.classList.add("message", payload.new.sender_id === currentUserId ? "sent" : "received");
                     msgDiv.innerText = payload.new.message;
-                    const messagesContainer = document.getElementById("messages");
-                    messagesContainer.appendChild(msgDiv);
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;  // Auto-scroll to the bottom
+                    document.getElementById("messages").appendChild(msgDiv);
+                    document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
                 })
                 .subscribe();
         }
@@ -255,10 +253,11 @@
             const message = input.value.trim();
             if (!message) return;
 
+            input.disabled = true;  // Disable input while sending
             await supabase.from("messages").insert([{ conversation_id: currentConversationId, sender_id: currentUserId, message }]);
-
             input.value = "";  // Clear input
             input.focus();  // Keep focus on input
+            input.disabled = false;  // Re-enable input
         }
 
         // Handle Enter key to send a message
