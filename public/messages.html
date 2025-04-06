@@ -183,113 +183,129 @@
       <button id="send-button" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
     </div>
   </div>
+<script>
+  const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  let currentUserId = localStorage.getItem("user_id");
+  let currentConversationId = null;
 
-  <script>
-    const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    let currentUserId = localStorage.getItem("user_id");
-    let currentConversationId = null;
+  async function loadConversations() {
+    const { data: conversations, error } = await supabase
+      .from("conversations")
+      .select("*")
+      .or(`buyer_id.eq.${currentUserId},seller_id.eq.${currentUserId}`);
 
-    async function loadConversations() {
-      const { data: conversations, error } = await supabase
-        .from("conversations")
-        .select("*")
-        .or(`buyer_id.eq.${currentUserId},seller_id.eq.${currentUserId}`);
+    if (error) return console.error("Error loading conversations:", error);
 
-      if (error) return console.error("Error loading conversations:", error);
+    const chatList = document.getElementById("chat-list-container");
+    chatList.innerHTML = "";
 
-      const chatList = document.getElementById("chat-list-container");
-      chatList.innerHTML = "";
+    conversations.forEach(convo => {
+      const otherUserId = convo.seller_id === currentUserId ? convo.buyer_id : convo.seller_id;
 
-      conversations.forEach(convo => {
-        const otherUserId = convo.seller_id === currentUserId ? convo.buyer_id : convo.seller_id;
+      supabase.from("users").select("first_name, avatar_url").eq("id", otherUserId).single()
+        .then(({ data: user }) => {
+          if (!user) return;
 
-        supabase.from("users").select("first_name, avatar_url").eq("id", otherUserId).single()
-          .then(({ data: user }) => {
-            if (!user) return;
+          const convoItem = document.createElement("div");
+          convoItem.classList.add("conversation");
+          convoItem.onclick = () => openChat(convo.id, user.first_name, user.avatar_url);
 
-            const convoItem = document.createElement("div");
-            convoItem.classList.add("conversation");
-            convoItem.onclick = () => openChat(convo.id, user.first_name, user.avatar_url);
+          convoItem.innerHTML = `
+            <img class="avatar" src="${user.avatar_url || 'https://via.placeholder.com/40'}" alt="${user.first_name}">
+            <div class="user-info">
+              <div class="user-name">${user.first_name}</div>
+            </div>
+          `;
 
-            convoItem.innerHTML = `
-              <img class="avatar" src="${user.avatar_url || 'https://via.placeholder.com/40'}" alt="${user.first_name}">
-              <div class="user-info">
-                <div class="user-name">${user.first_name}</div>
-              </div>
-            `;
+          chatList.appendChild(convoItem);
+        });
+    });
+  }
 
-            chatList.appendChild(convoItem);
-          });
-      });
+  async function openChat(convoId, name, avatarUrl) {
+    document.getElementById("chat-list").style.display = "none";
+    document.getElementById("chat-screen").style.display = "flex";
+    document.getElementById("chat-title").innerText = name;
+    document.getElementById("chat-avatar").src = avatarUrl || 'https://via.placeholder.com/40';
+
+    currentConversationId = convoId;
+    loadMessages(convoId);
+  }
+
+  async function loadMessages(convoId) {
+    const { data: messages, error } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("conversation_id", convoId)
+      .order("created_at", { ascending: true });
+
+    if (error) return console.error("Error loading messages:", error);
+
+    const messagesContainer = document.getElementById("messages");
+    messagesContainer.innerHTML = "";
+
+    messages.forEach(message => appendMessage(message));
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById("message-input");
+    const message = input.value.trim();
+    if (!message) return;
+
+    input.value = "";
+    input.focus();
+
+    await supabase.from("messages").insert([
+      { conversation_id: currentConversationId, sender_id: currentUserId, message }
+    ]);
+  }
+
+  function handleKeyPress(event) {
+    if (event.key === "Enter") {
+      sendMessage();
+      event.preventDefault();
     }
+  }
 
-    async function openChat(convoId, name, avatarUrl) {
-      document.getElementById("chat-list").style.display = "none";
-      document.getElementById("chat-screen").style.display = "flex";
-      document.getElementById("chat-title").innerText = name;
-      document.getElementById("chat-avatar").src = avatarUrl || 'https://via.placeholder.com/40';
+  function appendMessage(message) {
+    const messagesContainer = document.getElementById("messages");
 
-      currentConversationId = convoId;
-      loadMessages(convoId);
-    }
+    // Avoid appending duplicate messages
+    if (document.getElementById(`msg-${message.id}`)) return;
 
-    async function loadMessages(convoId) {
-      const { data: messages, error } = await supabase
-        .from("messages")
-        .select("*")
-        .eq("conversation_id", convoId)
-        .order("created_at", { ascending: true });
+    const msgDiv = document.createElement("div");
+    msgDiv.id = `msg-${message.id}`;
+    msgDiv.classList.add("message", message.sender_id === currentUserId ? "sent" : "received");
+    msgDiv.innerText = message.message;
+    messagesContainer.appendChild(msgDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
 
-      if (error) return console.error("Error loading messages:", error);
+  function goBack() {
+    document.getElementById("chat-screen").style.display = "none";
+    document.getElementById("chat-list").style.display = "block";
+  }
 
-      const messagesContainer = document.getElementById("messages");
-      messagesContainer.innerHTML = "";
+  document.addEventListener("DOMContentLoaded", async () => {
+    await loadConversations();
 
-      messages.forEach(message => {
-        const msgDiv = document.createElement("div");
-        msgDiv.classList.add("message", message.sender_id === currentUserId ? "sent" : "received");
-        msgDiv.innerText = message.message;
-        messagesContainer.appendChild(msgDiv);
-      });
-
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-
-    async function sendMessage() {
-      const input = document.getElementById("message-input");
-      const message = input.value.trim();
-      if (!message) return;
-
-      const newMsgDiv = document.createElement("div");
-      newMsgDiv.classList.add("message", "sent");
-      newMsgDiv.innerText = message;
-      document.getElementById("messages").appendChild(newMsgDiv);
-      document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
-
-      input.value = "";
-      input.focus();
-
-      await supabase.from("messages").insert([
-        { conversation_id: currentConversationId, sender_id: currentUserId, message }
-      ]);
-    }
-
-    function handleKeyPress(event) {
-      if (event.key === "Enter") {
-        sendMessage();
-        event.preventDefault();
-      }
-    }
-
-    function goBack() {
-      document.getElementById("chat-screen").style.display = "none";
-      document.getElementById("chat-list").style.display = "block";
-    }
-
-    document.addEventListener("DOMContentLoaded", loadConversations);
-  </script>
+    supabase.channel('public:messages')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages' },
+        payload => {
+          const message = payload.new;
+          if (message.conversation_id === currentConversationId) {
+            appendMessage(message);
+          }
+        }
+      )
+      .subscribe();
+  });
+</script>
 
 </body>
 </html>
