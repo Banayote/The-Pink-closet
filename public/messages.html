@@ -230,33 +230,9 @@
       document.getElementById("chat-screen").style.display = "flex";
       document.getElementById("chat-title").innerText = name;
       document.getElementById("chat-avatar").src = avatarUrl || 'https://via.placeholder.com/40';
-
       currentConversationId = convoId;
-      await loadMessages(convoId);
-
-      // unsubscribe previous
-      if (messageSubscription) {
-        await supabase.removeChannel(messageSubscription);
-      }
-
-      // subscribe real-time
-      messageSubscription = supabase.channel(`messages-${convoId}`)
-        .on(
-          'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${convoId}` },
-          payload => {
-            appendMessage(payload.new);
-          }
-        )
-        .subscribe();
-    }
-
-    function appendMessage(message) {
-      const msgDiv = document.createElement("div");
-      msgDiv.classList.add("message", message.sender_id === currentUserId ? "sent" : "received");
-      msgDiv.innerText = message.message;
-      document.getElementById("messages").appendChild(msgDiv);
-      document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+      loadMessages(convoId);
+      subscribeToMessages(convoId);
     }
 
     async function loadMessages(convoId) {
@@ -270,7 +246,21 @@
 
       const messagesContainer = document.getElementById("messages");
       messagesContainer.innerHTML = "";
-      messages.forEach(appendMessage);
+
+      messages.forEach(msg => appendMessage(msg));
+    }
+
+    function appendMessage(message) {
+      const msgDiv = document.createElement("div");
+      msgDiv.classList.add("message", message.sender_id === currentUserId ? "sent" : "received");
+      msgDiv.innerText = message.message;
+      const messagesContainer = document.getElementById("messages");
+      messagesContainer.appendChild(msgDiv);
+
+      // Auto-scroll to bottom
+      setTimeout(() => {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }, 50);
     }
 
     async function sendMessage() {
@@ -281,9 +271,11 @@
       input.value = "";
       input.focus();
 
-      await supabase.from("messages").insert([
+      const { error } = await supabase.from("messages").insert([
         { conversation_id: currentConversationId, sender_id: currentUserId, message }
       ]);
+
+      if (error) console.error("Send failed:", error);
     }
 
     function handleKeyPress(event) {
@@ -297,11 +289,28 @@
       document.getElementById("chat-screen").style.display = "none";
       document.getElementById("chat-list").style.display = "block";
 
-      // clean up listener when leaving chat
       if (messageSubscription) {
         supabase.removeChannel(messageSubscription);
         messageSubscription = null;
       }
+    }
+
+    function subscribeToMessages(convoId) {
+      if (messageSubscription) {
+        supabase.removeChannel(messageSubscription);
+      }
+
+      messageSubscription = supabase
+        .channel("messages")
+        .on("postgres_changes", {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${convoId}`
+        }, (payload) => {
+          appendMessage(payload.new);
+        })
+        .subscribe();
     }
 
     document.addEventListener("DOMContentLoaded", loadConversations);
