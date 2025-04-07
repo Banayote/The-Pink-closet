@@ -135,60 +135,59 @@
       clear: both;
     }
 
-    #message-input-container {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      max-width: 500px;
-      background-color: white;
-      display: flex;
-      align-items: flex-end;
-      padding: 10px;
-      z-index: 1000;
-      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.08);
-    }
+#message-input-container {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  max-width: 500px;
+  background-color: white;
+  display: flex;
+  align-items: center; /* changed from flex-end */
+  padding: 8px 10px;
+  z-index: 1000;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.08);
+  gap: 6px; /* spacing between items */
+}
 
-    #image-button {
-      background: none;
-      border: none;
-      font-size: 22px;
-      color: pink;
-      cursor: pointer;
-      margin-right: 8px;
-      transition: transform 0.3s ease, opacity 0.3s ease;
-    }
+#image-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: pink;
+  cursor: pointer;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  padding: 6px;
+}
 
-    #image-button.hidden {
-      opacity: 0;
-      transform: translateX(20px);
-      pointer-events: none;
-    }
+#image-button.hidden {
+  opacity: 0;
+  transform: translateX(20px);
+  pointer-events: none;
+}
 
-    #message-input {
-      flex: 1;
-      border-radius: 20px;
-      border: 1px solid #ddd;
-      padding: 10px 12px;
-      font-size: 15px;
-      line-height: 18px;
-      resize: none;
-      overflow-y: auto;
-      max-height: 90px; /* about 3 lines */
-      min-height: 36px;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-    }
+#message-input {
+  flex: 1;
+  border-radius: 18px;
+  border: 1px solid #ddd;
+  padding: 6px 10px;
+  font-size: 14px;
+  min-height: 32px;
+  max-height: 72px;
+  resize: none;
+  line-height: 16px;
+  overflow-y: auto;
+}
 
-    #send-button {
-      background-color: pink;
-      color: white;
-      border: none;
-      padding: 10px;
-      border-radius: 50%;
-      cursor: pointer;
-      margin-left: 8px;
-      display: none;
-    }
+#send-button {
+  background-color: pink;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: none;
+  font-size: 16px;
+}
 
     #image-file {
       display: none;
