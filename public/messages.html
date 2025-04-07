@@ -142,7 +142,7 @@
       max-width: 500px;
       background-color: white;
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       padding: 10px;
       z-index: 1000;
       box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.08);
@@ -151,19 +151,33 @@
     #image-button {
       background: none;
       border: none;
-      font-size: 18px;
-      color: gray;
+      font-size: 22px;
+      color: pink;
       cursor: pointer;
+      margin-right: 8px;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    #image-button.hidden {
+      opacity: 0;
+      transform: translateX(20px);
+      pointer-events: none;
     }
 
     #message-input {
       flex: 1;
-      padding: 10px;
       border-radius: 20px;
       border: 1px solid #ddd;
-      margin-left: 10px;
-      height: 36px;
+      padding: 10px 12px;
       font-size: 15px;
+      line-height: 18px;
+      resize: none;
+      overflow-y: auto;
+
+      max-height: 90px; /* about 3 lines */
+      min-height: 36px;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
 
     #send-button {
@@ -173,7 +187,8 @@
       padding: 10px;
       border-radius: 50%;
       cursor: pointer;
-      margin-left: 10px;
+      margin-left: 8px;
+      display: none;
     }
 
     #image-file {
@@ -200,7 +215,7 @@
       <i class="fas fa-camera"></i>
     </button>
     <input type="file" id="image-file" accept="image/*" onchange="sendImage()">
-    <input id="message-input" type="text" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+    <textarea id="message-input" rows="1" placeholder="Type a message..." oninput="handleTyping()" onkeypress="handleKeyPress(event)"></textarea>
     <button id="send-button" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
   </div>
 </div>
@@ -214,6 +229,25 @@
   let currentConversationId = null;
   let messageSubscription = null;
 
+  function handleTyping() {
+    const input = document.getElementById("message-input");
+    const camera = document.getElementById("image-button");
+    const sendBtn = document.getElementById("send-button");
+
+    const isTyping = input.value.trim().length > 0;
+
+    if (isTyping) {
+      camera.classList.add("hidden");
+      sendBtn.style.display = "inline-block";
+    } else {
+      camera.classList.remove("hidden");
+      sendBtn.style.display = "none";
+    }
+
+    input.style.height = "auto";
+    input.style.height = input.scrollHeight + "px";
+  }
+
   async function loadConversations() {
     const { data: conversations, error } = await supabase
       .from("conversations")
@@ -222,135 +256,3 @@
 
     if (error) return console.error("Error loading conversations:", error);
 
-    const chatList = document.getElementById("chat-list-container");
-    chatList.innerHTML = "";
-
-    conversations.forEach(convo => {
-      const otherUserId = convo.seller_id === currentUserId ? convo.buyer_id : convo.seller_id;
-
-      supabase.from("users").select("first_name, avatar_url").eq("id", otherUserId).single()
-        .then(({ data: user }) => {
-          if (!user) return;
-
-          const convoItem = document.createElement("div");
-          convoItem.classList.add("conversation");
-          convoItem.onclick = () => openChat(convo.id, user.first_name, user.avatar_url);
-
-          convoItem.innerHTML = `
-            <img class="avatar" src="${user.avatar_url || 'https://via.placeholder.com/40'}" alt="${user.first_name}">
-            <div class="user-info">
-              <div class="user-name">${user.first_name}</div>
-            </div>
-          `;
-
-          chatList.appendChild(convoItem);
-        });
-    });
-  }
-
-  async function openChat(convoId, name, avatarUrl) {
-    document.getElementById("chat-list").style.display = "none";
-    document.getElementById("chat-screen").style.display = "flex";
-    document.getElementById("chat-title").innerText = name;
-    document.getElementById("chat-avatar").src = avatarUrl || 'https://via.placeholder.com/40';
-
-    currentConversationId = convoId;
-    await loadMessages(convoId);
-
-    if (messageSubscription) {
-      await supabase.removeChannel(messageSubscription);
-    }
-
-    messageSubscription = supabase.channel(`messages-${convoId}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'messages',
-        filter: `conversation_id=eq.${convoId}`
-      }, payload => {
-        appendMessage(payload.new);
-      }).subscribe();
-  }
-
-  function appendMessage(message) {
-    const msgDiv = document.createElement("div");
-    msgDiv.classList.add("message", message.sender_id === currentUserId ? "sent" : "received");
-
-    if (message.message.startsWith("data:image")) {
-      msgDiv.innerHTML = `<img src="${message.message}" alt="image">`;
-    } else {
-      msgDiv.innerText = message.message;
-    }
-
-    const container = document.getElementById("messages");
-    container.appendChild(msgDiv);
-
-    setTimeout(() => {
-      container.scrollTop = container.scrollHeight;
-    }, 20);
-  }
-
-  async function loadMessages(convoId) {
-    const { data: messages, error } = await supabase
-      .from("messages")
-      .select("*")
-      .eq("conversation_id", convoId)
-      .order("created_at", { ascending: true });
-
-    if (error) return console.error("Error loading messages:", error);
-
-    const container = document.getElementById("messages");
-    container.innerHTML = "";
-    messages.forEach(appendMessage);
-  }
-
-  async function sendMessage() {
-    const input = document.getElementById("message-input");
-    const message = input.value.trim();
-    if (!message) return;
-
-    input.value = "";
-    input.focus();
-
-    await supabase.from("messages").insert([
-      { conversation_id: currentConversationId, sender_id: currentUserId, message }
-    ]);
-  }
-
-  async function sendImage() {
-    const fileInput = document.getElementById("image-file");
-    const file = fileInput.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async function (e) {
-      const base64String = e.target.result;
-      await supabase.from("messages").insert([
-        { conversation_id: currentConversationId, sender_id: currentUserId, message: base64String }
-      ]);
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function handleKeyPress(event) {
-    if (event.key === "Enter") {
-      sendMessage();
-      event.preventDefault();
-    }
-  }
-
-  function goBack() {
-    document.getElementById("chat-screen").style.display = "none";
-    document.getElementById("chat-list").style.display = "block";
-
-    if (messageSubscription) {
-      supabase.removeChannel(messageSubscription);
-      messageSubscription = null;
-    }
-  }
-
-  document.addEventListener("DOMContentLoaded", loadConversations);
-</script>
-
-</body>
-</html>
