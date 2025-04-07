@@ -6,6 +6,7 @@
   <title>Chat</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -57,15 +58,15 @@
       color: #333;
     }
 
-   #chat-header {
+    #chat-header {
       display: flex;
       align-items: center;
       padding: 10px 14px;
       background-color: pink;
       color: white;
       border-radius: 10px 10px 0 0;
-      position: sticky; /* Makes the header sticky */
-      top: 0; /* Ensures it stays at the top */
+      position: sticky;
+      top: 0;
       z-index: 100;
     }
 
@@ -98,7 +99,7 @@
     #messages {
       flex: 1;
       padding: 10px;
-      padding-bottom: 80px; /* <== makes space for input bar */
+      padding-bottom: 80px;
       overflow-y: auto;
       background-color: white;
     }
@@ -143,14 +144,35 @@
       box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.08);
     }
 
-    #message-input {
+    .input-wrapper {
+      position: relative;
       flex: 1;
-      padding: 10px;
+    }
+
+    #message-input {
+      width: 100%;
+      padding: 10px 40px 10px 10px;
       border-radius: 20px;
       border: 1px solid #ddd;
-      margin-left: 10px;
       height: 36px;
       font-size: 15px;
+    }
+
+    .camera-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: pink;
+      font-size: 18px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .input-wrapper.typing .camera-icon {
+      opacity: 1;
+      transform: translateY(-50%) translateX(0);
     }
 
     #send-button {
@@ -168,22 +190,10 @@
       align-items: center;
       justify-content: center;
     }
-
-    .camera-icon {
-      position: absolute;
-      right: 10px;
-      cursor: pointer;
-      display: none;
-    }
-
-    #message-input:focus + .camera-icon {
-      display: block;
-    }
-
   </style>
 </head>
-<body>
 
+<body>
   <!-- Chat List -->
   <div id="chat-list">
     <h2 style="text-align: center; padding: 12px 0;">Messages</h2>
@@ -198,17 +208,21 @@
       <span id="chat-title"></span>
     </div>
     <div id="messages"></div>
+
+    <!-- Updated Input -->
     <div id="message-input-container">
-      <input id="message-input" type="text" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+      <div class="input-wrapper">
+        <input id="message-input" type="text" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+        <i class="fas fa-camera camera-icon" onclick="sendImageUrl()"></i>
+      </div>
       <button id="send-button" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
-      <i class="fas fa-camera camera-icon" onclick="sendImageUrl()"></i>
     </div>
   </div>
 
   <script>
     const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let currentUserId = localStorage.getItem("user_id");
     let currentConversationId = null;
@@ -308,13 +322,14 @@
       messages.forEach(appendMessage);
     }
 
-    async function sendMessage() {
+    async function sendMessage(content = null) {
       const input = document.getElementById("message-input");
-      const message = input.value.trim();
+      const message = content || input.value.trim();
       if (!message) return;
 
       input.value = "";
       input.focus();
+      document.querySelector(".input-wrapper").classList.remove("typing");
 
       await supabase.from("messages").insert([
         { conversation_id: currentConversationId, sender_id: currentUserId, message }
@@ -322,6 +337,13 @@
     }
 
     function handleKeyPress(event) {
+      const inputWrapper = document.querySelector(".input-wrapper");
+      if (event.target.value.trim()) {
+        inputWrapper.classList.add("typing");
+      } else {
+        inputWrapper.classList.remove("typing");
+      }
+
       if (event.key === "Enter") {
         sendMessage();
         event.preventDefault();
@@ -345,8 +367,20 @@
       }
     }
 
-    document.addEventListener("DOMContentLoaded", loadConversations);
-  </script>
+    document.addEventListener("DOMContentLoaded", () => {
+      loadConversations();
 
+      const input = document.getElementById("message-input");
+      const inputWrapper = document.querySelector(".input-wrapper");
+
+      input.addEventListener("input", () => {
+        if (input.value.trim()) {
+          inputWrapper.classList.add("typing");
+        } else {
+          inputWrapper.classList.remove("typing");
+        }
+      });
+    });
+  </script>
 </body>
 </html>
