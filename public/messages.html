@@ -57,14 +57,18 @@
       color: #333;
     }
 
-    #chat-header {
-      display: flex;
-      align-items: center;
-      padding: 10px 14px;
-      background-color: pink;
-      color: white;
-      border-radius: 10px 10px 0 0;
-    }
+ #chat-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  background-color: pink;
+  color: white;
+  border-radius: 10px 10px 0 0;
+  position: sticky; /* Makes the header sticky */
+  top: 0; /* Ensures it stays at the top */
+  z-index: 100;
+}
+
 
     #back-button {
       font-size: 22px;
