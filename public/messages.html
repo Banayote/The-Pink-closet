@@ -58,17 +58,16 @@
     }
 
    #chat-header {
-  display: flex;
-  align-items: center;
-  padding: 10px 14px;
-  background-color: pink;
-  color: white;
-  border-radius: 10px 10px 0 0;
-  position: sticky; /* Makes the header sticky */
-  top: 0; /* Ensures it stays at the top */
-  z-index: 100;
-}
-
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      background-color: pink;
+      color: white;
+      border-radius: 10px 10px 0 0;
+      position: sticky; /* Makes the header sticky */
+      top: 0; /* Ensures it stays at the top */
+      z-index: 100;
+    }
 
     #back-button {
       font-size: 22px;
@@ -97,12 +96,12 @@
     }
 
     #messages {
-  flex: 1;
-  padding: 10px;
-  padding-bottom: 80px; /* <== makes space for input bar */
-  overflow-y: auto;
-  background-color: white;
-}
+      flex: 1;
+      padding: 10px;
+      padding-bottom: 80px; /* <== makes space for input bar */
+      overflow-y: auto;
+      background-color: white;
+    }
 
     .message {
       margin: 10px 0;
@@ -154,21 +153,32 @@
       font-size: 15px;
     }
 
-  #send-button {
-  background-color: pink;
-  color: white;
-  border: none;
-  padding: 8px;
-  border-radius: 50%;
-  cursor: pointer;
-  margin-left: 10px;
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+    #send-button {
+      background-color: pink;
+      color: white;
+      border: none;
+      padding: 8px;
+      border-radius: 50%;
+      cursor: pointer;
+      margin-left: 10px;
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .camera-icon {
+      position: absolute;
+      right: 10px;
+      cursor: pointer;
+      display: none;
+    }
+
+    #message-input:focus + .camera-icon {
+      display: block;
+    }
 
   </style>
 </head>
@@ -191,13 +201,14 @@
     <div id="message-input-container">
       <input id="message-input" type="text" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
       <button id="send-button" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+      <i class="fas fa-camera camera-icon" onclick="sendImageUrl()"></i>
     </div>
   </div>
 
   <script>
     const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let currentUserId = localStorage.getItem("user_id");
     let currentConversationId = null;
@@ -264,7 +275,16 @@
     function appendMessage(message) {
       const msgDiv = document.createElement("div");
       msgDiv.classList.add("message", message.sender_id === currentUserId ? "sent" : "received");
-      msgDiv.innerText = message.message;
+
+      if (message.message.startsWith("http")) {
+        const image = document.createElement("img");
+        image.src = message.message;
+        image.style.maxWidth = "200px";
+        image.style.borderRadius = "10px";
+        msgDiv.appendChild(image);
+      } else {
+        msgDiv.innerText = message.message;
+      }
 
       const container = document.getElementById("messages");
       container.appendChild(msgDiv);
@@ -315,6 +335,13 @@
       if (messageSubscription) {
         supabase.removeChannel(messageSubscription);
         messageSubscription = null;
+      }
+    }
+
+    function sendImageUrl() {
+      const imageUrl = prompt("Enter the image URL:");
+      if (imageUrl) {
+        sendMessage(imageUrl);
       }
     }
 
