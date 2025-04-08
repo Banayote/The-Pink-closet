@@ -22,14 +22,14 @@
         }
 
         .menu-icon.active::after {
-            content: "X"; /* Plain Pink X */
+            content: "X";
             font-size: 35px;
             font-weight: bold;
             color: pink;
         }
 
         .menu-icon:not(.active)::after {
-            content: "☰"; /* Default burger icon */
+            content: "☰";
             font-size: 30px;
         }
 
@@ -49,7 +49,20 @@
             right: 0;
         }
 
-        /* 🔥 Product Layout with Multiple Rows */
+        .sidebar-content {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .sidebar-item {
+            padding: 10px 0;
+            text-decoration: none;
+            color: #d63384;
+            font-weight: bold;
+        }
+
+        /* 🔥 Product Layout */
         #product-container {
             padding: 10px;
             display: flex;
@@ -59,7 +72,7 @@
 
         .product-row {
             display: flex;
-            overflow-x: auto; /* Scroll left and right */
+            overflow-x: auto;
             gap: 10px;
             white-space: nowrap;
             width: 100%;
@@ -120,7 +133,7 @@
 
     <main>
         <section id="main-content">
-            <div id="product-container"></div> <!-- Products will be displayed here -->
+            <div id="product-container"></div>
         </section>
     </main>
 
@@ -135,6 +148,8 @@
             <a href="store.html" class="sidebar-item">Create Store</a>
             <a href="login.html" class="sidebar-item">Login</a>
             <a href="messages.html" class="sidebar-item">Messages</a>
+            <a href="closet.html" class="sidebar-item">Closet</a>
+            <a href="privacy.html" class="sidebar-item">Privacy Policy</a>
         </div>
     </div>
 
@@ -154,12 +169,10 @@
                 try {
                     const { data: products, error } = await supabase.from('products').select();
 
-                    if (error) {
-                        throw error;
-                    }
+                    if (error) throw error;
 
                     console.log("✅ Products Loaded:", products);
-                    productContainer.innerHTML = ''; // Clear existing content
+                    productContainer.innerHTML = '';
 
                     if (products.length === 0) {
                         productContainer.innerHTML = '<p>No products available.</p>';
@@ -184,7 +197,6 @@
 
                         productRow.appendChild(productDiv);
 
-                        // 🔥 Start a new row after 15 products
                         if ((index + 1) % 15 === 0 && index !== products.length - 1) {
                             productRow = document.createElement('div');
                             productRow.classList.add('product-row');
@@ -199,19 +211,19 @@
 
             loadProducts();
 
-            /* 🔥 Fix Burger Menu */
+            // Burger Menu toggle
             const menuIcon = document.getElementById('menuIcon');
             const sidebar = document.getElementById('sidebar');
 
             menuIcon.addEventListener('click', function () {
                 sidebar.classList.toggle('active');
-                menuIcon.classList.toggle('active'); // Change icon
+                menuIcon.classList.toggle('active');
             });
 
             document.addEventListener('click', function (event) {
                 if (!sidebar.contains(event.target) && !menuIcon.contains(event.target)) {
                     sidebar.classList.remove('active');
-                    menuIcon.classList.remove('active'); // Reset icon to ☰
+                    menuIcon.classList.remove('active');
                 }
             });
         });
