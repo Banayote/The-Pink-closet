@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>The Pink Closet</title>
-  <link rel="stylesheet" href="styles.css"/>
-  <!-- Font Awesome for Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -14,7 +14,6 @@
       padding: 0;
     }
 
-    /* 🔥 Burger Menu */
     .menu-icon {
       font-size: 30px;
       cursor: pointer;
@@ -58,9 +57,6 @@
     }
 
     .sidebar-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
       padding: 10px 0;
       text-decoration: none;
       color: #d63384;
@@ -68,12 +64,9 @@
     }
 
     .sidebar-item i {
-      font-size: 18px;
-      width: 20px;
-      text-align: center;
+      margin-right: 10px;
     }
 
-    /* 🔥 Product Layout */
     #product-container {
       padding: 10px;
       display: flex;
@@ -112,10 +105,12 @@
     }
 
     .product img {
-      max-width: 100%;
-      height: auto;
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
       border-bottom: 1px solid #ddd;
       margin-bottom: 5px;
+      border-radius: 5px;
     }
 
     .product-price {
@@ -137,7 +132,7 @@
     <div id="menuIcon" class="menu-icon"></div>
     <h1 id="storeName">The Pink Closet</h1>
     <div class="search-bar">
-      <input type="text" id="search-input" placeholder="Search products..."/>
+      <input type="text" id="search-input" placeholder="Search products..." />
       <button id="search-button">Search</button>
     </div>
   </header>
@@ -152,7 +147,6 @@
     <p>&copy; The Pink Closet 2024. All rights reserved.</p>
   </footer>
 
-  <!-- 🔥 Sidebar (Burger Menu) -->
   <div id="sidebar" class="sidebar">
     <div class="sidebar-content">
       <a href="profile.html" class="sidebar-item"><i class="fas fa-user"></i> Profile</a>
@@ -164,74 +158,74 @@
     </div>
   </div>
 
-  <!-- 🔥 Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener("DOMContentLoaded", function () {
       const supabase = window.supabase.createClient(
         'https://fjlqkjwnelkamealhtyr.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'
       );
 
-      const productContainer = document.getElementById('product-container');
+      const productContainer = document.getElementById("product-container");
 
       async function loadProducts() {
         try {
-          const { data: products, error } = await supabase.from('products').select();
+          const { data: products, error } = await supabase.from("products").select();
+
           if (error) throw error;
 
-          console.log("✅ Products Loaded:", products);
-          productContainer.innerHTML = '';
+          productContainer.innerHTML = "";
 
           if (products.length === 0) {
-            productContainer.innerHTML = '<p>No products available.</p>';
+            productContainer.innerHTML = "<p>No products available.</p>";
             return;
           }
 
-          let productRow = document.createElement('div');
-          productRow.classList.add('product-row');
+          let productRow = document.createElement("div");
+          productRow.classList.add("product-row");
           productContainer.appendChild(productRow);
 
           products.forEach((product, index) => {
-            const imageUrl = product.image_url || 'https://via.placeholder.com/150';
-            const productDiv = document.createElement('div');
-            productDiv.classList.add('product');
+            const imageUrl = product.image_url || "https://via.placeholder.com/150";
+
+            const productDiv = document.createElement("div");
+            productDiv.classList.add("product");
             productDiv.innerHTML = `
               <a href="product.html?id=${product.id}">
                 <img src="${imageUrl}" alt="Product Image">
                 <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
               </a>
             `;
+
             productRow.appendChild(productDiv);
 
             if ((index + 1) % 15 === 0 && index !== products.length - 1) {
-              productRow = document.createElement('div');
-              productRow.classList.add('product-row');
+              productRow = document.createElement("div");
+              productRow.classList.add("product-row");
               productContainer.appendChild(productRow);
             }
           });
         } catch (err) {
-          console.error('❌ Error loading products:', err.message);
-          productContainer.innerHTML = '<p>Error loading products. Try again later.</p>';
+          console.error("❌ Error loading products:", err.message);
+          productContainer.innerHTML = "<p>Error loading products. Try again later.</p>";
         }
       }
 
       loadProducts();
 
-      // Burger Menu toggle
-      const menuIcon = document.getElementById('menuIcon');
-      const sidebar = document.getElementById('sidebar');
+      const menuIcon = document.getElementById("menuIcon");
+      const sidebar = document.getElementById("sidebar");
 
-      menuIcon.addEventListener('click', function () {
-        sidebar.classList.toggle('active');
-        menuIcon.classList.toggle('active');
+      menuIcon.addEventListener("click", function () {
+        sidebar.classList.toggle("active");
+        menuIcon.classList.toggle("active");
       });
 
-      document.addEventListener('click', function (event) {
+      document.addEventListener("click", function (event) {
         if (!sidebar.contains(event.target) && !menuIcon.contains(event.target)) {
-          sidebar.classList.remove('active');
-          menuIcon.classList.remove('active');
+          sidebar.classList.remove("active");
+          menuIcon.classList.remove("active");
         }
       });
     });
