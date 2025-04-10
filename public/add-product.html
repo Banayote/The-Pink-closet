@@ -47,21 +47,11 @@
                 const productCategory = document.getElementById("product-category").value;
                 const productImage = document.getElementById("product-image").files[0];
 
-                // Limit the product name to 3 words
-                const nameWords = productName.split(" ");
-                if (nameWords.length > 3) {
-                    productName = nameWords.slice(0, 3).join(" ");
-                }
-
-                // Limit the category to 2 words
-                const categoryWords = productCategory.split(" ");
-                if (categoryWords.length > 2) {
-                    productCategory = categoryWords.slice(0, 2).join(" ");
-                }
-
-                // Limit the description to 100 characters
-                if (productDescription.length > 100) {
-                    productDescription = productDescription.substring(0, 100);
+                // Validate input for Image
+                if (!productImage) {
+                    alert("Please select an image.");
+                    spinner.style.display = "none";
+                    return;
                 }
 
                 // Validate price
@@ -69,6 +59,23 @@
                     alert("Please enter a valid price.");
                     spinner.style.display = "none";
                     return;
+                }
+
+                // Limit product name to 3 words
+                const nameWords = productName.split(" ");
+                if (nameWords.length > 3) {
+                    productName = nameWords.slice(0, 3).join(" ");
+                }
+
+                // Limit category to 2 words
+                const categoryWords = productCategory.split(" ");
+                if (categoryWords.length > 2) {
+                    productCategory = categoryWords.slice(0, 2).join(" ");
+                }
+
+                // Limit description to 100 characters
+                if (productDescription.length > 100) {
+                    productDescription = productDescription.substring(0, 100);
                 }
 
                 try {
@@ -111,11 +118,12 @@
                 }
             });
 
-            // Stopping the typing on each field for limits
+            // Limiting input for each field
             const productNameField = document.getElementById("product-name");
             const productCategoryField = document.getElementById("product-category");
             const productDescriptionField = document.getElementById("product-description");
 
+            // Ensure product name doesn't exceed 3 words
             productNameField.addEventListener("input", () => {
                 const nameWords = productNameField.value.split(" ");
                 if (nameWords.length > 3) {
@@ -123,6 +131,7 @@
                 }
             });
 
+            // Ensure category doesn't exceed 2 words
             productCategoryField.addEventListener("input", () => {
                 const categoryWords = productCategoryField.value.split(" ");
                 if (categoryWords.length > 2) {
@@ -130,6 +139,7 @@
                 }
             });
 
+            // Ensure description doesn't exceed 100 characters
             productDescriptionField.addEventListener("input", () => {
                 if (productDescriptionField.value.length > 100) {
                     productDescriptionField.value = productDescriptionField.value.substring(0, 100);
