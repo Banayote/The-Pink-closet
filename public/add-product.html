@@ -115,6 +115,7 @@
             const productNameField = document.getElementById("product-name");
             const productCategoryField = document.getElementById("product-category");
             const productDescriptionField = document.getElementById("product-description");
+            const productPriceField = document.getElementById("product-price");
 
             // Ensure product name doesn't exceed 3 words
             productNameField.addEventListener("input", () => {
@@ -138,10 +139,18 @@
                     productDescriptionField.value = productDescriptionField.value.substring(0, 100);
                 }
             });
+
+            // Ensure price is a valid number and limits input
+            productPriceField.addEventListener("input", () => {
+                if (isNaN(productPriceField.value) || productPriceField.value <= 0) {
+                    productPriceField.setCustomValidity("Please enter a valid price.");
+                } else {
+                    productPriceField.setCustomValidity("");
+                }
+            });
         });
     </script>
 
-    <!-- Style Section -->
     <style>
         body {
             font-family: Arial, sans-serif;
