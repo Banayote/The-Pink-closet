@@ -47,14 +47,33 @@
                 const productCategory = document.getElementById("product-category").value;
                 const productImage = document.getElementById("product-image").files[0];
 
+                // Validation for fields
                 if (!productImage) {
                     alert("Please select an image.");
                     spinner.style.display = "none";
                     return;
                 }
 
-                if (isNaN(productPrice) || productPrice <= 0) {
-                    alert("Please enter a valid price.");
+                if (productName.split(' ').length > 5) {
+                    alert("Product Name should be no more than 5 words.");
+                    spinner.style.display = "none";
+                    return;
+                }
+
+                if (productPrice <= 0 || isNaN(productPrice) || productPrice.toString().length > 4) {
+                    alert("Price must be a valid number and no more than 4 digits.");
+                    spinner.style.display = "none";
+                    return;
+                }
+
+                if (productCategory.split(' ').length > 2) {
+                    alert("Category should be no more than 2 words.");
+                    spinner.style.display = "none";
+                    return;
+                }
+
+                if (productDescription.length > 100) {
+                    alert("Description should be no more than 100 characters.");
                     spinner.style.display = "none";
                     return;
                 }
