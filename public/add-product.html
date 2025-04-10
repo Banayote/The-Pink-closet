@@ -30,11 +30,11 @@
         }
       });
 
-      // ✅ Limit Category to 2 words
+      // ✅ Limit Category to 3 words
       categoryField.addEventListener("input", () => {
         let words = categoryField.value.trim().split(/\s+/);
-        if (words.length > 2) {
-          categoryField.value = words.slice(0, 2).join(" ");
+        if (words.length > 3) {
+          categoryField.value = words.slice(0, 3).join(" ");
         }
       });
 
@@ -211,7 +211,7 @@
       <input type="number" id="product-price" placeholder="Max 5 digits" required />
 
       <label for="product-category">Category:</label>
-      <input type="text" id="product-category" placeholder="Up to 2 words" required />
+      <input type="text" id="product-category" placeholder="Up to 3 words" required />
 
       <label for="product-image">Image:</label>
       <input type="file" id="product-image" accept="image/*" required />
