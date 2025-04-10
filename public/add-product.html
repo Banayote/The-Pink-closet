@@ -150,6 +150,17 @@
             border-radius: 4px;
         }
 
+        /* Limit characters for fields */
+        #product-name, #product-category {
+            max-length: 50; /* Max length for product name and category */
+        }
+
+        #product-description {
+            max-length: 500; /* Max length for product description */
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
         textarea {
             resize: vertical;
         }
@@ -198,16 +209,16 @@
     <main>
         <form id="add-product-form">
             <label for="product-name">Product Name:</label>
-            <input type="text" id="product-name" placeholder="Product Name" required>
+            <input type="text" id="product-name" placeholder="Product Name" maxlength="50" required>
 
             <label for="product-description">Description:</label>
-            <textarea id="product-description" placeholder="Description" required></textarea>
+            <textarea id="product-description" placeholder="Description" maxlength="500" required></textarea>
 
             <label for="product-price">Price:</label>
             <input type="number" id="product-price" placeholder="Price" required>
 
             <label for="product-category">Category:</label>
-            <input type="text" id="product-category" placeholder="Category" required>
+            <input type="text" id="product-category" placeholder="Category" maxlength="50" required>
 
             <label for="product-image">Image:</label>
             <input type="file" id="product-image" accept="image/*" required>
