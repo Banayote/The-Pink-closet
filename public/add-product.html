@@ -53,7 +53,7 @@
             });
 
             // Handle input limitations for Category
-            productCategoryInput.addEventListener("change", () => {
+            productCategoryInput.addEventListener("input", () => {
                 if (productCategoryInput.value.length > CATEGORY_LIMIT) {
                     productCategoryInput.value = productCategoryInput.value.substring(0, CATEGORY_LIMIT);
                 }
@@ -223,15 +223,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Dropdown Styling */
-        select {
-            width: 100%;
-            padding: 0.5rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
         /* Responsive Design */
         @media (max-width: 768px) {
             form {
@@ -254,12 +245,7 @@
             <input type="number" id="product-price" placeholder="Price" required>
 
             <label for="product-category">Category:</label>
-            <select id="product-category" required>
-                <option value="" disabled selected>Select a Category</option>
-                <option value="Clothes">Clothes</option>
-                <option value="Accessories">Accessories</option>
-                <option value="Other">Other</option>
-            </select>
+            <input type="text" id="product-category" placeholder="Category" required>
 
             <label for="product-image">Image:</label>
             <input type="file" id="product-image" accept="image/*" required>
