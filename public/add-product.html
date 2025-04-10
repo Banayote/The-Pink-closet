@@ -22,33 +22,37 @@
       const priceField = document.getElementById("product-price");
       const categoryField = document.getElementById("product-category");
 
-      // Word and character limits
-      nameField.addEventListener("input", () => {
+      // --- Limit Product Name to 3 words ---
+      nameField.addEventListener("keydown", (e) => {
         const words = nameField.value.trim().split(/\s+/);
-        if (words.length > 3) {
-          nameField.value = words.slice(0, 3).join(" ");
+        if (words.length >= 3 && e.key === " " && nameField.selectionStart === nameField.value.length) {
+          e.preventDefault();
         }
       });
 
-      categoryField.addEventListener("input", () => {
+      // --- Limit Category to 2 words ---
+      categoryField.addEventListener("keydown", (e) => {
         const words = categoryField.value.trim().split(/\s+/);
-        if (words.length > 2) {
-          categoryField.value = words.slice(0, 2).join(" ");
+        if (words.length >= 2 && e.key === " " && categoryField.selectionStart === categoryField.value.length) {
+          e.preventDefault();
         }
       });
 
+      // --- Limit Description to 100 characters ---
       descField.addEventListener("input", () => {
         if (descField.value.length > 100) {
           descField.value = descField.value.slice(0, 100);
         }
       });
 
+      // --- Limit Price to 5 digits ---
       priceField.addEventListener("input", () => {
         if (priceField.value.length > 5) {
           priceField.value = priceField.value.slice(0, 5);
         }
       });
 
+      // --- Handle seller_id ---
       let sellerId = new URLSearchParams(window.location.search).get("seller_id") || localStorage.getItem("seller_id");
       if (sellerId) localStorage.setItem("seller_id", sellerId);
       else {
@@ -57,23 +61,27 @@
         return;
       }
 
+      // --- Form submission ---
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
         spinner.style.display = "block";
 
-        const productName = nameField.value.trim();
-        const productDescription = descField.value.trim();
-        const productPrice = parseFloat(priceField.value.trim());
-        const productCategory = categoryField.value.trim();
-        const productImage = document.getElementById("product-image").files[0];
+        const product = {
+          name: nameField.value.trim(),
+          description: descField.value.trim(),
+          price: parseFloat(priceField.value),
+          category: categoryField.value.trim(),
+          seller_id: sellerId,
+        };
 
+        const productImage = document.getElementById("product-image").files[0];
         if (!productImage) {
           alert("Please select an image.");
           spinner.style.display = "none";
           return;
         }
 
-        if (isNaN(productPrice) || productPrice <= 0) {
+        if (isNaN(product.price) || product.price <= 0) {
           alert("Enter a valid price.");
           spinner.style.display = "none";
           return;
@@ -92,14 +100,7 @@
           const imgData = await uploadRes.json();
           if (!imgData.secure_url) throw new Error("Image upload failed");
 
-          const product = {
-            name: productName,
-            description: productDescription,
-            price: productPrice,
-            category: productCategory,
-            image_url: imgData.secure_url,
-            seller_id: sellerId,
-          };
+          product.image_url = imgData.secure_url;
 
           const { error } = await supabase.from("products").insert([product]);
           if (error) alert("Error: " + error.message);
