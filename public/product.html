@@ -113,13 +113,6 @@
       margin-bottom: 20px;
     }
 
-    .product-description span.toggle {
-      color: pink;
-      cursor: pointer;
-      margin-left: 5px;
-      font-weight: bold;
-    }
-
     .size-options-container {
       display: flex;
       margin-bottom: 20px;
@@ -231,6 +224,7 @@
       border-radius: 50%;
     }
 
+    /* Pink Back Button */
     .back-button {
       background-color: pink;
       color: white;
@@ -244,12 +238,17 @@
     .back-button:hover {
       background-color: #e5533b;
     }
+
   </style>
 </head>
 <body>
   <div class="fixed-header">
     <button class="back-button" onclick="location.href='index.html'">&lt;</button>
-    <div class="logo"><h1>Pink Closet</h1></div>
+    
+    <div class="logo">
+      <h1>Pink Closet</h1>
+    </div>
+    
     <div class="closet-icon-wrapper" onclick="location.href='closet.html'">
       <svg id="closetIcon" class="closet-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="pink" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
@@ -269,6 +268,7 @@
 
   <button class="add-to-closet" id="addToCloset">Add to Closet</button>
 
+  <!-- Image Modal -->
   <div class="image-modal" id="imageModal">
     <button class="close-modal" id="closeModal">X</button>
     <img id="modalImage" src="" alt="Product Image">
@@ -290,7 +290,11 @@
         return;
       }
 
-      const { data, error } = await supabase.from("products").select("*").eq("id", productId).single();
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", productId)
+        .single();
 
       if (error || !data) {
         document.getElementById("product-container").innerHTML = "<p>❌ Failed to load product details.</p>";
@@ -299,26 +303,6 @@
 
       product = data;
 
-      const truncateLength = 150;
-      let isExpanded = false;
-
-      function renderDescription() {
-        const full = product.description || "";
-        const short = full.length > truncateLength ? full.substring(0, truncateLength) + "..." : full;
-        const desc = isExpanded || full.length <= truncateLength
-          ? full
-          : short;
-        const toggle = full.length > truncateLength
-          ? `<span class="toggle" onclick="toggleDescription()">${isExpanded ? 'Show less' : 'Show more'}</span>`
-          : "";
-        return `<p>${desc}${toggle}</p>`;
-      }
-
-      window.toggleDescription = function() {
-        isExpanded = !isExpanded;
-        document.getElementById("descriptionContainer").innerHTML = renderDescription();
-      }
-
       document.getElementById("product-container").innerHTML = `
         <div class="image-carousel" onclick="openModal()">
           <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
@@ -326,12 +310,16 @@
         <div class="product-details">
           <h2 class="product-title">${product.name}</h2>
           <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
-          <div class="product-description" id="descriptionContainer">
-            ${renderDescription()}
+          <div class="product-description">
+            <p>${product.description}</p>
           </div>
           <div class="size-options-container">
             <div class="size-options">
-              <button>XS</button><button>S</button><button>M</button><button>L</button><button>XL</button>
+              <button>XS</button>
+              <button>S</button>
+              <button>M</button>
+              <button>L</button>
+              <button>XL</button>
             </div>
           </div>
           <button class="buy-button" onclick="startConversation()">Message Seller</button>
@@ -344,6 +332,7 @@
       }
     });
 
+    // Open the image modal
     function openModal() {
       const modal = document.getElementById("imageModal");
       const modalImage = document.getElementById("modalImage");
@@ -352,10 +341,12 @@
       modalImage.src = imageUrl;
     }
 
+    // Close the image modal
     document.getElementById("closeModal").addEventListener("click", () => {
       document.getElementById("imageModal").style.display = 'none';
     });
 
+    // Add product to the closet
     document.getElementById("addToCloset").addEventListener("click", () => {
       let closet = JSON.parse(localStorage.getItem("closet")) || [];
       if (!closet.some(item => item.id === product.id)) {
@@ -365,13 +356,15 @@
       updateClosetCounter();
     });
 
+    // Update the closet icon counter
     function updateClosetCounter() {
       let closet = JSON.parse(localStorage.getItem("closet")) || [];
       document.getElementById("closetCounter").innerText = closet.length;
     }
 
+    // Call the function to update the closet count when the page loads
     updateClosetCounter();
-
+    
     async function startConversation() {
       if (!product || !product.seller_id) {
         alert("❌ Error: Missing seller information.");
@@ -393,17 +386,22 @@
           .or(`buyer_id.eq.${sellerId}, seller_id.eq.${sellerId}`)
           .single();
 
+        if (error) console.error("⚠️ Error checking conversation:", error.message);
+
         if (!conversation) {
-          let { data: newConversation } = await supabase
+          let { data: newConversation, error: createError } = await supabase
             .from("conversations")
             .insert([{ seller_id: sellerId, buyer_id: currentUserId }])
             .select()
             .single();
+
+          if (createError) throw createError;
           conversation = newConversation;
         }
 
         window.location.href = `messages.html?conversation_id=${conversation.id}`;
       } catch (err) {
+        console.error("❌ Error starting conversation:", err.message);
         alert("Error starting conversation. Please try again.");
       }
     }
