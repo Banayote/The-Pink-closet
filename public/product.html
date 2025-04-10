@@ -8,6 +8,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
+      background-color: white;
       margin: 0;
       padding: 0;
     }
@@ -32,6 +33,13 @@
       text-align: center;
     }
 
+    .closet-icon {
+      width: 30px;
+      height: 30px;
+      fill: none;
+      stroke: pink;
+    }
+
     .closet-icon-wrapper {
       position: relative;
       cursor: pointer;
@@ -51,6 +59,7 @@
     .product-container {
       max-width: 600px;
       margin: auto;
+      background-color: white;
       padding: 40px;
       box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
       color: #333;
@@ -102,27 +111,6 @@
 
     .product-description {
       margin-bottom: 20px;
-      position: relative;
-    }
-
-    .description-text {
-      overflow: hidden;
-      transition: max-height 0.3s ease;
-      max-height: 100px;
-      white-space: pre-wrap;
-    }
-
-    .description-text.expanded {
-      max-height: 1000px;
-      overflow-y: auto;
-    }
-
-    .toggle-description {
-      color: pink;
-      font-weight: bold;
-      cursor: pointer;
-      display: inline-block;
-      margin-top: 5px;
     }
 
     .size-options-container {
@@ -167,6 +155,22 @@
       color: white;
     }
 
+    .message-seller-button {
+      background-color: white;
+      color: pink;
+      padding: 10px;
+      border: 1px solid pink;
+      cursor: pointer;
+      border-radius: 5px;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .message-seller-button:hover {
+      background-color: pink;
+      color: white;
+    }
+
     .add-to-closet {
       background-color: pink;
       color: white;
@@ -187,6 +191,7 @@
       background-color: #e5533b;
     }
 
+    /* Modal Styles */
     .image-modal {
       display: none;
       position: fixed;
@@ -219,6 +224,7 @@
       border-radius: 50%;
     }
 
+    /* Pink Back Button */
     .back-button {
       background-color: pink;
       color: white;
@@ -232,14 +238,19 @@
     .back-button:hover {
       background-color: #e5533b;
     }
+
   </style>
 </head>
 <body>
   <div class="fixed-header">
     <button class="back-button" onclick="location.href='index.html'">&lt;</button>
-    <div class="logo"><h1>Pink Closet</h1></div>
+    
+    <div class="logo">
+      <h1>Pink Closet</h1>
+    </div>
+    
     <div class="closet-icon-wrapper" onclick="location.href='closet.html'">
-      <svg class="closet-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <svg id="closetIcon" class="closet-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="pink" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
         <line x1="12" y1="2" x2="12" y2="22"/>
         <circle cx="9" cy="12" r="1"/>
@@ -257,6 +268,7 @@
 
   <button class="add-to-closet" id="addToCloset">Add to Closet</button>
 
+  <!-- Image Modal -->
   <div class="image-modal" id="imageModal">
     <button class="close-modal" id="closeModal">X</button>
     <img id="modalImage" src="" alt="Product Image">
@@ -264,9 +276,8 @@
 
   <script>
     const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-    const SUPABASE_KEY = "your_supabase_key_here"; // Replace with your actual key
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
     let product;
     let currentUserId = localStorage.getItem("user_id");
 
@@ -275,14 +286,18 @@
       const productId = urlParams.get("id");
 
       if (!productId) {
-        document.getElementById("product-container").innerHTML = "<p>❌ Product ID missing.</p>";
+        document.getElementById("product-container").innerHTML = "<p>❌ Product ID is missing.</p>";
         return;
       }
 
-      const { data, error } = await supabase.from("products").select("*").eq("id", productId).single();
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", productId)
+        .single();
 
       if (error || !data) {
-        document.getElementById("product-container").innerHTML = "<p>❌ Failed to load product.</p>";
+        document.getElementById("product-container").innerHTML = "<p>❌ Failed to load product details.</p>";
         return;
       }
 
@@ -296,53 +311,99 @@
           <h2 class="product-title">${product.name}</h2>
           <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
           <div class="product-description">
-            <div class="description-text" id="descText">${product.description}</div>
-            <span class="toggle-description" id="toggleBtn">Show more</span>
+            <p>${product.description}</p>
           </div>
           <div class="size-options-container">
             <div class="size-options">
-              <button>XS</button><button>S</button><button>M</button><button>L</button><button>XL</button>
+              <button>XS</button>
+              <button>S</button>
+              <button>M</button>
+              <button>L</button>
+              <button>XL</button>
             </div>
           </div>
-          <div class="buy-button">Buy Now</div>
+          <button class="buy-button" onclick="startConversation()">Message Seller</button>
         </div>
       `;
 
-      const toggleButton = document.getElementById("toggleBtn");
-      const descriptionText = document.getElementById("descText");
-
-      toggleButton.addEventListener("click", () => {
-        descriptionText.classList.toggle("expanded");
-        toggleButton.textContent = descriptionText.classList.contains("expanded") ? "Show less" : "Show more";
-      });
-
-      const addToClosetButton = document.getElementById("addToCloset");
-      const closetCounter = document.getElementById("closetCounter");
-
-      addToClosetButton.addEventListener("click", () => {
-        let closet = JSON.parse(localStorage.getItem("closet") || "[]");
-        closet.push(product);
-        localStorage.setItem("closet", JSON.stringify(closet));
-        closetCounter.textContent = closet.length;
-      });
-
-      updateClosetCounter();
+      if (!currentUserId) {
+        currentUserId = "user_" + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem("user_id", currentUserId);
+      }
     });
 
+    // Open the image modal
     function openModal() {
       const modal = document.getElementById("imageModal");
       const modalImage = document.getElementById("modalImage");
-      modalImage.src = product.image_url || 'https://via.placeholder.com/600';
-      modal.style.display = "flex";
+      const imageUrl = product.image_url || 'https://via.placeholder.com/600';
+      modal.style.display = 'flex';
+      modalImage.src = imageUrl;
     }
 
+    // Close the image modal
     document.getElementById("closeModal").addEventListener("click", () => {
-      document.getElementById("imageModal").style.display = "none";
+      document.getElementById("imageModal").style.display = 'none';
     });
 
+    // Add product to the closet
+    document.getElementById("addToCloset").addEventListener("click", () => {
+      let closet = JSON.parse(localStorage.getItem("closet")) || [];
+      if (!closet.some(item => item.id === product.id)) {
+        closet.push(product);
+        localStorage.setItem("closet", JSON.stringify(closet));
+      }
+      updateClosetCounter();
+    });
+
+    // Update the closet icon counter
     function updateClosetCounter() {
-      const closet = JSON.parse(localStorage.getItem("closet") || "[]");
-      document.getElementById("closetCounter").textContent = closet.length;
+      let closet = JSON.parse(localStorage.getItem("closet")) || [];
+      document.getElementById("closetCounter").innerText = closet.length;
+    }
+
+    // Call the function to update the closet count when the page loads
+    updateClosetCounter();
+    
+    async function startConversation() {
+      if (!product || !product.seller_id) {
+        alert("❌ Error: Missing seller information.");
+        return;
+      }
+
+      const sellerId = product.seller_id;
+
+      if (currentUserId === sellerId) {
+        alert("❌ You cannot message yourself.");
+        return;
+      }
+
+      try {
+        let { data: conversation, error } = await supabase
+          .from("conversations")
+          .select("id")
+          .or(`buyer_id.eq.${currentUserId}, seller_id.eq.${currentUserId}`)
+          .or(`buyer_id.eq.${sellerId}, seller_id.eq.${sellerId}`)
+          .single();
+
+        if (error) console.error("⚠️ Error checking conversation:", error.message);
+
+        if (!conversation) {
+          let { data: newConversation, error: createError } = await supabase
+            .from("conversations")
+            .insert([{ seller_id: sellerId, buyer_id: currentUserId }])
+            .select()
+            .single();
+
+          if (createError) throw createError;
+          conversation = newConversation;
+        }
+
+        window.location.href = `messages.html?conversation_id=${conversation.id}`;
+      } catch (err) {
+        console.error("❌ Error starting conversation:", err.message);
+        alert("Error starting conversation. Please try again.");
+      }
     }
   </script>
 </body>
