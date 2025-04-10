@@ -111,23 +111,27 @@
 
     .product-description {
       margin-bottom: 20px;
+      position: relative;
     }
 
-    .product-description p {
-      max-height: 100px;
+    .description-text {
       overflow: hidden;
-      text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 5;
-      -webkit-box-orient: vertical;
       transition: max-height 0.3s ease;
-      cursor: pointer;
+      max-height: 100px;
+      white-space: pre-wrap;
     }
 
-    .product-description.expanded p {
-      max-height: 500px;
+    .description-text.expanded {
+      max-height: 400px;
       overflow-y: auto;
-      -webkit-line-clamp: unset;
+    }
+
+    .toggle-description {
+      color: pink;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-block;
+      margin-top: 5px;
     }
 
     .size-options-container {
@@ -258,11 +262,9 @@
 <body>
   <div class="fixed-header">
     <button class="back-button" onclick="location.href='index.html'">&lt;</button>
-    <div class="logo">
-      <h1>Pink Closet</h1>
-    </div>
+    <div class="logo"><h1>Pink Closet</h1></div>
     <div class="closet-icon-wrapper" onclick="location.href='closet.html'">
-      <svg id="closetIcon" class="closet-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <svg class="closet-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
         <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
         <line x1="12" y1="2" x2="12" y2="22"/>
         <circle cx="9" cy="12" r="1"/>
@@ -288,7 +290,7 @@
   <script>
     const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let product;
     let currentUserId = localStorage.getItem("user_id");
 
@@ -297,18 +299,19 @@
       const productId = urlParams.get("id");
 
       if (!productId) {
-        document.getElementById("product-container").innerHTML = "<p>❌ Product ID is missing.</p>";
+        document.getElementById("product-container").innerHTML = "<p>❌ Product ID missing.</p>";
         return;
       }
 
       const { data, error } = await supabase.from("products").select("*").eq("id", productId).single();
 
       if (error || !data) {
-        document.getElementById("product-container").innerHTML = "<p>❌ Failed to load product details.</p>";
+        document.getElementById("product-container").innerHTML = "<p>❌ Failed to load product.</p>";
         return;
       }
 
       product = data;
+      const fullDescription = product.description;
 
       document.getElementById("product-container").innerHTML = `
         <div class="image-carousel" onclick="openModal()">
@@ -318,50 +321,41 @@
           <h2 class="product-title">${product.name}</h2>
           <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
           <div class="product-description">
-            <p>${product.description}</p>
+            <div class="description-text" id="descText">${fullDescription}</div>
+            <span class="toggle-description" id="toggleBtn">Show more</span>
           </div>
           <div class="size-options-container">
             <div class="size-options">
-              <button>XS</button>
-              <button>S</button>
-              <button>M</button>
-              <button>L</button>
-              <button>XL</button>
+              <button>XS</button><button>S</button><button>M</button><button>L</button><button>XL</button>
             </div>
           </div>
           <button class="buy-button" onclick="startConversation()">Message Seller</button>
         </div>
       `;
 
+      const descText = document.getElementById("descText");
+      const toggleBtn = document.getElementById("toggleBtn");
+      let expanded = false;
+
+      toggleBtn.addEventListener("click", () => {
+        expanded = !expanded;
+        descText.classList.toggle("expanded", expanded);
+        toggleBtn.innerText = expanded ? "Show less" : "Show more";
+      });
+
       if (!currentUserId) {
         currentUserId = "user_" + Math.random().toString(36).substr(2, 9);
         localStorage.setItem("user_id", currentUserId);
       }
 
-      // Add expand/collapse toggle
-      setTimeout(() => {
-        const desc = document.querySelector('.product-description');
-        const para = desc.querySelector('p');
-
-        para.addEventListener('click', () => {
-          desc.classList.toggle('expanded');
-          para.innerHTML = desc.classList.contains('expanded') 
-            ? product.description + ' <span style="color:pink;font-weight:bold;">[Show less]</span>'
-            : product.description.slice(0, 300) + '... <span style="color:pink;font-weight:bold;">[Show more]</span>';
-        });
-
-        if (product.description.length > 300) {
-          para.innerHTML = product.description.slice(0, 300) + '... <span style="color:pink;font-weight:bold;">[Show more]</span>';
-        }
-      }, 100);
+      updateClosetCounter();
     });
 
     function openModal() {
       const modal = document.getElementById("imageModal");
       const modalImage = document.getElementById("modalImage");
-      const imageUrl = product.image_url || 'https://via.placeholder.com/600';
       modal.style.display = 'flex';
-      modalImage.src = imageUrl;
+      modalImage.src = product.image_url || 'https://via.placeholder.com/600';
     }
 
     document.getElementById("closeModal").addEventListener("click", () => {
@@ -382,46 +376,39 @@
       document.getElementById("closetCounter").innerText = closet.length;
     }
 
-    updateClosetCounter();
-
     async function startConversation() {
       if (!product || !product.seller_id) {
-        alert("❌ Error: Missing seller information.");
+        alert("Missing seller info.");
         return;
       }
 
-      const sellerId = product.seller_id;
-
-      if (currentUserId === sellerId) {
-        alert("❌ You cannot message yourself.");
+      if (currentUserId === product.seller_id) {
+        alert("You can't message yourself.");
         return;
       }
 
       try {
-        let { data: conversation, error } = await supabase
+        let { data: existing, error } = await supabase
           .from("conversations")
-          .select("id")
-          .or(`buyer_id.eq.${currentUserId}, seller_id.eq.${currentUserId}`)
-          .or(`buyer_id.eq.${sellerId}, seller_id.eq.${sellerId}`)
+          .select("*")
+          .or(`buyer_id.eq.${currentUserId},seller_id.eq.${product.seller_id}`)
           .single();
 
-        if (error) console.error("⚠️ Error checking conversation:", error.message);
-
-        if (!conversation) {
-          let { data: newConversation, error: createError } = await supabase
+        if (error || !existing) {
+          let { data: created, error: err } = await supabase
             .from("conversations")
-            .insert([{ seller_id: sellerId, buyer_id: currentUserId }])
+            .insert([{ buyer_id: currentUserId, seller_id: product.seller_id }])
             .select()
             .single();
 
-          if (createError) throw createError;
-          conversation = newConversation;
+          if (err) throw err;
+          existing = created;
         }
 
-        window.location.href = `messages.html?conversation_id=${conversation.id}`;
+        window.location.href = `messages.html?conversation_id=${existing.id}`;
       } catch (err) {
-        console.error("❌ Error starting conversation:", err.message);
-        alert("Error starting conversation. Please try again.");
+        console.error(err);
+        alert("Couldn't start conversation.");
       }
     }
   </script>
