@@ -113,6 +113,23 @@
       margin-bottom: 20px;
     }
 
+    .product-description p {
+      max-height: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 5;
+      -webkit-box-orient: vertical;
+      transition: max-height 0.3s ease;
+      cursor: pointer;
+    }
+
+    .product-description.expanded p {
+      max-height: 500px;
+      overflow-y: auto;
+      -webkit-line-clamp: unset;
+    }
+
     .size-options-container {
       display: flex;
       margin-bottom: 20px;
@@ -191,7 +208,6 @@
       background-color: #e5533b;
     }
 
-    /* Modal Styles */
     .image-modal {
       display: none;
       position: fixed;
@@ -224,7 +240,6 @@
       border-radius: 50%;
     }
 
-    /* Pink Back Button */
     .back-button {
       background-color: pink;
       color: white;
@@ -238,19 +253,16 @@
     .back-button:hover {
       background-color: #e5533b;
     }
-
   </style>
 </head>
 <body>
   <div class="fixed-header">
     <button class="back-button" onclick="location.href='index.html'">&lt;</button>
-    
     <div class="logo">
       <h1>Pink Closet</h1>
     </div>
-    
     <div class="closet-icon-wrapper" onclick="location.href='closet.html'">
-      <svg id="closetIcon" class="closet-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="pink" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg id="closetIcon" class="closet-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
         <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
         <line x1="12" y1="2" x2="12" y2="22"/>
         <circle cx="9" cy="12" r="1"/>
@@ -268,7 +280,6 @@
 
   <button class="add-to-closet" id="addToCloset">Add to Closet</button>
 
-  <!-- Image Modal -->
   <div class="image-modal" id="imageModal">
     <button class="close-modal" id="closeModal">X</button>
     <img id="modalImage" src="" alt="Product Image">
@@ -276,7 +287,7 @@
 
   <script>
     const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+    const SUPABASE_KEY = "your_supabase_key_here"; // Replace with actual key
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let product;
     let currentUserId = localStorage.getItem("user_id");
@@ -290,11 +301,7 @@
         return;
       }
 
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .eq("id", productId)
-        .single();
+      const { data, error } = await supabase.from("products").select("*").eq("id", productId).single();
 
       if (error || !data) {
         document.getElementById("product-container").innerHTML = "<p>❌ Failed to load product details.</p>";
@@ -330,9 +337,25 @@
         currentUserId = "user_" + Math.random().toString(36).substr(2, 9);
         localStorage.setItem("user_id", currentUserId);
       }
+
+      // Add expand/collapse toggle
+      setTimeout(() => {
+        const desc = document.querySelector('.product-description');
+        const para = desc.querySelector('p');
+
+        para.addEventListener('click', () => {
+          desc.classList.toggle('expanded');
+          para.innerHTML = desc.classList.contains('expanded') 
+            ? product.description + ' <span style="color:pink;font-weight:bold;">[Show less]</span>'
+            : product.description.slice(0, 300) + '... <span style="color:pink;font-weight:bold;">[Show more]</span>';
+        });
+
+        if (product.description.length > 300) {
+          para.innerHTML = product.description.slice(0, 300) + '... <span style="color:pink;font-weight:bold;">[Show more]</span>';
+        }
+      }, 100);
     });
 
-    // Open the image modal
     function openModal() {
       const modal = document.getElementById("imageModal");
       const modalImage = document.getElementById("modalImage");
@@ -341,12 +364,10 @@
       modalImage.src = imageUrl;
     }
 
-    // Close the image modal
     document.getElementById("closeModal").addEventListener("click", () => {
       document.getElementById("imageModal").style.display = 'none';
     });
 
-    // Add product to the closet
     document.getElementById("addToCloset").addEventListener("click", () => {
       let closet = JSON.parse(localStorage.getItem("closet")) || [];
       if (!closet.some(item => item.id === product.id)) {
@@ -356,15 +377,13 @@
       updateClosetCounter();
     });
 
-    // Update the closet icon counter
     function updateClosetCounter() {
       let closet = JSON.parse(localStorage.getItem("closet")) || [];
       document.getElementById("closetCounter").innerText = closet.length;
     }
 
-    // Call the function to update the closet count when the page loads
     updateClosetCounter();
-    
+
     async function startConversation() {
       if (!product || !product.seller_id) {
         alert("❌ Error: Missing seller information.");
