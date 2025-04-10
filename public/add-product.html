@@ -39,6 +39,7 @@
             const productNameField = document.getElementById("product-name");
             const productCategoryField = document.getElementById("product-category");
             const productDescriptionField = document.getElementById("product-description");
+            const productPriceField = document.getElementById("product-price");
 
             // Limit for Product Name (5 words max)
             productNameField.addEventListener("input", () => {
@@ -56,7 +57,14 @@
                 }
             });
 
-            // Limit for Description (100 characters max)
+            // Limit for Product Price (Max 4 digits)
+            productPriceField.addEventListener("input", () => {
+                if (productPriceField.value.length > 4) {
+                    productPriceField.value = productPriceField.value.slice(0, 4); // Limit to 4 digits
+                }
+            });
+
+            // Limit for Product Description (100 characters max)
             productDescriptionField.addEventListener("input", () => {
                 if (productDescriptionField.value.length > 100) {
                     productDescriptionField.value = productDescriptionField.value.slice(0, 100); // Limit to 100 characters
@@ -71,7 +79,7 @@
 
                 const productName = productNameField.value;
                 const productDescription = productDescriptionField.value;
-                const productPrice = parseFloat(document.getElementById("product-price").value);
+                const productPrice = parseFloat(productPriceField.value);
                 const productCategory = productCategoryField.value;
                 const productImage = document.getElementById("product-image").files[0];
 
