@@ -97,26 +97,6 @@
       padding: 20px 0;
     }
 
-    .scrollable-field {
-      max-height: 3.5em;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding-right: 5px;
-      scrollbar-width: thin;
-      scrollbar-color: pink transparent;
-      word-wrap: break-word;
-      white-space: normal;
-    }
-
-    .scrollable-field::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .scrollable-field::-webkit-scrollbar-thumb {
-      background-color: pink;
-      border-radius: 5px;
-    }
-
     .product-title {
       font-size: 1.5rem;
       margin-bottom: 0px;
@@ -128,6 +108,15 @@
       color: #333;
       margin-bottom: 10px;
     }
+
+   .product-description {
+  margin-bottom: 20px;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
 
     .size-options-container {
       display: flex;
@@ -313,21 +302,22 @@
         .single();
 
       if (error || !data) {
-        document.getElementById("product-container").innerHTML = "<p>❌ Product not found.</p>";
+        document.getElementById("product-container").innerHTML = "<p>❌ Failed to load product details.</p>";
         return;
       }
 
       product = data;
 
       document.getElementById("product-container").innerHTML = `
-        <div class="image-carousel" onclick="showImageModal()">
-          <img src="${product.image_url}" alt="Product Image">
+        <div class="image-carousel" onclick="openModal()">
+          <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
         </div>
         <div class="product-details">
-          <p class="product-title scrollable-field">${product.product_name}</p>
-          <p class="product-price">$${product.price}</p>
-          <p class="scrollable-field">Category: ${product.category}</p>
-          <p class="scrollable-field">Description: ${product.description}</p>
+          <h2 class="product-title">${product.name}</h2>
+          <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
+          <div class="product-description">
+            <p>${product.description}</p>
+          </div>
           <div class="size-options-container">
             <div class="size-options">
               <button>XS</button>
@@ -337,38 +327,89 @@
               <button>XL</button>
             </div>
           </div>
-          <button class="buy-button">Buy Now</button>
-          <button class="message-seller-button">Message Seller</button>
+          <button class="buy-button" onclick="startConversation()">Message Seller</button>
         </div>
       `;
-    });
 
-    document.getElementById("addToCloset").addEventListener("click", async () => {
-      if (!product || !currentUserId) return;
-
-      const { error } = await supabase
-        .from("closet")
-        .insert([
-          { user_id: currentUserId, product_id: product.id, quantity: 1 }
-        ]);
-
-      if (error) {
-        alert("Error adding to closet");
-      } else {
-        alert("Added to closet!");
+      if (!currentUserId) {
+        currentUserId = "user_" + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem("user_id", currentUserId);
       }
     });
 
-    function showImageModal() {
+    // Open the image modal
+    function openModal() {
       const modal = document.getElementById("imageModal");
       const modalImage = document.getElementById("modalImage");
-      modal.style.display = "flex";
-      modalImage.src = product.image_url;
+      const imageUrl = product.image_url || 'https://via.placeholder.com/600';
+      modal.style.display = 'flex';
+      modalImage.src = imageUrl;
     }
 
+    // Close the image modal
     document.getElementById("closeModal").addEventListener("click", () => {
-      document.getElementById("imageModal").style.display = "none";
+      document.getElementById("imageModal").style.display = 'none';
     });
+
+    // Add product to the closet
+    document.getElementById("addToCloset").addEventListener("click", () => {
+      let closet = JSON.parse(localStorage.getItem("closet")) || [];
+      if (!closet.some(item => item.id === product.id)) {
+        closet.push(product);
+        localStorage.setItem("closet", JSON.stringify(closet));
+      }
+      updateClosetCounter();
+    });
+
+    // Update the closet icon counter
+    function updateClosetCounter() {
+      let closet = JSON.parse(localStorage.getItem("closet")) || [];
+      document.getElementById("closetCounter").innerText = closet.length;
+    }
+
+    // Call the function to update the closet count when the page loads
+    updateClosetCounter();
+    
+    async function startConversation() {
+      if (!product || !product.seller_id) {
+        alert("❌ Error: Missing seller information.");
+        return;
+      }
+
+      const sellerId = product.seller_id;
+
+      if (currentUserId === sellerId) {
+        alert("❌ You cannot message yourself.");
+        return;
+      }
+
+      try {
+        let { data: conversation, error } = await supabase
+          .from("conversations")
+          .select("id")
+          .or(`buyer_id.eq.${currentUserId}, seller_id.eq.${currentUserId}`)
+          .or(`buyer_id.eq.${sellerId}, seller_id.eq.${sellerId}`)
+          .single();
+
+        if (error) console.error("⚠️ Error checking conversation:", error.message);
+
+        if (!conversation) {
+          let { data: newConversation, error: createError } = await supabase
+            .from("conversations")
+            .insert([{ seller_id: sellerId, buyer_id: currentUserId }])
+            .select()
+            .single();
+
+          if (createError) throw createError;
+          conversation = newConversation;
+        }
+
+        window.location.href = `messages.html?conversation_id=${conversation.id}`;
+      } catch (err) {
+        console.error("❌ Error starting conversation:", err.message);
+        alert("Error starting conversation. Please try again.");
+      }
+    }
   </script>
 </body>
 </html>
