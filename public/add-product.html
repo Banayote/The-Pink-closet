@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
 
-    <!-- Supabase SDK -->
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
@@ -17,44 +16,39 @@
             const form = document.getElementById("add-product-form");
             const spinner = document.getElementById("loading-spinner");
 
-            // 🔹 Get seller ID from URL or LocalStorage
+            // Get seller ID from URL or LocalStorage
             const urlParams = new URLSearchParams(window.location.search);
             let sellerId = urlParams.get("seller_id");
 
             if (!sellerId) {
-                sellerId = localStorage.getItem("seller_id"); // Get from LocalStorage
+                sellerId = localStorage.getItem("seller_id"); 
             } else {
-                localStorage.setItem("seller_id", sellerId); // Save to LocalStorage
+                localStorage.setItem("seller_id", sellerId);
             }
-
-            console.log("📌 Seller ID Retrieved:", sellerId); // Debugging
 
             if (!sellerId) {
                 alert("Error: Seller ID is missing. Redirecting to profile...");
-                window.location.href = "profile.html"; // Redirect back if missing
+                window.location.href = "profile.html"; 
                 return;
             }
 
             form.addEventListener("submit", async (event) => {
                 event.preventDefault();
 
-                // Show the spinner while the form is being processed
                 spinner.style.display = "block";
 
-                const productName = document.getElementById("product-name").value;
-                const productDescription = document.getElementById("product-description").value;
+                let productName = document.getElementById("product-name").value;
+                let productDescription = document.getElementById("product-description").value;
                 const productPrice = parseFloat(document.getElementById("product-price").value);
-                const productCategory = document.getElementById("product-category").value;
+                let productCategory = document.getElementById("product-category").value;
                 const productImage = document.getElementById("product-image").files[0];
 
-                // Validate input for Image
                 if (!productImage) {
                     alert("Please select an image.");
                     spinner.style.display = "none";
                     return;
                 }
 
-                // Validate price
                 if (isNaN(productPrice) || productPrice <= 0) {
                     alert("Please enter a valid price.");
                     spinner.style.display = "none";
@@ -79,7 +73,7 @@
                 }
 
                 try {
-                    // 🔹 Upload Image to Cloudinary
+                    // Upload Image to Cloudinary
                     const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dnfavv3ud/upload"; 
                     const formData = new FormData();
                     formData.append("file", productImage);
@@ -90,14 +84,14 @@
 
                     if (!imageData.secure_url) throw new Error("Image upload failed");
 
-                    // 🔹 Insert product into Supabase
+                    // Insert product into Supabase
                     const product = {
                         name: productName,
                         description: productDescription,
                         price: productPrice,
                         category: productCategory,
                         image_url: imageData.secure_url,
-                        seller_id: sellerId  // ✅ Ensure it's using the seller_id
+                        seller_id: sellerId 
                     };
 
                     const { error } = await supabase.from("products").insert([product]);
@@ -113,12 +107,11 @@
                     console.error("❌ Error:", error);
                     alert("An error occurred: " + error.message);
                 } finally {
-                    // Hide the spinner after processing
                     spinner.style.display = "none";
                 }
             });
 
-            // Limiting input for each field
+            // Limit user input dynamically
             const productNameField = document.getElementById("product-name");
             const productCategoryField = document.getElementById("product-category");
             const productDescriptionField = document.getElementById("product-description");
@@ -150,7 +143,6 @@
 
     <!-- Style Section -->
     <style>
-        /* General Styles */
         body {
             font-family: Arial, sans-serif;
             background-color: #f8f8f8;
@@ -215,12 +207,11 @@
             background-color: #ffb6c1;
         }
 
-        /* Spinning Heart Loader */
         .spinner {
             display: none;
             margin: 20px auto;
-            border: 5px solid #f3f3f3; /* Light gray background */
-            border-top: 5px solid #ff69b4; /* Pink color */
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #ff69b4;
             border-radius: 50%;
             width: 50px;
             height: 50px;
@@ -232,7 +223,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Responsive Design */
         @media (max-width: 768px) {
             form {
                 padding: 1rem;
@@ -262,7 +252,6 @@
             <button type="submit">Add Product</button>
         </form>
 
-        <!-- Spinning Heart Loader -->
         <div id="loading-spinner" class="spinner"></div>
     </main>
 </body>
