@@ -44,7 +44,7 @@
             productNameField.addEventListener("input", () => {
                 const words = productNameField.value.trim().split(/\s+/);
                 if (words.length > 5) {
-                    productNameField.value = words.slice(0, 5).join(" "); // Truncate to 5 words
+                    productNameField.value = words.slice(0, 5).join(" "); // Limit to 5 words
                 }
             });
 
@@ -52,14 +52,14 @@
             productCategoryField.addEventListener("input", () => {
                 const words = productCategoryField.value.trim().split(/\s+/);
                 if (words.length > 2) {
-                    productCategoryField.value = words.slice(0, 2).join(" "); // Truncate to 2 words
+                    productCategoryField.value = words.slice(0, 2).join(" "); // Limit to 2 words
                 }
             });
 
             // Limit for Description (100 characters max)
             productDescriptionField.addEventListener("input", () => {
                 if (productDescriptionField.value.length > 100) {
-                    productDescriptionField.value = productDescriptionField.value.slice(0, 100); // Truncate to 100 chars
+                    productDescriptionField.value = productDescriptionField.value.slice(0, 100); // Limit to 100 characters
                 }
             });
 
