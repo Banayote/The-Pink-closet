@@ -1,267 +1,232 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Product</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Product</title>
 
-    <script type="module">
-        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
+  <!-- Supabase SDK -->
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
-        const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const form = document.getElementById("add-product-form");
-            const spinner = document.getElementById("loading-spinner");
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("add-product-form");
+      const spinner = document.getElementById("loading-spinner");
 
-            // Get seller ID from URL or LocalStorage
-            const urlParams = new URLSearchParams(window.location.search);
-            let sellerId = urlParams.get("seller_id");
+      const nameField = document.getElementById("product-name");
+      const descField = document.getElementById("product-description");
+      const priceField = document.getElementById("product-price");
+      const categoryField = document.getElementById("product-category");
 
-            if (!sellerId) {
-                sellerId = localStorage.getItem("seller_id"); 
-            } else {
-                localStorage.setItem("seller_id", sellerId);
-            }
+      // Word and character limits
+      nameField.addEventListener("input", () => {
+        const words = nameField.value.trim().split(/\s+/);
+        if (words.length > 3) {
+          nameField.value = words.slice(0, 3).join(" ");
+        }
+      });
 
-            if (!sellerId) {
-                alert("Error: Seller ID is missing. Redirecting to profile...");
-                window.location.href = "profile.html"; 
-                return;
-            }
+      categoryField.addEventListener("input", () => {
+        const words = categoryField.value.trim().split(/\s+/);
+        if (words.length > 2) {
+          categoryField.value = words.slice(0, 2).join(" ");
+        }
+      });
 
-            form.addEventListener("submit", async (event) => {
-                event.preventDefault();
+      descField.addEventListener("input", () => {
+        if (descField.value.length > 100) {
+          descField.value = descField.value.slice(0, 100);
+        }
+      });
 
-                spinner.style.display = "block";
+      priceField.addEventListener("input", () => {
+        if (priceField.value.length > 5) {
+          priceField.value = priceField.value.slice(0, 5);
+        }
+      });
 
-                let productName = document.getElementById("product-name").value;
-                let productDescription = document.getElementById("product-description").value;
-                const productPrice = parseFloat(document.getElementById("product-price").value);
-                let productCategory = document.getElementById("product-category").value;
-                const productImage = document.getElementById("product-image").files[0];
+      let sellerId = new URLSearchParams(window.location.search).get("seller_id") || localStorage.getItem("seller_id");
+      if (sellerId) localStorage.setItem("seller_id", sellerId);
+      else {
+        alert("Seller ID missing. Redirecting...");
+        window.location.href = "profile.html";
+        return;
+      }
 
-                if (!productImage) {
-                    alert("Please select an image.");
-                    spinner.style.display = "none";
-                    return;
-                }
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        spinner.style.display = "block";
 
-                if (isNaN(productPrice) || productPrice <= 0) {
-                    alert("Please enter a valid price.");
-                    spinner.style.display = "none";
-                    return;
-                }
+        const productName = nameField.value.trim();
+        const productDescription = descField.value.trim();
+        const productPrice = parseFloat(priceField.value.trim());
+        const productCategory = categoryField.value.trim();
+        const productImage = document.getElementById("product-image").files[0];
 
-                // Limit product name to 3 words
-                const nameWords = productName.split(" ");
-                if (nameWords.length > 3) {
-                    productName = nameWords.slice(0, 3).join(" ");
-                }
-
-                // Limit category to 2 words
-                const categoryWords = productCategory.split(" ");
-                if (categoryWords.length > 2) {
-                    productCategory = categoryWords.slice(0, 2).join(" ");
-                }
-
-                // Limit description to 100 characters
-                if (productDescription.length > 100) {
-                    productDescription = productDescription.substring(0, 100);
-                }
-
-                try {
-                    // Upload Image to Cloudinary
-                    const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dnfavv3ud/upload"; 
-                    const formData = new FormData();
-                    formData.append("file", productImage);
-                    formData.append("upload_preset", "BANYOTE");
-
-                    const imageResponse = await fetch(cloudinaryUrl, { method: "POST", body: formData });
-                    const imageData = await imageResponse.json();
-
-                    if (!imageData.secure_url) throw new Error("Image upload failed");
-
-                    // Insert product into Supabase
-                    const product = {
-                        name: productName,
-                        description: productDescription,
-                        price: productPrice,
-                        category: productCategory,
-                        image_url: imageData.secure_url,
-                        seller_id: sellerId 
-                    };
-
-                    const { error } = await supabase.from("products").insert([product]);
-
-                    if (error) {
-                        console.error("❌ Supabase Insert Error:", error);
-                        alert("Failed to add product: " + error.message);
-                    } else {
-                        alert("✅ Product added successfully!");
-                        form.reset();
-                    }
-                } catch (error) {
-                    console.error("❌ Error:", error);
-                    alert("An error occurred: " + error.message);
-                } finally {
-                    spinner.style.display = "none";
-                }
-            });
-
-            // Limit user input dynamically
-            const productNameField = document.getElementById("product-name");
-            const productCategoryField = document.getElementById("product-category");
-            const productDescriptionField = document.getElementById("product-description");
-            const productPriceField = document.getElementById("product-price");
-
-            // Ensure product name doesn't exceed 3 words
-            productNameField.addEventListener("input", () => {
-                const nameWords = productNameField.value.split(" ");
-                if (nameWords.length > 3) {
-                    productNameField.value = nameWords.slice(0, 3).join(" ");
-                }
-            });
-
-            // Ensure category doesn't exceed 2 words
-            productCategoryField.addEventListener("input", () => {
-                const categoryWords = productCategoryField.value.split(" ");
-                if (categoryWords.length > 2) {
-                    productCategoryField.value = categoryWords.slice(0, 2).join(" ");
-                }
-            });
-
-            // Ensure description doesn't exceed 100 characters
-            productDescriptionField.addEventListener("input", () => {
-                if (productDescriptionField.value.length > 100) {
-                    productDescriptionField.value = productDescriptionField.value.substring(0, 100);
-                }
-            });
-
-            // Ensure price is a valid number and limits input
-            productPriceField.addEventListener("input", () => {
-                if (isNaN(productPriceField.value) || productPriceField.value <= 0) {
-                    productPriceField.setCustomValidity("Please enter a valid price.");
-                } else {
-                    productPriceField.setCustomValidity("");
-                }
-            });
-        });
-    </script>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f8f8;
-            margin: 0;
-            padding: 0;
+        if (!productImage) {
+          alert("Please select an image.");
+          spinner.style.display = "none";
+          return;
         }
 
-        h1 {
-            text-align: center;
-            background-color: #ffc0cb;
-            color: #fff;
-            padding: 1rem;
-            margin: 0;
+        if (isNaN(productPrice) || productPrice <= 0) {
+          alert("Enter a valid price.");
+          spinner.style.display = "none";
+          return;
         }
 
-        main {
-            padding: 1rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
+        try {
+          const formData = new FormData();
+          formData.append("file", productImage);
+          formData.append("upload_preset", "BANYOTE");
 
-        form {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-        }
+          const uploadRes = await fetch("https://api.cloudinary.com/v1_1/dnfavv3ud/upload", {
+            method: "POST",
+            body: formData,
+          });
 
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #333;
-        }
+          const imgData = await uploadRes.json();
+          if (!imgData.secure_url) throw new Error("Image upload failed");
 
-        input[type="text"],
-        input[type="number"],
-        textarea,
-        input[type="file"] {
-            width: 100%;
-            padding: 0.5rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
+          const product = {
+            name: productName,
+            description: productDescription,
+            price: productPrice,
+            category: productCategory,
+            image_url: imgData.secure_url,
+            seller_id: sellerId,
+          };
 
-        textarea {
-            resize: vertical;
+          const { error } = await supabase.from("products").insert([product]);
+          if (error) alert("Error: " + error.message);
+          else {
+            alert("Product added!");
+            form.reset();
+          }
+        } catch (err) {
+          alert("Error: " + err.message);
+        } finally {
+          spinner.style.display = "none";
         }
+      });
+    });
+  </script>
 
-        button {
-            background-color: #ffc0cb;
-            color: #fff;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
-        }
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f8f8;
+      margin: 0;
+      padding: 0;
+    }
 
-        button:hover {
-            background-color: #ffb6c1;
-        }
+    h1 {
+      text-align: center;
+      background-color: #ffc0cb;
+      color: #fff;
+      padding: 1rem;
+      margin: 0;
+    }
 
-        .spinner {
-            display: none;
-            margin: 20px auto;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #ff69b4;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
+    main {
+      padding: 1rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+    form {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+    }
 
-        @media (max-width: 768px) {
-            form {
-                padding: 1rem;
-            }
-        }
-    </style>
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #333;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    input[type="file"] {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    button {
+      background-color: #ffc0cb;
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background-color: #ffb6c1;
+    }
+
+    .spinner {
+      display: none;
+      margin: 20px auto;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #ff69b4;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      form {
+        padding: 1rem;
+      }
+    }
+  </style>
 </head>
 <body>
-    <h1>Add Product</h1>
-    <main>
-        <form id="add-product-form">
-            <label for="product-name">Product Name:</label>
-            <input type="text" id="product-name" placeholder="Product Name" required>
+  <h1>Add Product</h1>
+  <main>
+    <form id="add-product-form">
+      <label for="product-name">Product Name:</label>
+      <input type="text" id="product-name" placeholder="Max 3 words" required />
 
-            <label for="product-description">Description:</label>
-            <textarea id="product-description" placeholder="Description" required></textarea>
+      <label for="product-description">Description:</label>
+      <textarea id="product-description" placeholder="Max 100 characters" required></textarea>
 
-            <label for="product-price">Price:</label>
-            <input type="number" id="product-price" placeholder="Price" required>
+      <label for="product-price">Price:</label>
+      <input type="number" id="product-price" placeholder="Max 99999" required />
 
-            <label for="product-category">Category:</label>
-            <input type="text" id="product-category" placeholder="Category" required>
+      <label for="product-category">Category:</label>
+      <input type="text" id="product-category" placeholder="Max 2 words" required />
 
-            <label for="product-image">Image:</label>
-            <input type="file" id="product-image" accept="image/*" required>
+      <label for="product-image">Image:</label>
+      <input type="file" id="product-image" accept="image/*" required />
 
-            <button type="submit">Add Product</button>
-        </form>
+      <button type="submit">Add Product</button>
+    </form>
 
-        <div id="loading-spinner" class="spinner"></div>
-    </main>
+    <div id="loading-spinner" class="spinner"></div>
+  </main>
 </body>
 </html>
