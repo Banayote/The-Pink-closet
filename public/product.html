@@ -6,10 +6,8 @@
   <title>Product Display</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* [same styles as before, unchanged for clarity] */
     body {
       font-family: Arial, sans-serif;
-      background-color: white;
       margin: 0;
       padding: 0;
     }
@@ -34,13 +32,6 @@
       text-align: center;
     }
 
-    .closet-icon {
-      width: 30px;
-      height: 30px;
-      fill: none;
-      stroke: pink;
-    }
-
     .closet-icon-wrapper {
       position: relative;
       cursor: pointer;
@@ -60,7 +51,6 @@
     .product-container {
       max-width: 600px;
       margin: auto;
-      background-color: white;
       padding: 40px;
       box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
       color: #333;
@@ -274,8 +264,8 @@
 
   <script>
     const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_KEY = "your_supabase_key_here"; // Replace with your actual key
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let product;
     let currentUserId = localStorage.getItem("user_id");
@@ -314,24 +304,27 @@
               <button>XS</button><button>S</button><button>M</button><button>L</button><button>XL</button>
             </div>
           </div>
-          <button class="buy-button" onclick="startConversation()">Message Seller</button>
+          <div class="buy-button">Buy Now</div>
         </div>
       `;
 
-      const descText = document.getElementById("descText");
-      const toggleBtn = document.getElementById("toggleBtn");
-      let expanded = false;
+      const toggleButton = document.getElementById("toggleBtn");
+      const descriptionText = document.getElementById("descText");
 
-      toggleBtn.addEventListener("click", () => {
-        expanded = !expanded;
-        descText.classList.toggle("expanded", expanded);
-        toggleBtn.innerText = expanded ? "Show less" : "Show more";
+      toggleButton.addEventListener("click", () => {
+        descriptionText.classList.toggle("expanded");
+        toggleButton.textContent = descriptionText.classList.contains("expanded") ? "Show less" : "Show more";
       });
 
-      if (!currentUserId) {
-        currentUserId = "user_" + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem("user_id", currentUserId);
-      }
+      const addToClosetButton = document.getElementById("addToCloset");
+      const closetCounter = document.getElementById("closetCounter");
+
+      addToClosetButton.addEventListener("click", () => {
+        let closet = JSON.parse(localStorage.getItem("closet") || "[]");
+        closet.push(product);
+        localStorage.setItem("closet", JSON.stringify(closet));
+        closetCounter.textContent = closet.length;
+      });
 
       updateClosetCounter();
     });
@@ -339,67 +332,17 @@
     function openModal() {
       const modal = document.getElementById("imageModal");
       const modalImage = document.getElementById("modalImage");
-      modal.style.display = 'flex';
       modalImage.src = product.image_url || 'https://via.placeholder.com/600';
+      modal.style.display = "flex";
     }
 
     document.getElementById("closeModal").addEventListener("click", () => {
-      document.getElementById("imageModal").style.display = 'none';
-    });
-
-    document.getElementById("addToCloset").addEventListener("click", () => {
-      let closet = JSON.parse(localStorage.getItem("closet")) || [];
-      if (!closet.some(item => item.id === product.id)) {
-        closet.push(product);
-        localStorage.setItem("closet", JSON.stringify(closet));
-      }
-      updateClosetCounter();
+      document.getElementById("imageModal").style.display = "none";
     });
 
     function updateClosetCounter() {
-      let closet = JSON.parse(localStorage.getItem("closet")) || [];
-      document.getElementById("closetCounter").innerText = closet.length;
-    }
-
-    async function startConversation() {
-      if (!product || !product.seller_id) {
-        alert("Missing seller info.");
-        return;
-      }
-
-      if (currentUserId === product.seller_id) {
-        alert("You can't message yourself.");
-        return;
-      }
-
-      try {
-        const { data: existing } = await supabase
-          .from("conversations")
-          .select("*")
-          .eq("buyer_id", currentUserId)
-          .eq("seller_id", product.seller_id)
-          .maybeSingle();
-
-        let conversationId;
-
-        if (existing) {
-          conversationId = existing.id;
-        } else {
-          const { data: newConv, error } = await supabase
-            .from("conversations")
-            .insert([{ buyer_id: currentUserId, seller_id: product.seller_id }])
-            .select()
-            .single();
-
-          if (error) throw error;
-          conversationId = newConv.id;
-        }
-
-        window.location.href = `messages.html?conversation_id=${conversationId}`;
-      } catch (err) {
-        console.error(err);
-        alert("Couldn't start conversation.");
-      }
+      const closet = JSON.parse(localStorage.getItem("closet") || "[]");
+      document.getElementById("closetCounter").textContent = closet.length;
     }
   </script>
 </body>
