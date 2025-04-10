@@ -22,19 +22,21 @@
       const productDescriptionField = document.getElementById("product-description");
       const productPriceField = document.getElementById("product-price");
 
-      // Limit product name to 5 words
+      // Limit product name to 3 words
       productNameField.addEventListener("input", () => {
-        const words = productNameField.value.trim().split(/\s+/);
-        if (words.length > 5) {
-          productNameField.value = words.slice(0, 5).join(" ");
+        let words = productNameField.value.trim().split(/\s+/);
+        if (words.length > 3) {
+          words = words.slice(0, 3);
+          productNameField.value = words.join(" ");
         }
       });
 
       // Limit product category to 2 words
       productCategoryField.addEventListener("input", () => {
-        const words = productCategoryField.value.trim().split(/\s+/);
+        let words = productCategoryField.value.trim().split(/\s+/);
         if (words.length > 2) {
-          productCategoryField.value = words.slice(0, 2).join(" ");
+          words = words.slice(0, 2);
+          productCategoryField.value = words.join(" ");
         }
       });
 
@@ -45,14 +47,13 @@
         }
       });
 
-      // Limit price input to 4 digits (e.g., 9999 max)
+      // Limit price input to 4 characters
       productPriceField.addEventListener("input", () => {
         if (productPriceField.value.length > 4) {
           productPriceField.value = productPriceField.value.slice(0, 4);
         }
       });
 
-      // Get seller ID
       const urlParams = new URLSearchParams(window.location.search);
       let sellerId = urlParams.get("seller_id");
 
@@ -68,7 +69,6 @@
         return;
       }
 
-      // Form submission
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
         spinner.style.display = "block";
@@ -224,16 +224,16 @@
   <main>
     <form id="add-product-form">
       <label for="product-name">Product Name:</label>
-      <input type="text" id="product-name" placeholder="Product Name" required />
+      <input type="text" id="product-name" placeholder="Max 3 words" required />
 
       <label for="product-description">Description:</label>
-      <textarea id="product-description" placeholder="Description" required></textarea>
+      <textarea id="product-description" placeholder="Max 100 characters" required></textarea>
 
       <label for="product-price">Price:</label>
-      <input type="number" id="product-price" placeholder="Price" required />
+      <input type="number" id="product-price" placeholder="Max 4 digits" required />
 
       <label for="product-category">Category:</label>
-      <input type="text" id="product-category" placeholder="Category" required />
+      <input type="text" id="product-category" placeholder="Max 2 words" required />
 
       <label for="product-image">Image:</label>
       <input type="file" id="product-image" accept="image/*" required />
