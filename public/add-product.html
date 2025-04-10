@@ -35,50 +35,64 @@
                 return;
             }
 
+            const productNameInput = document.getElementById("product-name");
+            const productCategoryInput = document.getElementById("product-category");
+            const productPriceInput = document.getElementById("product-price");
+            const productDescriptionInput = document.getElementById("product-description");
+
+            // Limits
+            const NAME_LIMIT = 9;
+            const CATEGORY_LIMIT = 9;
+            const DESCRIPTION_LIMIT = 100;
+
+            // Handle input limitations for Product Name
+            productNameInput.addEventListener("input", () => {
+                if (productNameInput.value.length > NAME_LIMIT) {
+                    productNameInput.value = productNameInput.value.substring(0, NAME_LIMIT);
+                }
+            });
+
+            // Handle input limitations for Category
+            productCategoryInput.addEventListener("input", () => {
+                if (productCategoryInput.value.length > CATEGORY_LIMIT) {
+                    productCategoryInput.value = productCategoryInput.value.substring(0, CATEGORY_LIMIT);
+                }
+            });
+
+            // Handle input limitations for Price (5 digits max)
+            productPriceInput.addEventListener("input", () => {
+                if (productPriceInput.value.length > 5) {
+                    productPriceInput.value = productPriceInput.value.substring(0, 5);
+                }
+            });
+
+            // Handle input limitations for Description (100 characters max)
+            productDescriptionInput.addEventListener("input", () => {
+                if (productDescriptionInput.value.length > DESCRIPTION_LIMIT) {
+                    productDescriptionInput.value = productDescriptionInput.value.substring(0, DESCRIPTION_LIMIT);
+                }
+            });
+
             form.addEventListener("submit", async (event) => {
                 event.preventDefault();
 
                 // Show the spinner while the form is being processed
                 spinner.style.display = "block";
 
-                const productName = document.getElementById("product-name").value;
-                const productDescription = document.getElementById("product-description").value;
-                const productPrice = parseFloat(document.getElementById("product-price").value);
-                const productCategory = document.getElementById("product-category").value;
+                const productName = productNameInput.value;
+                const productDescription = productDescriptionInput.value;
+                const productPrice = parseFloat(productPriceInput.value);
+                const productCategory = productCategoryInput.value;
                 const productImage = document.getElementById("product-image").files[0];
-
-                // Validate Product Name: Limit to 3 words
-                const nameWords = productName.split(" ").filter(Boolean); // Split by space and remove empty strings
-                if (nameWords.length > 3) {
-                    alert("Product Name can only have up to 3 words.");
-                    spinner.style.display = "none";
-                    return;
-                }
-
-                // Validate Description: Limit to 100 characters
-                if (productDescription.length > 100) {
-                    alert("Description cannot exceed 100 characters.");
-                    spinner.style.display = "none";
-                    return;
-                }
-
-                // Validate Category: Limit to 2 words
-                const categoryWords = productCategory.split(" ").filter(Boolean);
-                if (categoryWords.length > 2) {
-                    alert("Category can only have up to 2 words.");
-                    spinner.style.display = "none";
-                    return;
-                }
-
-                // Validate Price: Limit to 5 digits
-                if (isNaN(productPrice) || productPrice < 0 || productPrice > 99999) {
-                    alert("Price must be a number and cannot exceed 5 digits.");
-                    spinner.style.display = "none";
-                    return;
-                }
 
                 if (!productImage) {
                     alert("Please select an image.");
+                    spinner.style.display = "none";
+                    return;
+                }
+
+                if (isNaN(productPrice) || productPrice <= 0) {
+                    alert("Please enter a valid price.");
                     spinner.style.display = "none";
                     return;
                 }
