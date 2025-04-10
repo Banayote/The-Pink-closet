@@ -35,45 +35,54 @@
                 return;
             }
 
+            // Input field limits
+            const productNameField = document.getElementById("product-name");
+            const productCategoryField = document.getElementById("product-category");
+            const productDescriptionField = document.getElementById("product-description");
+
+            // Limit for Product Name (5 words max)
+            productNameField.addEventListener("input", () => {
+                const words = productNameField.value.trim().split(/\s+/);
+                if (words.length > 5) {
+                    productNameField.value = words.slice(0, 5).join(" "); // Truncate to 5 words
+                }
+            });
+
+            // Limit for Product Category (2 words max)
+            productCategoryField.addEventListener("input", () => {
+                const words = productCategoryField.value.trim().split(/\s+/);
+                if (words.length > 2) {
+                    productCategoryField.value = words.slice(0, 2).join(" "); // Truncate to 2 words
+                }
+            });
+
+            // Limit for Description (100 characters max)
+            productDescriptionField.addEventListener("input", () => {
+                if (productDescriptionField.value.length > 100) {
+                    productDescriptionField.value = productDescriptionField.value.slice(0, 100); // Truncate to 100 chars
+                }
+            });
+
             form.addEventListener("submit", async (event) => {
                 event.preventDefault();
 
                 // Show the spinner while the form is being processed
                 spinner.style.display = "block";
 
-                const productName = document.getElementById("product-name").value;
-                const productDescription = document.getElementById("product-description").value;
+                const productName = productNameField.value;
+                const productDescription = productDescriptionField.value;
                 const productPrice = parseFloat(document.getElementById("product-price").value);
-                const productCategory = document.getElementById("product-category").value;
+                const productCategory = productCategoryField.value;
                 const productImage = document.getElementById("product-image").files[0];
 
-                // Validation for fields
                 if (!productImage) {
                     alert("Please select an image.");
                     spinner.style.display = "none";
                     return;
                 }
 
-                if (productName.split(' ').length > 5) {
-                    alert("Product Name should be no more than 5 words.");
-                    spinner.style.display = "none";
-                    return;
-                }
-
-                if (productPrice <= 0 || isNaN(productPrice) || productPrice.toString().length > 4) {
+                if (isNaN(productPrice) || productPrice <= 0 || productPrice.toString().length > 4) {
                     alert("Price must be a valid number and no more than 4 digits.");
-                    spinner.style.display = "none";
-                    return;
-                }
-
-                if (productCategory.split(' ').length > 2) {
-                    alert("Category should be no more than 2 words.");
-                    spinner.style.display = "none";
-                    return;
-                }
-
-                if (productDescription.length > 100) {
-                    alert("Description should be no more than 100 characters.");
                     spinner.style.display = "none";
                     return;
                 }
