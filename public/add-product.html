@@ -50,24 +50,18 @@
                 // Limit the product name to 3 words
                 const nameWords = productName.split(" ");
                 if (nameWords.length > 3) {
-                    alert("Product name cannot exceed 3 words.");
-                    spinner.style.display = "none";
-                    return;
+                    productName = nameWords.slice(0, 3).join(" ");
                 }
 
                 // Limit the category to 2 words
                 const categoryWords = productCategory.split(" ");
                 if (categoryWords.length > 2) {
-                    alert("Category cannot exceed 2 words.");
-                    spinner.style.display = "none";
-                    return;
+                    productCategory = categoryWords.slice(0, 2).join(" ");
                 }
 
-                // Limit the description to a certain number of characters (e.g., 500)
-                if (productDescription.length > 500) {
-                    alert("Description cannot exceed 500 characters.");
-                    spinner.style.display = "none";
-                    return;
+                // Limit the description to 100 characters
+                if (productDescription.length > 100) {
+                    productDescription = productDescription.substring(0, 100);
                 }
 
                 // Validate price
@@ -114,6 +108,31 @@
                 } finally {
                     // Hide the spinner after processing
                     spinner.style.display = "none";
+                }
+            });
+
+            // Stopping the typing on each field for limits
+            const productNameField = document.getElementById("product-name");
+            const productCategoryField = document.getElementById("product-category");
+            const productDescriptionField = document.getElementById("product-description");
+
+            productNameField.addEventListener("input", () => {
+                const nameWords = productNameField.value.split(" ");
+                if (nameWords.length > 3) {
+                    productNameField.value = nameWords.slice(0, 3).join(" ");
+                }
+            });
+
+            productCategoryField.addEventListener("input", () => {
+                const categoryWords = productCategoryField.value.split(" ");
+                if (categoryWords.length > 2) {
+                    productCategoryField.value = categoryWords.slice(0, 2).join(" ");
+                }
+            });
+
+            productDescriptionField.addEventListener("input", () => {
+                if (productDescriptionField.value.length > 100) {
+                    productDescriptionField.value = productDescriptionField.value.substring(0, 100);
                 }
             });
         });
