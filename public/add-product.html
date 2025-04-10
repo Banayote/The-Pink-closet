@@ -47,14 +47,38 @@
                 const productCategory = document.getElementById("product-category").value;
                 const productImage = document.getElementById("product-image").files[0];
 
-                if (!productImage) {
-                    alert("Please select an image.");
+                // Validate Product Name: Limit to 3 words
+                const nameWords = productName.split(" ").filter(Boolean); // Split by space and remove empty strings
+                if (nameWords.length > 3) {
+                    alert("Product Name can only have up to 3 words.");
                     spinner.style.display = "none";
                     return;
                 }
 
-                if (isNaN(productPrice) || productPrice <= 0) {
-                    alert("Please enter a valid price.");
+                // Validate Description: Limit to 100 characters
+                if (productDescription.length > 100) {
+                    alert("Description cannot exceed 100 characters.");
+                    spinner.style.display = "none";
+                    return;
+                }
+
+                // Validate Category: Limit to 2 words
+                const categoryWords = productCategory.split(" ").filter(Boolean);
+                if (categoryWords.length > 2) {
+                    alert("Category can only have up to 2 words.");
+                    spinner.style.display = "none";
+                    return;
+                }
+
+                // Validate Price: Limit to 5 digits
+                if (isNaN(productPrice) || productPrice < 0 || productPrice > 99999) {
+                    alert("Price must be a number and cannot exceed 5 digits.");
+                    spinner.style.display = "none";
+                    return;
+                }
+
+                if (!productImage) {
+                    alert("Please select an image.");
                     spinner.style.display = "none";
                     return;
                 }
@@ -150,17 +174,6 @@
             border-radius: 4px;
         }
 
-        /* Limit characters for fields */
-        #product-name, #product-category {
-            max-length: 50; /* Max length for product name and category */
-        }
-
-        #product-description {
-            max-length: 500; /* Max length for product description */
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
         textarea {
             resize: vertical;
         }
@@ -209,16 +222,16 @@
     <main>
         <form id="add-product-form">
             <label for="product-name">Product Name:</label>
-            <input type="text" id="product-name" placeholder="Product Name" maxlength="50" required>
+            <input type="text" id="product-name" placeholder="Product Name" required>
 
             <label for="product-description">Description:</label>
-            <textarea id="product-description" placeholder="Description" maxlength="500" required></textarea>
+            <textarea id="product-description" placeholder="Description" required></textarea>
 
             <label for="product-price">Price:</label>
             <input type="number" id="product-price" placeholder="Price" required>
 
             <label for="product-category">Category:</label>
-            <input type="text" id="product-category" placeholder="Category" maxlength="50" required>
+            <input type="text" id="product-category" placeholder="Category" required>
 
             <label for="product-image">Image:</label>
             <input type="file" id="product-image" accept="image/*" required>
