@@ -81,61 +81,129 @@
                 const productDescription = productDescriptionField.value;
                 const productPrice = parseFloat(productPriceField.value);
                 const productCategory = productCategoryField.value;
-                const productImage = document.getElementById("product-image").files[0];
+<script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/+esm";
 
-                if (!productImage) {
-                    alert("Please select an image.");
-                    spinner.style.display = "none";
-                    return;
-                }
+    const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-                if (isNaN(productPrice) || productPrice <= 0 || productPrice.toString().length > 4) {
-                    alert("Price must be a valid number and no more than 4 digits.");
-                    spinner.style.display = "none";
-                    return;
-                }
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("add-product-form");
+        const spinner = document.getElementById("loading-spinner");
 
-                try {
-                    // 🔹 Upload Image to Cloudinary
-                    const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dnfavv3ud/upload"; 
-                    const formData = new FormData();
-                    formData.append("file", productImage);
-                    formData.append("upload_preset", "BANYOTE");
+        const productNameField = document.getElementById("product-name");
+        const productCategoryField = document.getElementById("product-category");
+        const productDescriptionField = document.getElementById("product-description");
+        const productPriceField = document.getElementById("product-price");
 
-                    const imageResponse = await fetch(cloudinaryUrl, { method: "POST", body: formData });
-                    const imageData = await imageResponse.json();
-
-                    if (!imageData.secure_url) throw new Error("Image upload failed");
-
-                    // 🔹 Insert product into Supabase
-                    const product = {
-                        name: productName,
-                        description: productDescription,
-                        price: productPrice,
-                        category: productCategory,
-                        image_url: imageData.secure_url,
-                        seller_id: sellerId  // ✅ Ensure it's using the seller_id
-                    };
-
-                    const { error } = await supabase.from("products").insert([product]);
-
-                    if (error) {
-                        console.error("❌ Supabase Insert Error:", error);
-                        alert("Failed to add product: " + error.message);
-                    } else {
-                        alert("✅ Product added successfully!");
-                        form.reset();
-                    }
-                } catch (error) {
-                    console.error("❌ Error:", error);
-                    alert("An error occurred: " + error.message);
-                } finally {
-                    // Hide the spinner after processing
-                    spinner.style.display = "none";
-                }
-            });
+        // Enforce word limit: name (5), category (2), description (100 chars), price (4 digits)
+        productNameField.addEventListener("input", () => {
+            const words = productNameField.value.trim().split(/\s+/);
+            if (words.length > 5) {
+                productNameField.value = words.slice(0, 5).join(" ");
+            }
         });
-    </script>
+
+        productCategoryField.addEventListener("input", () => {
+            const words = productCategoryField.value.trim().split(/\s+/);
+            if (words.length > 2) {
+                productCategoryField.value = words.slice(0, 2).join(" ");
+            }
+        });
+
+        productDescriptionField.addEventListener("input", () => {
+            if (productDescriptionField.value.length > 100) {
+                productDescriptionField.value = productDescriptionField.value.slice(0, 100);
+            }
+        });
+
+        productPriceField.addEventListener("input", () => {
+            productPriceField.value = productPriceField.value.slice(0, 4);
+        });
+
+        // Retrieve seller ID
+        const urlParams = new URLSearchParams(window.location.search);
+        let sellerId = urlParams.get("seller_id");
+
+        if (!sellerId) {
+            sellerId = localStorage.getItem("seller_id");
+        } else {
+            localStorage.setItem("seller_id", sellerId);
+        }
+
+        if (!sellerId) {
+            alert("Error: Seller ID is missing. Redirecting to profile...");
+            window.location.href = "profile.html";
+            return;
+        }
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            spinner.style.display = "block";
+
+            const productName = productNameField.value;
+            const productDescription = productDescriptionField.value;
+            const productPrice = parseFloat(productPriceField.value);
+            const productCategory = productCategoryField.value;
+            const productImage = document.getElementById("product-image").files[0];
+
+            if (!productImage) {
+                alert("Please select an image.");
+                spinner.style.display = "none";
+                return;
+            }
+
+            if (isNaN(productPrice) || productPrice <= 0) {
+                alert("Please enter a valid price.");
+                spinner.style.display = "none";
+                return;
+            }
+
+            try {
+                // Upload to Cloudinary
+                const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dnfavv3ud/upload";
+                const formData = new FormData();
+                formData.append("file", productImage);
+                formData.append("upload_preset", "BANYOTE");
+
+                const imageResponse = await fetch(cloudinaryUrl, {
+                    method: "POST",
+                    body: formData
+                });
+
+                const imageData = await imageResponse.json();
+                if (!imageData.secure_url) throw new Error("Image upload failed");
+
+                // Insert into Supabase
+                const product = {
+                    name: productName,
+                    description: productDescription,
+                    price: productPrice,
+                    category: productCategory,
+                    image_url: imageData.secure_url,
+                    seller_id: sellerId
+                };
+
+                const { error } = await supabase.from("products").insert([product]);
+
+                if (error) {
+                    console.error("Supabase Error:", error);
+                    alert("Failed to add product: " + error.message);
+                } else {
+                    alert("Product added successfully!");
+                    form.reset();
+                }
+            } catch (error) {
+                console.error("Upload Error:", error);
+                alert("Error: " + error.message);
+            } finally {
+                spinner.style.display = "none";
+            }
+        });
+    });
+</script>
+
 
     <!-- Style Section -->
     <style>
