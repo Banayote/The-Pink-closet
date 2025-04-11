@@ -236,17 +236,24 @@
   let messageSubscription = null;
 
   function handleTyping() {
-    const input = document.getElementById("message-input");
-    const camera = document.getElementById("image-button");
-    const sendBtn = document.getElementById("send-button");
+  const input = document.getElementById("message-input");
+  const camera = document.getElementById("image-button");
+  const sendBtn = document.getElementById("send-button");
 
-    const isTyping = input.value.trim().length > 0;
-    camera.classList.toggle("hidden", isTyping);
-    sendBtn.style.display = isTyping ? "inline-block" : "none";
+  const isTyping = input.value.trim().length > 0;
 
-    input.style.height = "auto";
-    input.style.height = input.scrollHeight + "px";
+  if (isTyping) {
+    camera.classList.add("hidden");
+    sendBtn.style.display = "inline-block";
+  } else {
+    camera.classList.remove("hidden");
+    sendBtn.style.display = "none";
   }
+
+  input.style.height = "auto"; // <-- Reset height
+  input.style.height = input.scrollHeight + "px"; // <-- Adjust if needed
+}
+
 
   async function loadConversations() {
     const { data: conversations, error } = await supabase
@@ -388,3 +395,4 @@
 
 </body>
 </html>
+
