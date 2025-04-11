@@ -98,12 +98,13 @@
 
     #messages {
   flex: 1;
-  padding: 10px;
-  padding-top: 60px; /* <-- Added this */
-  padding-bottom: 80px;
+  margin-top: 60px; /* pushes it below the fixed header */
+  padding: 10px 10px 80px 10px;
   overflow-y: auto;
   background-color: white;
+  box-sizing: border-box;
 }
+
 
     .message {
       margin: 10px 0;
