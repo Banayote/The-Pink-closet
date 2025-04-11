@@ -7,7 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
-    /* Your same CSS styling here (unchanged) */
+    /* [No changes to your CSS, leaving it exactly as you provided] */
     body {
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
@@ -226,8 +226,8 @@
 
 <script>
   const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const SUPABASE_KEY = "your-real-key-here";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   let currentUserId = localStorage.getItem("user_id");
   let currentConversationId = null;
@@ -239,7 +239,6 @@
     const sendBtn = document.getElementById("send-button");
 
     const isTyping = input.value.trim().length > 0;
-
     camera.classList.toggle("hidden", isTyping);
     sendBtn.style.display = isTyping ? "inline-block" : "none";
 
@@ -255,30 +254,36 @@
 
     if (error) return console.error("Error loading conversations:", error);
 
+    const seen = new Set();
     const chatList = document.getElementById("chat-list-container");
     chatList.innerHTML = "";
 
-    conversations.forEach(convo => {
+    for (const convo of conversations) {
       const otherUserId = convo.seller_id === currentUserId ? convo.buyer_id : convo.seller_id;
+      if (seen.has(otherUserId)) continue;
+      seen.add(otherUserId);
 
-      supabase.from("users").select("first_name, avatar_url").eq("id", otherUserId).single()
-        .then(({ data: user }) => {
-          if (!user) return;
+      const { data: user } = await supabase
+        .from("users")
+        .select("first_name, avatar_url")
+        .eq("id", otherUserId)
+        .single();
 
-          const convoItem = document.createElement("div");
-          convoItem.classList.add("conversation");
-          convoItem.onclick = () => openChat(convo.id, user.first_name, user.avatar_url);
+      if (!user) continue;
 
-          convoItem.innerHTML = `
-            <img class="avatar" src="${user.avatar_url || 'https://via.placeholder.com/40'}" alt="${user.first_name}">
-            <div class="user-info">
-              <div class="user-name">${user.first_name}</div>
-            </div>
-          `;
+      const convoItem = document.createElement("div");
+      convoItem.classList.add("conversation");
+      convoItem.onclick = () => openChat(convo.id, user.first_name, user.avatar_url);
 
-          chatList.appendChild(convoItem);
-        });
-    });
+      convoItem.innerHTML = `
+        <img class="avatar" src="${user.avatar_url || 'https://via.placeholder.com/40'}" alt="${user.first_name}">
+        <div class="user-info">
+          <div class="user-name">${user.first_name}</div>
+        </div>
+      `;
+
+      chatList.appendChild(convoItem);
+    }
   }
 
   async function openChat(convoId, name, avatarUrl) {
@@ -300,22 +305,24 @@
         schema: 'public',
         table: 'messages',
         filter: `conversation_id=eq.${convoId}`
-      }, payload => {
-        appendMessage(payload.new);
-      }).subscribe();
+      }, payload => appendMessage(payload.new)).subscribe();
   }
 
   function appendMessage(message) {
     const msgDiv = document.createElement("div");
     msgDiv.classList.add("message", message.sender_id === currentUserId ? "sent" : "received");
 
-    msgDiv.innerHTML = message.message.startsWith("data:image")
-      ? `<img src="${message.message}" alt="image">`
-      : message.message;
+    if (message.message.startsWith("data:image")) {
+      msgDiv.innerHTML = `<img src="${message.message}" alt="image">`;
+    } else {
+      msgDiv.innerText = message.message;
+    }
 
     const container = document.getElementById("messages");
     container.appendChild(msgDiv);
-    setTimeout(() => container.scrollTop = container.scrollHeight, 20);
+    setTimeout(() => {
+      container.scrollTop = container.scrollHeight;
+    }, 20);
   }
 
   async function loadMessages(convoId) {
@@ -338,7 +345,6 @@
     if (!message) return;
 
     input.value = "";
-    input.focus();
     handleTyping();
     input.style.height = "auto";
 
@@ -354,8 +360,9 @@
 
     const reader = new FileReader();
     reader.onload = async function (e) {
+      const base64String = e.target.result;
       await supabase.from("messages").insert([
-        { conversation_id: currentConversationId, sender_id: currentUserId, message: e.target.result }
+        { conversation_id: currentConversationId, sender_id: currentUserId, message: base64String }
       ]);
     };
     reader.readAsDataURL(file);
@@ -373,22 +380,7 @@
     document.getElementById("chat-list").style.display = "block";
   }
 
-  // Check for convo_id in URL
-  window.addEventListener("DOMContentLoaded", async () => {
-    const params = new URLSearchParams(window.location.search);
-    const convoId = params.get("convo_id");
-
-    if (convoId) {
-      const { data: convo } = await supabase.from("conversations").select("*").eq("id", convoId).single();
-      if (convo) {
-        const otherUserId = convo.seller_id === currentUserId ? convo.buyer_id : convo.seller_id;
-        const { data: user } = await supabase.from("users").select("first_name, avatar_url").eq("id", otherUserId).single();
-        if (user) openChat(convoId, user.first_name, user.avatar_url);
-      }
-    } else {
-      loadConversations();
-    }
-  });
+  loadConversations();
 </script>
 
 </body>
