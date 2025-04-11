@@ -342,18 +342,19 @@
   }
 
   async function sendMessage() {
-    const input = document.getElementById("message-input");
-    const message = input.value.trim();
-    if (!message) return;
+  const input = document.getElementById("message-input");
+  const message = input.value.trim();
+  if (!message) return;
 
-    input.value = "";
-    handleTyping();
-    input.style.height = "auto";
+  input.value = "";
+  input.style.height = "auto"; // reset height
+  handleTyping(); // hide send button, show camera
+  input.focus(); // <-- keep focus after sending
 
-    await supabase.from("messages").insert([
-      { conversation_id: currentConversationId, sender_id: currentUserId, message }
-    ]);
-  }
+  await supabase.from("messages").insert([
+    { conversation_id: currentConversationId, sender_id: currentUserId, message }
+  ]);
+}
 
   async function sendImage() {
     const fileInput = document.getElementById("image-file");
