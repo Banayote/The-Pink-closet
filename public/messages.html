@@ -7,6 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
+    /* Your same CSS styling here (unchanged) */
     body {
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
@@ -135,65 +136,64 @@
       clear: both;
     }
 
-#message-input-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
-  max-width: 500px;
-  background-color: white;
-  display: flex;
-  align-items: center;
-  padding: 8px;
-  z-index: 1000;
-  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.08);
-  box-sizing: border-box;
-  gap: 6px;
-}
+    #message-input-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: auto;
+      max-width: 500px;
+      background-color: white;
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      z-index: 1000;
+      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.08);
+      box-sizing: border-box;
+      gap: 6px;
+    }
 
+    #image-button {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: pink;
+      cursor: pointer;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      padding: 6px;
+    }
 
-#image-button {
-  background: none;
-  border: none;
-  font-size: 20px;
-  color: pink;
-  cursor: pointer;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-  padding: 6px;
-}
+    #image-button.hidden {
+      opacity: 0;
+      transform: translateX(20px);
+      pointer-events: none;
+    }
 
-#image-button.hidden {
-  opacity: 0;
-  transform: translateX(20px);
-  pointer-events: none;
-}
+    #message-input {
+      flex: 1;
+      border-radius: 18px;
+      border: 1px solid #ddd;
+      padding: 6px 10px;
+      font-size: 14px;
+      min-height: 32px;
+      max-height: 72px;
+      resize: none;
+      overflow-y: auto;
+      line-height: 16px;
+    }
 
-#message-input {
-  flex: 1;
-  border-radius: 18px;
-  border: 1px solid #ddd;
-  padding: 6px 10px;
-  font-size: 14px;
-  min-height: 32px;
-  max-height: 72px;
-  resize: none;
-  overflow-y: auto;
-  line-height: 16px;
-}
-
-#send-button {
-  background-color: pink;
-  color: white;
-  border: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: none;
-  font-size: 16px;
-  flex-shrink: 0;
-}
+    #send-button {
+      background-color: pink;
+      color: white;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: none;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
 
     #image-file {
       display: none;
@@ -226,8 +226,8 @@
 
 <script>
   const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   let currentUserId = localStorage.getItem("user_id");
   let currentConversationId = null;
@@ -240,13 +240,8 @@
 
     const isTyping = input.value.trim().length > 0;
 
-    if (isTyping) {
-      camera.classList.add("hidden");
-      sendBtn.style.display = "inline-block";
-    } else {
-      camera.classList.remove("hidden");
-      sendBtn.style.display = "none";
-    }
+    camera.classList.toggle("hidden", isTyping);
+    sendBtn.style.display = isTyping ? "inline-block" : "none";
 
     input.style.height = "auto";
     input.style.height = input.scrollHeight + "px";
@@ -314,18 +309,13 @@
     const msgDiv = document.createElement("div");
     msgDiv.classList.add("message", message.sender_id === currentUserId ? "sent" : "received");
 
-    if (message.message.startsWith("data:image")) {
-      msgDiv.innerHTML = `<img src="${message.message}" alt="image">`;
-    } else {
-      msgDiv.innerText = message.message;
-    }
+    msgDiv.innerHTML = message.message.startsWith("data:image")
+      ? `<img src="${message.message}" alt="image">`
+      : message.message;
 
     const container = document.getElementById("messages");
     container.appendChild(msgDiv);
-
-    setTimeout(() => {
-      container.scrollTop = container.scrollHeight;
-    }, 20);
+    setTimeout(() => container.scrollTop = container.scrollHeight, 20);
   }
 
   async function loadMessages(convoId) {
@@ -343,19 +333,19 @@
   }
 
   async function sendMessage() {
-  const input = document.getElementById("message-input");
-  const message = input.value.trim();
-  if (!message) return;
+    const input = document.getElementById("message-input");
+    const message = input.value.trim();
+    if (!message) return;
 
-  input.value = "";
-  input.focus(); // <-- Keep focus after sending
-  handleTyping(); // reset visibility
-  input.style.height = "auto";
+    input.value = "";
+    input.focus();
+    handleTyping();
+    input.style.height = "auto";
 
-  await supabase.from("messages").insert([
-    { conversation_id: currentConversationId, sender_id: currentUserId, message }
-  ]);
-}
+    await supabase.from("messages").insert([
+      { conversation_id: currentConversationId, sender_id: currentUserId, message }
+    ]);
+  }
 
   async function sendImage() {
     const fileInput = document.getElementById("image-file");
@@ -364,9 +354,8 @@
 
     const reader = new FileReader();
     reader.onload = async function (e) {
-      const base64String = e.target.result;
       await supabase.from("messages").insert([
-        { conversation_id: currentConversationId, sender_id: currentUserId, message: base64String }
+        { conversation_id: currentConversationId, sender_id: currentUserId, message: e.target.result }
       ]);
     };
     reader.readAsDataURL(file);
@@ -384,7 +373,22 @@
     document.getElementById("chat-list").style.display = "block";
   }
 
-  loadConversations();
+  // Check for convo_id in URL
+  window.addEventListener("DOMContentLoaded", async () => {
+    const params = new URLSearchParams(window.location.search);
+    const convoId = params.get("convo_id");
+
+    if (convoId) {
+      const { data: convo } = await supabase.from("conversations").select("*").eq("id", convoId).single();
+      if (convo) {
+        const otherUserId = convo.seller_id === currentUserId ? convo.buyer_id : convo.seller_id;
+        const { data: user } = await supabase.from("users").select("first_name, avatar_url").eq("id", otherUserId).single();
+        if (user) openChat(convoId, user.first_name, user.avatar_url);
+      }
+    } else {
+      loadConversations();
+    }
+  });
 </script>
 
 </body>
