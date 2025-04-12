@@ -233,28 +233,25 @@
 </head>
 <body>
     <h1>Add Product</h1>
-   <main>
-    <!-- Back Button -->
-    <button type="button" onclick="history.back()" style="
-        background: none;
-        border: none;
-        color: #333;
-        font-size: 1.1rem;
-        cursor: pointer;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-    ">
-        &#8592; Back
-    </button>
+    <main>
+        <form id="add-product-form">
+            <label for="product-name">Product Name:</label>
+            <input type="text" id="product-name" placeholder="Product Name" required>
 
-    <form id="add-product-form">
-        <label for="product-name">Product Name:</label>
-        <input type="text" id="product-name" placeholder="Product Name" required>
-        ...
-    </form>
-</main>
+            <label for="product-description">Description:</label>
+            <textarea id="product-description" placeholder="Description" required></textarea>
 
+            <label for="product-price">Price:</label>
+            <input type="number" id="product-price" placeholder="Price" required>
+
+            <label for="product-category">Category:</label>
+            <input type="text" id="product-category" placeholder="Category" required>
+
+            <label for="product-image">Image:</label>
+            <input type="file" id="product-image" accept="image/*" required>
+
+            <button type="submit">Add Product</button>
+        </form>
 
         <!-- Spinning Heart Loader -->
         <div id="loading-spinner" class="spinner"></div>
