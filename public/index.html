@@ -8,17 +8,34 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
   <style>
-    /* (Your original styles stay exactly the same) */
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
+      background-color: #fdfdfd;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+      background-color: #ffe6f0;
+      position: relative;
+    }
+
+    #storeName {
+      color: #d63384;
+      font-size: 2rem;
+      margin: 10px 0;
     }
 
     .menu-icon {
+      position: absolute;
+      left: 10px;
+      top: 15px;
       font-size: 30px;
       cursor: pointer;
-      padding: 10px;
       z-index: 1001;
       transition: 0.3s ease-in-out;
     }
@@ -73,8 +90,38 @@
       text-align: center;
     }
 
-    #product-container {
+    .search-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    #search-input {
       padding: 10px;
+      margin: 5px;
+      width: 250px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+
+    #search-button {
+      padding: 10px 20px;
+      margin: 5px;
+      background-color: white;
+      color: #d63384;
+      border: 1px solid #d63384;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    #search-button:hover {
+      background-color: #ffe6f0;
+    }
+
+    #product-container {
+      padding: 20px;
       display: flex;
       flex-direction: column;
       gap: 20px;
@@ -85,7 +132,6 @@
       overflow-x: auto;
       gap: 10px;
       white-space: nowrap;
-      width: 100%;
       padding-bottom: 10px;
     }
 
@@ -95,10 +141,8 @@
       background-color: #fff;
       box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
       border: 1px solid #ccc;
-      display: inline-block;
-      flex-direction: column;
-      align-items: center;
       min-width: 150px;
+      border-radius: 8px;
     }
 
     .product a {
@@ -115,6 +159,7 @@
       height: auto;
       border-bottom: 1px solid #ddd;
       margin-bottom: 5px;
+      border-radius: 5px 5px 0 0;
     }
 
     .product-price {
@@ -123,46 +168,26 @@
       padding: 5px;
       background-color: white;
       border: 1px solid #ddd;
-      display: block;
       width: 100%;
       text-align: center;
       border-radius: 5px;
     }
 
-    .search-bar {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-top: 20px;
-    }
-
-    #search-input {
+    footer {
+      background-color: #ffe6f0;
+      text-align: center;
       padding: 10px;
-      margin-right: 10px;
-      width: 300px;
-      border-radius: 5px;
-      border: 1px solid #ddd;
-    }
-
-    #search-button {
-      padding: 10px 20px;
-      background-color: white;
-      color: pink;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-
-    #search-button:hover {
-      background-color: white;
+      color: #d63384;
     }
   </style>
 </head>
+
 <body>
 
   <header>
     <div id="menuIcon" class="menu-icon"></div>
     <h1 id="storeName">The Pink Closet</h1>
+
     <div class="search-bar">
       <input type="text" id="search-input" placeholder="Search products..." />
       <button id="search-button">Search</button>
@@ -190,7 +215,6 @@
     </div>
   </div>
 
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -207,26 +231,23 @@
           let query = supabase.from('products').select('*');
 
           if (searchTerm) {
-            searchTerm = searchTerm.toLowerCase();
+            const lowerSearch = searchTerm.toLowerCase();
+            query = query.ilike('name', `%${lowerSearch}%`)
+                         .or(`category.ilike.%${lowerSearch}%`);
+
             const priceTerm = parseFloat(searchTerm);
-
-            query = query.or(`
-              name.ilike.%${searchTerm}%,
-              category.ilike.%${searchTerm}%,
-              description.ilike.%${searchTerm}%
-            `);
-
             if (!isNaN(priceTerm)) {
-              query = query.or(`price.gte.${priceTerm},price.lte.${priceTerm}`);
+              query = query.or(`price.gte.${priceTerm}`).or(`price.lte.${priceTerm}`);
             }
           }
 
           const { data: products, error } = await query;
+
           if (error) throw error;
 
           productContainer.innerHTML = '';
 
-          if (products.length === 0) {
+          if (!products.length) {
             productContainer.innerHTML = '<p>No products available.</p>';
             return;
           }
