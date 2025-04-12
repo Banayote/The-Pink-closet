@@ -1,13 +1,22 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
   <title>The Pink Closet</title>
+
   <link rel="stylesheet" href="styles.css"/>
+
   <!-- Font Awesome for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
   <style>
+
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -160,12 +169,15 @@
     }
 
   </style>
+
 </head>
 
 <body>
+
   <header>
     <div id="menuIcon" class="menu-icon"></div>
     <h1 id="storeName">The Pink Closet</h1>
+
     <div class="search-bar">
       <input type="text" id="search-input" placeholder="Search products..."/>
       <button id="search-button">Search</button>
@@ -198,6 +210,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 
   <script>
+
     document.addEventListener('DOMContentLoaded', function () {
       const supabase = window.supabase.createClient(
         'https://fjlqkjwnelkamealhtyr.supabase.co',
@@ -209,14 +222,14 @@
 
       async function loadProducts(searchTerm = '') {
         try {
-          let query = supabase.from('products').select();
+          let query = supabase.from('products').select('*'); // Select all columns
 
           // Apply filters if there is a search term
           if (searchTerm) {
             searchTerm = searchTerm.toLowerCase(); // Case-insensitive search
             query = query.ilike('name', `%${searchTerm}%`)
-                       .or(`category.ilike.%${searchTerm}%`)
-                       .or(`price::text.ilike.%${searchTerm}%`);
+                         .or(`category.ilike.%${searchTerm}%`)
+                         .or(`price::text.ilike.%${searchTerm}%`);
           }
 
           const { data: products, error } = await query;
@@ -253,6 +266,7 @@
               productContainer.appendChild(productRow);
             }
           });
+
         } catch (err) {
           console.error('❌ Error loading products:', err.message);
           productContainer.innerHTML = '<p>Error loading products. Try again later.</p>';
@@ -275,7 +289,11 @@
         sidebar.classList.toggle('active');
         menuIcon.classList.toggle('active');
       });
+
     });
+
   </script>
+
 </body>
+
 </html>
