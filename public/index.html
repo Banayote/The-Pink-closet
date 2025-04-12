@@ -1,22 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>The Pink Closet</title>
   <link rel="stylesheet" href="styles.css" />
-  <!-- Font Awesome for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
   <style>
+    /* (Your original styles stay exactly the same) */
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
     }
 
-    /* 🔥 Burger Menu */
     .menu-icon {
       font-size: 30px;
       cursor: pointer;
@@ -75,7 +73,6 @@
       text-align: center;
     }
 
-    /* 🔥 Product Layout */
     #product-container {
       padding: 10px;
       display: flex;
@@ -132,7 +129,6 @@
       border-radius: 5px;
     }
 
-    /* 🔥 Search Bar */
     .search-bar {
       display: flex;
       justify-content: center;
@@ -160,17 +156,13 @@
     #search-button:hover {
       background-color: white;
     }
-
   </style>
-
 </head>
-
 <body>
 
   <header>
     <div id="menuIcon" class="menu-icon"></div>
     <h1 id="storeName">The Pink Closet</h1>
-
     <div class="search-bar">
       <input type="text" id="search-input" placeholder="Search products..." />
       <button id="search-button">Search</button>
@@ -187,7 +179,6 @@
     <p>&copy; The Pink Closet 2024. All rights reserved.</p>
   </footer>
 
-  <!-- 🔥 Sidebar (Burger Menu) -->
   <div id="sidebar" class="sidebar">
     <div class="sidebar-content">
       <a href="profile.html" class="sidebar-item"><i class="fas fa-user"></i> Profile</a>
@@ -199,14 +190,13 @@
     </div>
   </div>
 
-  <!-- 🔥 Supabase -->
+  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
-
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const supabase = window.supabase.createClient(
-        'https://fjlqkjwnelkamealhtyr.supabase.co',  // Supabase URL
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'  // Supabase API Key
+        'https://fjlqkjwnelkamealhtyr.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4'
       );
 
       const productContainer = document.getElementById('product-container');
@@ -214,26 +204,26 @@
 
       async function loadProducts(searchTerm = '') {
         try {
-          let query = supabase.from('products').select('*'); // Select all columns
+          let query = supabase.from('products').select('*');
 
-          // Apply filters if there is a search term
           if (searchTerm) {
-            searchTerm = searchTerm.toLowerCase(); // Case-insensitive search
-            query = query.ilike('name', `%${searchTerm}%`)
-                         .or(`category.ilike.%${searchTerm}%`);
-
-            // Try to match price with a number
+            searchTerm = searchTerm.toLowerCase();
             const priceTerm = parseFloat(searchTerm);
+
+            query = query.or(`
+              name.ilike.%${searchTerm}%,
+              category.ilike.%${searchTerm}%,
+              description.ilike.%${searchTerm}%
+            `);
+
             if (!isNaN(priceTerm)) {
-              query = query.or(`price.gte.${priceTerm}`).or(`price.lte.${priceTerm}`);
+              query = query.or(`price.gte.${priceTerm},price.lte.${priceTerm}`);
             }
           }
 
           const { data: products, error } = await query;
-
           if (error) throw error;
 
-          console.log("✅ Products Loaded:", products);
           productContainer.innerHTML = '';
 
           if (products.length === 0) {
@@ -272,13 +262,11 @@
 
       loadProducts();
 
-      // Search bar functionality
       document.getElementById('search-button').addEventListener('click', function () {
         const searchTerm = searchInput.value.trim();
         loadProducts(searchTerm);
       });
 
-      // Burger Menu toggle
       const menuIcon = document.getElementById('menuIcon');
       const sidebar = document.getElementById('sidebar');
 
@@ -286,10 +274,8 @@
         sidebar.classList.toggle('active');
         menuIcon.classList.toggle('active');
       });
-
     });
   </script>
 
 </body>
-
 </html>
