@@ -300,41 +300,26 @@
   }
 
   async function openChat(convoId, name, avatarUrl) {
-  async function openChat(convoId, name, avatarUrl) {
-  document.getElementById("chat-list").style.display = "none";
-  document.getElementById("chat-screen").style.display = "flex";
-  document.getElementById("chat-title").innerText = name;
-  document.getElementById("chat-avatar").src = avatarUrl || 'https://via.placeholder.com/40';
+    document.getElementById("chat-list").style.display = "none";
+    document.getElementById("chat-screen").style.display = "flex";
+    document.getElementById("chat-title").innerText = name;
+    document.getElementById("chat-avatar").src = avatarUrl || 'https://via.placeholder.com/40';
 
-  currentConversationId = convoId;
+    currentConversationId = convoId;
+    await loadMessages(convoId);
 
-  const { data: messages } = await supabase
-    .from("messages")
-    .select("*")
-    .eq("conversation_id", convoId);
+    if (messageSubscription) {
+      await supabase.removeChannel(messageSubscription);
+    }
 
-  // Auto-send intro message if no messages exist yet
-  if (!messages || messages.length === 0) {
-    await supabase.from("messages").insert([
-      { conversation_id: convoId, sender_id: currentUserId, message: "I'm interested in your product" }
-    ]);
+    messageSubscription = supabase.channel(`messages-${convoId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `conversation_id=eq.${convoId}`
+      }, payload => appendMessage(payload.new)).subscribe();
   }
-
-  await loadMessages(convoId);
-
-  if (messageSubscription) {
-    await supabase.removeChannel(messageSubscription);
-  }
-
-  messageSubscription = supabase.channel(`messages-${convoId}`)
-    .on('postgres_changes', {
-      event: 'INSERT',
-      schema: 'public',
-      table: 'messages',
-      filter: `conversation_id=eq.${convoId}`
-    }, payload => appendMessage(payload.new)).subscribe();
-}
-
 
   function appendMessage(message) {
     const msgDiv = document.createElement("div");
@@ -414,4 +399,3 @@
 
 </body>
 </html>
-
