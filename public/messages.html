@@ -97,13 +97,14 @@
     }
 
     #messages {
-      flex: 1;
-      margin-top: 10px; /* pushes it below the fixed header */
-      padding: 10px 10px 80px 10px;
-      overflow-y: auto;
-      background-color: white;
-      box-sizing: border-box;
-    }
+  flex: 1;
+  margin-top: 10px; /* pushes it below the fixed header */
+  padding: 10px 10px 80px 10px;
+  overflow-y: auto;
+  background-color: white;
+  box-sizing: border-box;
+}
+
 
     .message {
       margin: 10px 0;
@@ -211,6 +212,7 @@
   <div id="chat-list-container"></div>
 </div>
 
+
 <div id="chat-screen" style="display: none;">
   <div id="chat-header">
     <i id="back-button" class="fas fa-arrow-left" onclick="goBack()"></i>
@@ -231,37 +233,33 @@
 <script>
   const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   let currentUserId = localStorage.getItem("user_id");
   let currentConversationId = null;
   let messageSubscription = null;
 
-  async function ensureBuyerId() {
-    const { data: userProfile, error } = await supabase
-      .from("users")
-      .select("buyer_id, seller_id")
-      .eq("id", currentUserId)
-      .single();
+  function handleTyping() {
+  const input = document.getElementById("message-input");
+  const camera = document.getElementById("image-button");
+  const sendBtn = document.getElementById("send-button");
 
-    if (error) {
-      console.error("Error checking user profile:", error);
-      return;
-    }
+  const isTyping = input.value.trim().length > 0;
 
-    if (!userProfile.buyer_id && !userProfile.seller_id) {
-      const newBuyerId = currentUserId;
-      await supabase
-        .from("users")
-        .update({ buyer_id: newBuyerId })
-        .eq("id", currentUserId);
-      console.log("Buyer ID created and assigned:", newBuyerId);
-    }
+  if (isTyping) {
+    camera.classList.add("hidden");
+    sendBtn.style.display = "inline-block";
+  } else {
+    camera.classList.remove("hidden");
+    sendBtn.style.display = "none";
   }
 
-  async function loadConversations() {
-    await ensureBuyerId(); // Ensure the user has a buyer_id before loading conversations
+  input.style.height = "auto"; // <-- Reset height
+  input.style.height = input.scrollHeight + "px"; // <-- Adjust if needed
+}
 
+
+  async function loadConversations() {
     const { data: conversations, error } = await supabase
       .from("conversations")
       .select("*")
@@ -355,19 +353,19 @@
   }
 
   async function sendMessage() {
-    const input = document.getElementById("message-input");
-    const message = input.value.trim();
-    if (!message) return;
+  const input = document.getElementById("message-input");
+  const message = input.value.trim();
+  if (!message) return;
 
-    input.value = "";
-    input.style.height = "auto"; // reset height
-    handleTyping(); // hide send button, show camera
-    input.focus(); // <-- keep focus after sending
+  input.value = "";
+  input.style.height = "auto"; // reset height
+  handleTyping(); // hide send button, show camera
+  input.focus(); // <-- keep focus after sending
 
-    await supabase.from("messages").insert([
-      { conversation_id: currentConversationId, sender_id: currentUserId, message }
-    ]);
-  }
+  await supabase.from("messages").insert([
+    { conversation_id: currentConversationId, sender_id: currentUserId, message }
+  ]);
+}
 
   async function sendImage() {
     const fileInput = document.getElementById("image-file");
