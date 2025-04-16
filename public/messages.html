@@ -97,14 +97,13 @@
     }
 
     #messages {
-  flex: 1;
-  margin-top: 10px; /* pushes it below the fixed header */
-  padding: 10px 10px 80px 10px;
-  overflow-y: auto;
-  background-color: white;
-  box-sizing: border-box;
-}
-
+      flex: 1;
+      margin-top: 10px;
+      padding: 10px 10px 80px 10px;
+      overflow-y: auto;
+      background-color: white;
+      box-sizing: border-box;
+    }
 
     .message {
       margin: 10px 0;
@@ -200,6 +199,35 @@
     #image-file {
       display: none;
     }
+
+    #message-notification {
+      background-color: #f8d7da;
+      padding: 20px;
+      color: #721c24;
+      text-align: center;
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      width: 80%;
+      border-radius: 10px;
+      display: none;
+    }
+
+    #message-notification button {
+      margin: 10px;
+      padding: 10px;
+      background-color: pink;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    #message-notification button:hover {
+      background-color: #f48fb1;
+    }
   </style>
 </head>
 <body>
@@ -211,7 +239,6 @@
   </div>
   <div id="chat-list-container"></div>
 </div>
-
 
 <div id="chat-screen" style="display: none;">
   <div id="chat-header">
@@ -230,34 +257,40 @@
   </div>
 </div>
 
+<!-- Notification for missing ID -->
+<div id="message-notification" class="hidden">
+  <p>You need to create a buyer or seller ID before sending a message.</p>
+  <button onclick="goToStore()">Yes</button>
+  <button onclick="dismissNotification()">No</button>
+</div>
+
 <script>
   const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   let currentUserId = localStorage.getItem("user_id");
   let currentConversationId = null;
   let messageSubscription = null;
 
   function handleTyping() {
-  const input = document.getElementById("message-input");
-  const camera = document.getElementById("image-button");
-  const sendBtn = document.getElementById("send-button");
+    const input = document.getElementById("message-input");
+    const camera = document.getElementById("image-button");
+    const sendBtn = document.getElementById("send-button");
 
-  const isTyping = input.value.trim().length > 0;
+    const isTyping = input.value.trim().length > 0;
 
-  if (isTyping) {
-    camera.classList.add("hidden");
-    sendBtn.style.display = "inline-block";
-  } else {
-    camera.classList.remove("hidden");
-    sendBtn.style.display = "none";
+    if (isTyping) {
+      camera.classList.add("hidden");
+      sendBtn.style.display = "inline-block";
+    } else {
+      camera.classList.remove("hidden");
+      sendBtn.style.display = "none";
+    }
+
+    input.style.height = "auto"; // <-- Reset height
+    input.style.height = input.scrollHeight + "px"; // <-- Adjust if needed
   }
-
-  input.style.height = "auto"; // <-- Reset height
-  input.style.height = input.scrollHeight + "px"; // <-- Adjust if needed
-}
-
 
   async function loadConversations() {
     const { data: conversations, error } = await supabase
@@ -284,117 +317,83 @@
 
       if (!user) continue;
 
-      const convoItem = document.createElement("div");
-      convoItem.classList.add("conversation");
-      convoItem.onclick = () => openChat(convo.id, user.first_name, user.avatar_url);
-
-      convoItem.innerHTML = `
-        <img class="avatar" src="${user.avatar_url || 'https://via.placeholder.com/40'}" alt="${user.first_name}">
+      const convoDiv = document.createElement("div");
+      convoDiv.classList.add("conversation");
+      convoDiv.onclick = () => openConversation(convo.id, user);
+      convoDiv.innerHTML = `
+        <img src="${user.avatar_url}" alt="${user.first_name}" class="avatar">
         <div class="user-info">
           <div class="user-name">${user.first_name}</div>
         </div>
       `;
-
-      chatList.appendChild(convoItem);
+      chatList.appendChild(convoDiv);
     }
   }
 
-  async function openChat(convoId, name, avatarUrl) {
-    document.getElementById("chat-list").style.display = "none";
-    document.getElementById("chat-screen").style.display = "flex";
-    document.getElementById("chat-title").innerText = name;
-    document.getElementById("chat-avatar").src = avatarUrl || 'https://via.placeholder.com/40';
-
+  function openConversation(convoId, user) {
     currentConversationId = convoId;
-    await loadMessages(convoId);
 
-    if (messageSubscription) {
-      await supabase.removeChannel(messageSubscription);
-    }
+    document.getElementById("chat-title").textContent = user.first_name;
+    document.getElementById("chat-avatar").src = user.avatar_url;
 
-    messageSubscription = supabase.channel(`messages-${convoId}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'messages',
-        filter: `conversation_id=eq.${convoId}`
-      }, payload => appendMessage(payload.new)).subscribe();
-  }
+    document.getElementById("chat-list").style.display = "none";
+    document.getElementById("chat-screen").style.display = "block";
 
-  function appendMessage(message) {
-    const msgDiv = document.createElement("div");
-    msgDiv.classList.add("message", message.sender_id === currentUserId ? "sent" : "received");
-
-    if (message.message.startsWith("data:image")) {
-      msgDiv.innerHTML = `<img src="${message.message}" alt="image">`;
-    } else {
-      msgDiv.innerText = message.message;
-    }
-
-    const container = document.getElementById("messages");
-    container.appendChild(msgDiv);
-    setTimeout(() => {
-      container.scrollTop = container.scrollHeight;
-    }, 20);
+    loadMessages(convoId);
   }
 
   async function loadMessages(convoId) {
     const { data: messages, error } = await supabase
       .from("messages")
       .select("*")
-      .eq("conversation_id", convoId)
-      .order("created_at", { ascending: true });
+      .eq("conversation_id", convoId);
 
     if (error) return console.error("Error loading messages:", error);
 
-    const container = document.getElementById("messages");
-    container.innerHTML = "";
-    messages.forEach(appendMessage);
+    const messagesContainer = document.getElementById("messages");
+    messagesContainer.innerHTML = "";
+
+    messages.forEach(message => {
+      const messageDiv = document.createElement("div");
+      messageDiv.classList.add("message");
+      messageDiv.classList.add(message.sender_id === currentUserId ? "sent" : "received");
+      messageDiv.textContent = message.message;
+      messagesContainer.appendChild(messageDiv);
+    });
   }
 
   async function sendMessage() {
-  const input = document.getElementById("message-input");
-  const message = input.value.trim();
-  if (!message) return;
+    const buyerId = localStorage.getItem('buyer_id');
+    const sellerId = localStorage.getItem('seller_id');
 
-  input.value = "";
-  input.style.height = "auto"; // reset height
-  handleTyping(); // hide send button, show camera
-  input.focus(); // <-- keep focus after sending
-
-  await supabase.from("messages").insert([
-    { conversation_id: currentConversationId, sender_id: currentUserId, message }
-  ]);
-}
-
-  async function sendImage() {
-    const fileInput = document.getElementById("image-file");
-    const file = fileInput.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async function (e) {
-      const base64String = e.target.result;
-      await supabase.from("messages").insert([
-        { conversation_id: currentConversationId, sender_id: currentUserId, message: base64String }
-      ]);
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function handleKeyPress(event) {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      sendMessage();
+    if (!buyerId && !sellerId) {
+      document.getElementById('message-notification').style.display = 'block';
+      return; // Stop the message send process
     }
+
+    const input = document.getElementById("message-input");
+    const message = input.value.trim();
+    if (!message) return;
+
+    input.value = "";
+    input.style.height = "auto"; // reset height
+    handleTyping(); // hide send button, show camera
+    input.focus(); // <-- keep focus after sending
+
+    await supabase.from("messages").insert([
+      { conversation_id: currentConversationId, sender_id: currentUserId, message }
+    ]);
   }
 
-  function goBack() {
-    document.getElementById("chat-screen").style.display = "none";
-    document.getElementById("chat-list").style.display = "block";
+  function goToStore() {
+    window.location.href = 'store.html'; // Redirect to store page to set buyer/seller ID
   }
 
-  loadConversations();
+  function dismissNotification() {
+    document.getElementById('message-notification').style.display = 'none';
+  }
+
+  window.onload = loadConversations;
 </script>
 
 </body>
