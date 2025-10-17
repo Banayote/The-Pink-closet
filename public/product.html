@@ -308,28 +308,36 @@
 
       product = data;
 
-      document.getElementById("product-container").innerHTML = `
-        <div class="image-carousel" onclick="openModal()">
-          <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
-        </div>
-        <div class="product-details">
-          <h2 class="product-title">${product.name}</h2>
-          <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
-          <div class="product-description">
-            <p>${product.description}</p>
-          </div>
-          <div class="size-options-container">
-            <div class="size-options">
-              <button>XS</button>
-              <button>S</button>
-              <button>M</button>
-              <button>L</button>
-              <button>XL</button>
-            </div>
-          </div>
-          <button class="buy-button" onclick="startConversation()">Message Seller</button>
-        </div>
-      `;
+      // Add this function RIGHT BEFORE the innerHTML section
+function formatDescription(text) {
+  if (!text) return '';
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return text.replace(urlRegex, '<a href="$1" target="_blank" style="color: blue; text-decoration: underline;">$1</a>');
+}
+
+// Then your existing innerHTML code, but modified
+document.getElementById("product-container").innerHTML = `
+  <div class="image-carousel" onclick="openModal()">
+    <img src="${product.image_url || 'https://via.placeholder.com/600'}" alt="${product.name}">
+  </div>
+  <div class="product-details">
+    <h2 class="product-title">${product.name}</h2>
+    <p class="product-price">$${parseFloat(product.price).toFixed(2)}</p>
+    <div class="product-description">
+      <p>${formatDescription(product.description)}</p>
+    </div>
+    <div class="size-options-container">
+      <div class="size-options">
+        <button>XS</button>
+        <button>S</button>
+        <button>M</button>
+        <button>L</button>
+        <button>XL</button>
+      </div>
+    </div>
+    <button class="buy-button" onclick="startConversation()">Message Seller</button>
+  </div>
+`;
 
       if (!currentUserId) {
         currentUserId = "user_" + Math.random().toString(36).substr(2, 9);
