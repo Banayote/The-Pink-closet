@@ -279,11 +279,20 @@
     <img id="modalImage" src="" alt="Product Image">
   </div>
 
- <script>
+  <script>
+    // نقوم بالتحقق أولاً: إذا لم يكن supabase معرفاً مسبقاً، نقوم بتهيئته
+if (typeof supabase === 'undefined') {
     const SUPABASE_URL = "https://fjlqkjwnelkamealhtyr.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbHFranduZWxrYW1lYWxodHlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMDUyMDYsImV4cCI6MjA1Mjc4MTIwNn0.WOvuaxbIyDPyAp8mk7-ebhB6QdNI8EXbycA9XEg-US4";
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    let product;
+    window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+} else {
+    window.supabaseClient = supabase;
+}
+
+// الآن أسفل هذا السطر، في كود جلب المنتج (Fetch)، تأكد من استخدام window.supabaseClient بدلاً من supabase
+// مثال: await window.supabaseClient.from('products').select('*')...
+let product;
+
     let currentUserId = localStorage.getItem("user_id");
 
     document.addEventListener("DOMContentLoaded", async () => {
@@ -295,7 +304,7 @@
         return;
       }
 
-      const { data, error } = await supabaseClient
+      const { data, error } = await supabase
         .from("products")
         .select("*")
         .eq("id", productId)
@@ -385,7 +394,38 @@ document.getElementById("product-container").innerHTML = `
       }
 
       const sellerId = product.seller_id;
-let { data: newConversation, error: createError } = await supabaseClient
+
+      if (currentUserId === sellerId) {
+        alert("❌ You cannot message yourself.");
+        return;
+      }
+
+      try {
+        let { data: conversation, error } = await supabase
+          .from("conversations")
+          .select("id")
+          .or(`buyer_id.eq.${currentUserId}, seller_id.eq.${currentUserId}`)
+          .or(`buyer_id.eq.${sellerId}, seller_id.eq.${sellerId}`)
+          .single();
+
+        if (error) console.error("⚠️ Error checking conversation:", error.message);
+
+        if (!conversation) {
+          let { data: newConversation, error: createError } = await supabase
+            .from("conversations")
+            .insert([{ seller_id: sellerId, buyer_id: currentUserId }])
+            .select()
+            .single();
+
+          if (createError) throw createError;
+          conversation = newConversation;
+        }
+
+        window.location.href = `messages.html?conversation_id=${conversation.id}`;
+      } catch (err) {
+        console.error("❌ Error starting conversation:", err.message);
+        alert("Error starting conversation. Please try again.");
+      }
     }
   </script>
 </body>
