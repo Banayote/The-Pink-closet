@@ -401,7 +401,7 @@ document.getElementById("product-container").innerHTML = `
       }
 
       try {
-        let { data: conversation, error } = await supabase
+        let { data: conversation, error } = await window.supabaseClient
           .from("conversations")
           .select("id")
           .or(`buyer_id.eq.${currentUserId}, seller_id.eq.${currentUserId}`)
