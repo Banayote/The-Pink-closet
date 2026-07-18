@@ -411,8 +411,7 @@ document.getElementById("product-container").innerHTML = `
         if (error) console.error("⚠️ Error checking conversation:", error.message);
 
         if (!conversation) {
-          let { data: newConversation, error: createError } = await supabase
-            .from("conversations")
+          let { data: newConversation, error: createError } = await window.supabaseClient .from("conversations")
             .insert([{ seller_id: sellerId, buyer_id: currentUserId }])
             .select()
             .single();
